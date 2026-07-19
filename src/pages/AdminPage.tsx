@@ -9,7 +9,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Calendar, Clock, Music, Users, Package, Camera,
   Check, X, Loader2, Shield, CalendarClock,
-  BarChart3, CreditCard, Bell, Gift, UserCheck, Megaphone,
+  BarChart3, CreditCard, Bell, Gift, UserCheck, Megaphone, TrendingUp,
   ChevronRight, ChevronDown, AlertTriangle, Bug,
   Edit3, Save, Phone, MapPin, Mail, Crown, Trash2,
   Database, ChevronLeft, RefreshCw, Upload, Settings, Plus
@@ -23,13 +23,14 @@ import PageLoader from "@/components/PageLoader";
 import AdminUserAccess from "@/components/admin/AdminUserAccess";
 const AdminBlastTab = lazy(() => import("@/components/admin/AdminBlastTab"));
 const AdminPerfTab = lazy(() => import("@/components/admin/AdminPerfTab"));
+const AdminInsightsTab = lazy(() => import("@/components/admin/AdminInsightsTab"));
 import { nl, enUS } from "date-fns/locale";
 import { inlineToast as toast } from "@/components/InlineToast";
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
 const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
 
-type Tab = "overview" | "diensten" | "bookings" | "producer" | "requests" | "projects" | "users" | "notifications" | "referrals" | "errors" | "database" | "products" | "config" | "configsettings" | "nuki" | "access" | "blast" | "subscriptions" | "perf";
+type Tab = "overview" | "insights" | "diensten" | "bookings" | "producer" | "requests" | "projects" | "users" | "notifications" | "referrals" | "errors" | "database" | "products" | "config" | "configsettings" | "nuki" | "access" | "blast" | "subscriptions" | "perf";
 
 const AdminPage = () => {
   const { lang } = useI18n();
@@ -579,6 +580,7 @@ const AdminPage = () => {
 
   const mainTabs: { id: Tab; label: string; icon: any }[] = [
     { id: "overview", label: lang === "nl" ? "Overzicht" : "Overview", icon: BarChart3 },
+    { id: "insights", label: "Insights", icon: TrendingUp },
     { id: "diensten", label: lang === "nl" ? "Diensten" : "Services", icon: Package },
     { id: "users", label: lang === "nl" ? "Gebruikers" : "Users", icon: Users },
     { id: "config", label: "Config", icon: Settings },
@@ -1821,6 +1823,13 @@ const AdminPage = () => {
               </motion.div>
             )}
 
+            {/* ===== INSIGHTS ===== */}
+            {activeTab === "insights" && (
+              <motion.div variants={item}>
+                <Suspense fallback={<PageLoader />}><AdminInsightsTab /></Suspense>
+              </motion.div>
+            )}
+
             {/* ===== PERFORMANCE ===== */}
             {activeTab === "perf" && (
               <motion.div variants={item}>
@@ -1831,7 +1840,7 @@ const AdminPage = () => {
               </motion.div>
             )}
 
-            {activeTab !== "overview" && activeTab !== "errors" && activeTab !== "database" && activeTab !== "products" && activeTab !== "config" && activeTab !== "nuki" && activeTab !== "access" && activeTab !== "blast" && activeTab !== "subscriptions" && activeTab !== "perf" && (
+            {activeTab !== "overview" && activeTab !== "insights" && activeTab !== "errors" && activeTab !== "database" && activeTab !== "products" && activeTab !== "config" && activeTab !== "nuki" && activeTab !== "access" && activeTab !== "blast" && activeTab !== "subscriptions" && activeTab !== "perf" && (
               (activeTab === "bookings" && bookings.length === 0) ||
               (activeTab === "producer" && producerBookings.length === 0) ||
               (activeTab === "requests" && contentRequests.length === 0) ||

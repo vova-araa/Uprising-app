@@ -1,17 +1,19 @@
 import { useI18n } from "@/lib/i18n";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Camera, ChevronLeft, Smartphone, Image, Video, Megaphone, ChevronRight, CalendarCheck, UserPlus, Clapperboard } from "lucide-react";
+import { Camera, ChevronLeft, Smartphone, Image, Video, Megaphone, ChevronRight, CalendarCheck, UserPlus, Clapperboard, Mic2, Podcast } from "lucide-react";
 import SEO from "@/components/SEO";
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } };
 const item = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
 const contentTypes = [
+  { nl: "Podcast & video-podcast", en: "Podcast & video podcast", icon: Podcast },
   { nl: "Social media content", en: "Social media content", icon: Smartphone },
   { nl: "Artist visuals", en: "Artist visuals", icon: Image },
   { nl: "Foto en video opnames", en: "Photo and video recordings", icon: Video },
   { nl: "Promo materiaal", en: "Promo material", icon: Megaphone },
+  { nl: "Interviews & talking heads", en: "Interviews & talking heads", icon: Mic2 },
 ];
 
 const ContentDetailPage = () => {
@@ -59,8 +61,8 @@ const ContentDetailPage = () => {
           </span>
           <p className="text-sm text-muted-foreground leading-relaxed py-3">
             {lang === "nl"
-              ? "Naast muziekproductie biedt Uprising Studio ook mogelijkheden voor het maken van professionele content. In onze content ruimte kun je werken aan visuals, social media content en promotie materiaal."
-              : "In addition to music production, Uprising Studio also offers options for creating professional content. In our content room you can work on visuals, social media content and promotional material."}
+              ? "Naast muziekproductie biedt Uprising Studio ook een volwaardige content- en podcaststudio. Complete podcast-setup, camera, LED panels, green screen en teleprompter — boek per uur, neem je hele aflevering of contentdag in één sessie op."
+              : "In addition to music production, Uprising Studio offers a fully equipped content and podcast studio. Complete podcast setup, camera, LED panels, green screen and teleprompter — book by the hour and record your whole episode or content day in one session."}
           </p>
         </motion.div>
 

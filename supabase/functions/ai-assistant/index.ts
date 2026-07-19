@@ -125,7 +125,7 @@ async function extractProposal(content: string): Promise<{ proposal: BookingProp
   const [reqH, reqM] = start_time.split(":").map(Number);
   const available = !blocked && fits(reqH * 60 + (reqM || 0), duration_hours);
 
-  let alternatives: string[] = [];
+  const alternatives: string[] = [];
   if (!available && !blocked) {
     for (let h = 0; h < 24 && alternatives.length < 4; h++) {
       if (fits(h * 60, duration_hours)) alternatives.push(`${String(h).padStart(2, "0")}:00`);
