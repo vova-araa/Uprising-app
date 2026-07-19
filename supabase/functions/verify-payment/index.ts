@@ -75,11 +75,38 @@ serve(async (req) => {
       if (plan) {
         const isBroedplaats = plan.startsWith("broedplaats");
         const updateField = isBroedplaats ? "broedplaats" : "membership";
+
+        // Was this a first-time membership? (drives the intake nudge)
+        const { data: before } = await supabaseAdmin
+          .from("profiles").select(updateField).eq("id", user.id).single();
+        const isNewMember = !before || !(before as Record<string, unknown>)[updateField];
+
         await supabaseAdmin
           .from("profiles")
           .update({ [updateField]: plan, updated_at: new Date().toISOString() })
           .eq("id", user.id);
         logStep("Membership synced to profile", { plan, field: updateField });
+
+        // New member: the team runs the coach intake so we know their process
+        // from day one. Skip if an intake already exists.
+        if (isNewMember && !isBroedplaats) {
+          const { data: existingIntake } = await supabaseAdmin
+            .from("creator_profiles").select("user_id").eq("user_id", user.id).maybeSingle();
+          if (!existingIntake) {
+            const { data: prof } = await supabaseAdmin.from("profiles").select("full_name, email").eq("id", user.id).single();
+            const name = prof?.full_name || prof?.email || "Nieuw lid";
+            const { data: adminRoles } = await supabaseAdmin.from("user_roles").select("user_id").in("role", ["admin", "staff"]);
+            if (adminRoles && adminRoles.length > 0) {
+              await supabaseAdmin.from("notifications").insert(adminRoles.map((r: { user_id: string }) => ({
+                user_id: r.user_id,
+                title: "🎤 Nieuw lid — plan de coach-intake",
+                message: `${name} is lid geworden (${plan}). Neem de Content Coach-intake af zodat we het proces vanaf dag één kennen.`,
+                type: "info",
+                link: "/admin?tab=intakes",
+              })));
+            }
+          }
+        }
       }
 
       return new Response(JSON.stringify({ verified: true, type: "membership", plan }), {

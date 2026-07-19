@@ -24,13 +24,14 @@ import AdminUserAccess from "@/components/admin/AdminUserAccess";
 const AdminBlastTab = lazy(() => import("@/components/admin/AdminBlastTab"));
 const AdminPerfTab = lazy(() => import("@/components/admin/AdminPerfTab"));
 const AdminInsightsTab = lazy(() => import("@/components/admin/AdminInsightsTab"));
+const AdminIntakesTab = lazy(() => import("@/components/admin/AdminIntakesTab"));
 import { nl, enUS } from "date-fns/locale";
 import { inlineToast as toast } from "@/components/InlineToast";
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
 const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
 
-type Tab = "overview" | "insights" | "diensten" | "bookings" | "producer" | "requests" | "projects" | "users" | "notifications" | "referrals" | "errors" | "database" | "products" | "config" | "configsettings" | "nuki" | "access" | "blast" | "subscriptions" | "perf";
+type Tab = "overview" | "insights" | "diensten" | "bookings" | "producer" | "requests" | "projects" | "users" | "intakes" | "notifications" | "referrals" | "errors" | "database" | "products" | "config" | "configsettings" | "nuki" | "access" | "blast" | "subscriptions" | "perf";
 
 const AdminPage = () => {
   const { lang } = useI18n();
@@ -98,7 +99,16 @@ const AdminPage = () => {
   useEffect(() => {
     if (!user || isAdminCached === null) return;
     setIsAdmin(isAdminCached);
-    if (isAdminCached) loadOverview();
+    if (isAdminCached) {
+      loadOverview();
+      // Honor a ?tab= deep link (e.g. from the new-member intake notification)
+      const qs = window.location.hash.split("?")[1];
+      const wanted = qs ? new URLSearchParams(qs).get("tab") : null;
+      if (wanted) {
+        setActiveTab(wanted as Tab);
+        if (wanted !== "overview") loadData(wanted as Tab);
+      }
+    }
   }, [user, isAdminCached]);
 
 
@@ -591,6 +601,7 @@ const AdminPage = () => {
     { id: "producer", label: "Producer", icon: Music },
     { id: "requests", label: lang === "nl" ? "Aanvragen" : "Requests", icon: Camera },
     { id: "projects", label: lang === "nl" ? "Projecten" : "Projects", icon: Package },
+    { id: "intakes", label: "Coach-intakes", icon: Megaphone },
     { id: "subscriptions", label: "Abonnementen", icon: Crown },
     { id: "referrals", label: "Referrals", icon: Gift },
   ];
@@ -1830,6 +1841,13 @@ const AdminPage = () => {
               </motion.div>
             )}
 
+            {/* ===== COACH INTAKES ===== */}
+            {activeTab === "intakes" && (
+              <motion.div variants={item}>
+                <Suspense fallback={<PageLoader />}><AdminIntakesTab /></Suspense>
+              </motion.div>
+            )}
+
             {/* ===== PERFORMANCE ===== */}
             {activeTab === "perf" && (
               <motion.div variants={item}>
@@ -1840,7 +1858,7 @@ const AdminPage = () => {
               </motion.div>
             )}
 
-            {activeTab !== "overview" && activeTab !== "insights" && activeTab !== "errors" && activeTab !== "database" && activeTab !== "products" && activeTab !== "config" && activeTab !== "nuki" && activeTab !== "access" && activeTab !== "blast" && activeTab !== "subscriptions" && activeTab !== "perf" && (
+            {activeTab !== "overview" && activeTab !== "insights" && activeTab !== "intakes" && activeTab !== "errors" && activeTab !== "database" && activeTab !== "products" && activeTab !== "config" && activeTab !== "nuki" && activeTab !== "access" && activeTab !== "blast" && activeTab !== "subscriptions" && activeTab !== "perf" && (
               (activeTab === "bookings" && bookings.length === 0) ||
               (activeTab === "producer" && producerBookings.length === 0) ||
               (activeTab === "requests" && contentRequests.length === 0) ||
