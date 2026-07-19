@@ -16,6 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { inlineToast as toast } from "@/components/InlineToast";
+import { useConfirm } from "@/components/ConfirmDialog";
 import OrgWorkshopDetailNew from "./OrgWorkshopDetailNew";
 
 const ALL = "__all__";
@@ -32,6 +33,7 @@ const statusColors: Record<string, string> = {
 };
 
 const OrgWorkshopsList = () => {
+  const confirm = useConfirm();
   const { user } = useAuth();
   const [workshops, setWorkshops] = useState<any[]>([]);
   const [sessions, setSessions] = useState<any[]>([]);
@@ -195,7 +197,7 @@ const OrgWorkshopsList = () => {
   };
 
   const removeWorkshop = async (id: string) => {
-    if (!confirm("Workshop verwijderen? Alle sessies worden ook verwijderd.")) return;
+    if (!(await confirm({ title: "Workshop verwijderen?", message: "Alle sessies worden ook verwijderd.", destructive: true }))) return;
     // Delete sessions first
     await (supabase.from("org_sessions" as any) as any).delete().eq("org_workshop_id", id);
     await (supabase.from("org_workshops" as any) as any).delete().eq("id", id);

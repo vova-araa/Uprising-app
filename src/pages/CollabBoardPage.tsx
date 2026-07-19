@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { inlineToast as toast } from "@/components/InlineToast";
 import { PageSkeleton } from "@/components/PageSkeleton";
+import { useConfirm } from "@/components/ConfirmDialog";
 import SEO from "@/components/SEO";
 
 interface Post {
@@ -25,6 +26,7 @@ const ROLES = [
 const roleLabel = (id: string) => ROLES.find((r) => r.id === id)?.label || id;
 
 const CollabBoardPage = () => {
+  const confirm = useConfirm();
   const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [names, setNames] = useState<Map<string, string>>(new Map());
@@ -59,7 +61,7 @@ const CollabBoardPage = () => {
   };
 
   const closePost = async (id: string) => {
-    if (!window.confirm("Deze post sluiten? Anderen kunnen dan niet meer reageren.")) return;
+    if (!(await confirm({ title: "Deze post sluiten?", message: "Anderen kunnen dan niet meer reageren." }))) return;
     const { error } = await supabase.from("collab_posts").update({ status: "closed" }).eq("id", id);
     if (error) {
       toast.error("Sluiten mislukt — probeer opnieuw.");

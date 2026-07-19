@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { inlineToast as toast } from "@/components/InlineToast";
+import { useConfirm } from "@/components/ConfirmDialog";
 import AddressInput from "@/components/AddressInput";
 import OrgTrajectDetail from "./OrgTrajectDetail";
 import OrgSchoolDetail from "./OrgSchoolDetail";
@@ -29,6 +30,7 @@ const durationLabel = (val: string | null) =>
   DURATION_OPTIONS.find(o => o.value === val)?.label || val || "—";
 
 const OrgSchools = () => {
+  const confirm = useConfirm();
   const { user } = useAuth();
   const [schools, setSchools] = useState<any[]>([]);
   const [locations, setLocations] = useState<any[]>([]);
@@ -151,7 +153,7 @@ const OrgSchools = () => {
   };
 
   const remove = async (id: string) => {
-    if (!confirm("School verwijderen? Gekoppelde trajecten behouden hun data.")) return;
+    if (!(await confirm({ title: "School verwijderen?", message: "Gekoppelde trajecten behouden hun data.", destructive: true }))) return;
     const { error } = await (supabase.from("org_schools" as any) as any).delete().eq("id", id);
     if (error) { toast.error(`Verwijderen mislukt: ${error.message}`); return; }
     toast.success("Verwijderd");

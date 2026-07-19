@@ -7,10 +7,12 @@ import { Label } from "@/components/ui/label";
 import { inlineToast as toast } from "@/components/InlineToast";
 import AddressInput from "@/components/AddressInput";
 import { Badge } from "@/components/ui/badge";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const emptyForm = { name: "", address: "", contact_person: "", contact_phone: "", contact_email: "" };
 
 const OrgLocations = () => {
+  const confirm = useConfirm();
   const [locations, setLocations] = useState<any[]>([]);
   const [schools, setSchools] = useState<any[]>([]);
   const [trajecten, setTrajecten] = useState<any[]>([]);
@@ -101,7 +103,7 @@ const OrgLocations = () => {
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Locatie verwijderen?")) return;
+    if (!(await confirm({ title: "Locatie verwijderen?", destructive: true }))) return;
     const { error } = await (supabase.from("org_locations" as any) as any).delete().eq("id", id);
     if (error) { toast.error(`Verwijderen mislukt: ${error.message}`); return; }
     toast.success("Verwijderd");

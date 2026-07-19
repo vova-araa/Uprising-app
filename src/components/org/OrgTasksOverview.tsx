@@ -14,11 +14,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { inlineToast as toast } from "@/components/InlineToast";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const ALL = "__all__";
 const NONE = "__none__";
 
 const OrgTasksOverview = () => {
+  const confirm = useConfirm();
   const { user } = useAuth();
   const [tasks, setTasks] = useState<any[]>([]);
   const [trajecten, setTrajecten] = useState<any[]>([]);
@@ -144,7 +146,7 @@ const OrgTasksOverview = () => {
   };
 
   const removeTask = async (id: string) => {
-    if (!confirm("Taak verwijderen?")) return;
+    if (!(await confirm({ title: "Taak verwijderen?", destructive: true }))) return;
     const { error } = await (supabase.from("org_tasks" as any) as any).delete().eq("id", id);
     if (error) { toast.error(`Verwijderen mislukt: ${error.message}`); return; }
     toast.success("Taak verwijderd");

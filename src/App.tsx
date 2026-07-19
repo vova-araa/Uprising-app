@@ -6,6 +6,7 @@ import { HashRouter, Navigate, Route, Routes, useLocation } from "react-router-d
 import { I18nProvider } from "@/lib/i18n";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AppConfigProvider } from "@/contexts/AppConfigContext";
+import { ConfirmDialogProvider } from "@/components/ConfirmDialog";
 import AppShell from "@/components/AppShell";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import PageTransition from "@/components/PageTransition";
@@ -185,17 +186,19 @@ const App = () => (
           <AppConfigProvider>
           <Suspense fallback={null}>
             <TooltipProvider>
-              <Toaster />
-              <OfflineBanner />
-              
-              <HashRouter>
-                <Suspense fallback={<PageLoader />}>
-                  <Routes>
-                    <Route path="/reset-password" element={<ResetPasswordPage />} />
-                    <Route path="/*" element={<AppRoutes />} />
-                  </Routes>
-                </Suspense>
-              </HashRouter>
+              <ConfirmDialogProvider>
+                <Toaster />
+                <OfflineBanner />
+
+                <HashRouter>
+                  <Suspense fallback={<PageLoader />}>
+                    <Routes>
+                      <Route path="/reset-password" element={<ResetPasswordPage />} />
+                      <Route path="/*" element={<AppRoutes />} />
+                    </Routes>
+                  </Suspense>
+                </HashRouter>
+              </ConfirmDialogProvider>
             </TooltipProvider>
           </Suspense>
           </AppConfigProvider>

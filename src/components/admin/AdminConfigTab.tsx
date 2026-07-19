@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useConfirm } from "@/components/ConfirmDialog";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Save, Loader2, ChevronRight, RefreshCw, Settings,
@@ -331,6 +332,7 @@ const NumberFieldInput = ({ value, onChange }: { value: number; onChange: (v: nu
 const ArrayFieldEditor = ({ value, onChange, path }: {
   value: any[]; onChange: (v: any[]) => void; path: string;
 }) => {
+  const confirm = useConfirm();
   // Simple string/number array
   if (value.length === 0 || typeof value[0] === "string" || typeof value[0] === "number") {
     return <SimpleArrayEditor value={value} onChange={onChange} />;
@@ -382,8 +384,8 @@ const ArrayFieldEditor = ({ value, onChange, path }: {
                 <Copy size={12} />
               </button>
               <button
-                onClick={() => {
-                  if (confirm("Dit item verwijderen?")) {
+                onClick={async () => {
+                  if (await confirm({ title: "Dit item verwijderen?", destructive: true })) {
                     onChange(value.filter((_, idx) => idx !== i));
                   }
                 }}

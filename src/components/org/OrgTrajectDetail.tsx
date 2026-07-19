@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { inlineToast as toast } from "@/components/InlineToast";
+import { useConfirm } from "@/components/ConfirmDialog";
 import OrgMilestoneTasks from "./OrgMilestoneTasks";
 
 const statusLabels: Record<string, string> = {
@@ -47,6 +48,7 @@ interface Props {
 }
 
 const OrgTrajectDetail = ({ trajectId, onBack }: Props) => {
+  const confirm = useConfirm();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [traject, setTraject] = useState<any>(null);
@@ -153,7 +155,7 @@ const OrgTrajectDetail = ({ trajectId, onBack }: Props) => {
   };
 
   const removeParticipant = async (id: string) => {
-    if (!confirm("Deelnemer verwijderen?")) return;
+    if (!(await confirm({ title: "Deelnemer verwijderen?", destructive: true }))) return;
     await (supabase.from("org_participants" as any) as any).delete().eq("id", id);
     toast.success("Verwijderd");
     load();

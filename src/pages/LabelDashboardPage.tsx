@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLabelAccess } from "@/hooks/useLabelAccess";
 import { inlineToast as toast } from "@/components/InlineToast";
 import { PageSkeleton } from "@/components/PageSkeleton";
+import { useConfirm } from "@/components/ConfirmDialog";
 import SEO from "@/components/SEO";
 
 interface Label {
@@ -30,6 +31,7 @@ const HOURS = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, "
 const studioName = (id: string) => STUDIOS.find((s) => s.id === id)?.label || id;
 
 const LabelDashboardPage = () => {
+  const confirm = useConfirm();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { labelId, loading: accessLoading } = useLabelAccess();
@@ -101,7 +103,7 @@ const LabelDashboardPage = () => {
 
   const cancelLabelBooking = async (bookingId: string) => {
     if (cancellingId) return;
-    if (!window.confirm("Sessie annuleren? De uren gaan terug naar de pot.")) return;
+    if (!(await confirm({ title: "Sessie annuleren?", message: "De uren gaan terug naar de pot.", destructive: true }))) return;
     setCancellingId(bookingId);
     try {
       const { data, error } = await supabase.functions.invoke("cancel-booking", { body: { booking_id: bookingId } });

@@ -14,8 +14,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { inlineToast as toast } from "@/components/InlineToast";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const OrgBroedplaats = () => {
+  const confirm = useConfirm();
   const [selectedWorkshopId, setSelectedWorkshopId] = useState<string | null>(null);
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -130,7 +132,7 @@ const OrgBroedplaats = () => {
   };
 
   const deleteWorkshop = async (id: string) => {
-    if (!confirm("Workshop verwijderen?")) return;
+    if (!(await confirm({ title: "Workshop verwijderen?", destructive: true }))) return;
     try {
       await (supabase.from as any)("broedplaats_workshops").delete().eq("id", id);
       toast.success("Workshop verwijderd");
@@ -636,7 +638,7 @@ const OrgBroedplaats = () => {
                   )}
                 </div>
                 <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={async () => {
-                  if (!confirm("Ambassadeur verwijderen?")) return;
+                  if (!(await confirm({ title: "Ambassadeur verwijderen?", destructive: true }))) return;
                   const { error } = await (supabase.from("org_ambassadors" as any) as any).delete().eq("id", a.id);
                   if (error) { toast.error(error.message); return; }
                   toast.success("Verwijderd");

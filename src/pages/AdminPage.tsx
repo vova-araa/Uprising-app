@@ -20,6 +20,7 @@ const AdminSubscriptionsTab = lazy(() => import("@/components/admin/AdminSubscri
 const AdminNukiTab = lazy(() => import("@/components/admin/AdminNukiTab"));
 const AdminAccessTab = lazy(() => import("@/components/admin/AdminAccessTab"));
 import PageLoader from "@/components/PageLoader";
+import { useConfirm } from "@/components/ConfirmDialog";
 import AdminUserAccess from "@/components/admin/AdminUserAccess";
 const AdminBlastTab = lazy(() => import("@/components/admin/AdminBlastTab"));
 const AdminPerfTab = lazy(() => import("@/components/admin/AdminPerfTab"));
@@ -37,6 +38,7 @@ type Tab = "overview" | "insights" | "finance" | "diensten" | "bookings" | "prod
 
 const AdminPage = () => {
   const { lang } = useI18n();
+  const confirm = useConfirm();
   const { user } = useAuth();
   const navigate = useNavigate();
   const locale = lang === "nl" ? nl : enUS;
@@ -216,7 +218,7 @@ const AdminPage = () => {
   };
 
   const deleteUser = async (userId: string) => {
-    if (!confirm(lang === "nl" ? "Weet je zeker dat je deze gebruiker wilt verwijderen? Dit kan niet ongedaan worden gemaakt." : "Are you sure you want to delete this user? This cannot be undone.")) return;
+    if (!(await confirm({ title: lang === "nl" ? "Gebruiker verwijderen?" : "Delete user?", message: lang === "nl" ? "Dit kan niet ongedaan worden gemaakt." : "This cannot be undone.", destructive: true }))) return;
     setDeletingUser(userId);
     try {
       // Delete profile (cascading will handle related data)
@@ -387,7 +389,7 @@ const AdminPage = () => {
   };
 
   const deactivatePrice = async (priceId: string) => {
-    if (!confirm("Weet je zeker dat je deze prijs wilt verwijderen uit Stripe?")) return;
+    if (!(await confirm({ title: "Prijs verwijderen uit Stripe?", destructive: true }))) return;
     setSavingProduct(true);
     try {
       const { error } = await supabase.functions.invoke("manage-stripe-products", {
@@ -404,7 +406,7 @@ const AdminPage = () => {
   };
 
   const deactivateProduct = async (productId: string) => {
-    if (!confirm("Weet je zeker dat je dit product wilt deactiveren in Stripe? Alle bijbehorende prijzen worden ook gedeactiveerd.")) return;
+    if (!(await confirm({ title: "Product deactiveren in Stripe?", message: "Alle bijbehorende prijzen worden ook gedeactiveerd.", destructive: true }))) return;
     setSavingProduct(true);
     try {
       const { error } = await supabase.functions.invoke("manage-stripe-products", {
@@ -809,7 +811,7 @@ const AdminPage = () => {
                           <button
                             onClick={async (e) => {
                               e.stopPropagation();
-                              if (!confirm(lang === "nl" ? "Boeking verwijderen?" : "Delete booking?")) return;
+                              if (!(await confirm({ title: lang === "nl" ? "Boeking verwijderen?" : "Delete booking?", destructive: true }))) return;
                               await supabase.from("bookings").delete().eq("id", b.id);
                               toast.success(lang === "nl" ? "Boeking verwijderd" : "Booking deleted");
                               loadOverview();
@@ -933,7 +935,7 @@ const AdminPage = () => {
                     <button
                       onClick={async (e) => {
                         e.stopPropagation();
-                        if (!confirm(lang === "nl" ? "Boeking verwijderen?" : "Delete booking?")) return;
+                        if (!(await confirm({ title: lang === "nl" ? "Boeking verwijderen?" : "Delete booking?", destructive: true }))) return;
                         await supabase.from("bookings").delete().eq("id", b.id);
                         toast.success(lang === "nl" ? "Boeking verwijderd" : "Booking deleted");
                         loadOverview();
@@ -969,7 +971,7 @@ const AdminPage = () => {
                     <span className={statusBadge(pb.status)}>{pb.status}</span>
                     <button
                       onClick={async () => {
-                        if (!confirm(lang === "nl" ? "Producer sessie verwijderen?" : "Delete producer session?")) return;
+                        if (!(await confirm({ title: lang === "nl" ? "Producer sessie verwijderen?" : "Delete producer session?", destructive: true }))) return;
                         try {
                           await supabase.from("producer_bookings").delete().eq("id", pb.id);
                           setProducerBookings(prev => prev.filter((p: any) => p.id !== pb.id));
@@ -1047,7 +1049,7 @@ const AdminPage = () => {
                     <span className={statusBadge(p.status)}>{p.status}</span>
                     <button
                       onClick={async () => {
-                        if (!confirm(`Project "${p.title}" verwijderen?`)) return;
+                        if (!(await confirm({ title: `Project "${p.title}" verwijderen?`, destructive: true }))) return;
                         try {
                           await (supabase as any).from("projects").delete().eq("id", p.id);
                           toast.success("Project verwijderd");

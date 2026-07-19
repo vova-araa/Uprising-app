@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Lock, Unlock, RefreshCw, Loader2, Settings, Shield, Clock, Trash2, Plus } from "lucide-react";
+import { useConfirm } from "@/components/ConfirmDialog";
 import { inlineToast as toast } from "@/components/InlineToast";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
@@ -13,6 +14,7 @@ const STUDIO_NAMES: Record<string, string> = {
 };
 
 const AdminNukiTab = () => {
+  const confirm = useConfirm();
   const [smartlocks, setSmartlocks] = useState<any[]>([]);
   const [activeAccess, setActiveAccess] = useState<any[]>([]);
   const [unlockLogs, setUnlockLogs] = useState<any[]>([]);
@@ -71,7 +73,7 @@ const AdminNukiTab = () => {
   const handleTestConnection = async () => {
     setTestingConnection(true);
     try {
-      const performUnlock = window.confirm("Ook een test-ontgrendeling uitvoeren?");
+      const performUnlock = await confirm({ title: "Verbinding testen", message: "Ook een test-ontgrendeling uitvoeren?", confirmLabel: "Ja, ontgrendel", cancelLabel: "Nee" });
       const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/nuki-integration?action=test-connection`,

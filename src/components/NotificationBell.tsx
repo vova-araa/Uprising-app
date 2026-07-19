@@ -3,6 +3,7 @@ import { Bell, ChevronRight, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/lib/i18n";
+import { useConfirm } from "@/components/ConfirmDialog";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { nl, enUS } from "date-fns/locale";
@@ -23,6 +24,7 @@ interface Notification {
 const NOTIFICATION_SOUND_URL = "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbsGkqeli62teleUE6ecLW2apXJkRyr9XneEkuW5y808qCUjVLhLPOyZJfOUl+rszKnGtETXaqx8OjelJOXZ2/wqiISVhZkbm7rJRdUFmOtLaqmGhhWoSssqufi2tgcJOoq6qYfWhmdJOlp6aWhXVscYydo6KUinhudIuYnJqTiH13dYeSl5aRiYB6eIONk5OPiIN+fIGIjY6Nh4SBf4GFiIqKiIWDgoGChIaHhoWEg4KCg4SFhYWEhIODg4OEhISEhIODg4ODhISEhIODg4ODg4OEhISDg4ODg4ODg4ODg4ODg4ODg4OD";
 
 const NotificationBell = () => {
+  const confirm = useConfirm();
   const { user } = useAuth();
   const { t, lang } = useI18n();
   const navigate = useNavigate();
@@ -99,7 +101,13 @@ const NotificationBell = () => {
 
   const clearAllNotifications = async () => {
     if (notifications.length === 0) return;
-    if (!window.confirm(lang === "nl" ? "Alle meldingen wissen? Dit kan niet ongedaan worden gemaakt." : "Clear all notifications? This can't be undone.")) return;
+    if (!(await confirm({
+      title: lang === "nl" ? "Alle meldingen wissen?" : "Clear all notifications?",
+      message: lang === "nl" ? "Dit kan niet ongedaan worden gemaakt." : "This can't be undone.",
+      confirmLabel: lang === "nl" ? "Wissen" : "Clear",
+      cancelLabel: lang === "nl" ? "Annuleren" : "Cancel",
+      destructive: true,
+    }))) return;
     const ids = notifications.map((n) => n.id);
     const prev = notifications;
     setNotifications([]);

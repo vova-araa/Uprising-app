@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { inlineToast as toast } from "@/components/InlineToast";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const emptyForm = { name: "", email: "", role: "member", phone: "", city: "" };
 
 const OrgTeamMembers = () => {
+  const confirm = useConfirm();
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
@@ -63,7 +65,7 @@ const OrgTeamMembers = () => {
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Teamlid verwijderen?")) return;
+    if (!(await confirm({ title: "Teamlid verwijderen?", destructive: true }))) return;
     const { error } = await (supabase.from("org_team_members" as any) as any).delete().eq("id", id);
     if (error) { toast.error(`Verwijderen mislukt: ${error.message}`); return; }
     toast.success("Verwijderd");

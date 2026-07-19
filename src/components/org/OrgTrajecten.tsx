@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { inlineToast as toast } from "@/components/InlineToast";
+import { useConfirm } from "@/components/ConfirmDialog";
 import AddressInput from "@/components/AddressInput";
 import { Progress } from "@/components/ui/progress";
 
@@ -32,6 +33,7 @@ const statusColors: Record<string, string> = {
 const DAY_LABELS = ["Zondag", "Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag"];
 
 const OrgTrajecten = () => {
+  const confirm = useConfirm();
   const [selectedTrajectId, setSelectedTrajectId] = useState<string | null>(null);
   const { user } = useAuth();
   const [trajecten, setTrajecten] = useState<any[]>([]);
@@ -213,7 +215,7 @@ const OrgTrajecten = () => {
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Traject verwijderen? Gekoppelde sessies behouden hun data.")) return;
+    if (!(await confirm({ title: "Traject verwijderen?", message: "Gekoppelde sessies behouden hun data.", destructive: true }))) return;
     const { error } = await (supabase.from("org_trajecten" as any) as any).delete().eq("id", id);
     if (error) { toast.error(`Verwijderen mislukt: ${error.message}`); return; }
     toast.success("Verwijderd");
@@ -279,7 +281,7 @@ const OrgTrajecten = () => {
   };
 
   const removeParticipant = async (id: string) => {
-    if (!confirm("Deelnemer verwijderen?")) return;
+    if (!(await confirm({ title: "Deelnemer verwijderen?", destructive: true }))) return;
     const { error } = await (supabase.from("org_participants" as any) as any).delete().eq("id", id);
     if (error) { toast.error(`Verwijderen mislukt: ${error.message}`); return; }
     toast.success("Verwijderd");
