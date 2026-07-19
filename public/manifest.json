@@ -6,12 +6,25 @@
   "display": "standalone",
   "background_color": "#08070d",
   "theme_color": "#08070d",
+  "categories": ["music", "productivity", "lifestyle"],
+  "orientation": "portrait",
   "icons": [
+    {
+      "src": "/uprising-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/uprising-logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ],
+  "shortcuts": [
+    { "name": "Boeken", "short_name": "Boeken", "url": "/#/book" },
+    { "name": "Mijn account", "short_name": "Account", "url": "/#/account" },
+    { "name": "Content Coach", "short_name": "Coach", "url": "/#/coach" }
   ]
 }

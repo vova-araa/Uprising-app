@@ -7,6 +7,7 @@ import { useWebPush } from "@/hooks/useWebPush";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import BottomNav from "./BottomNav";
 import DesktopNav from "./DesktopNav";
+import InstallPrompt from "./InstallPrompt";
 import { Loader2 } from "lucide-react";
 const AIAssistantOverlay = lazy(() => import("./AIAssistantOverlay"));
 
@@ -110,6 +111,7 @@ const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
         </main>
         {user && <Suspense fallback={null}><AIAssistantOverlay open={showAI} onClose={() => setShowAI(false)} /></Suspense>}
+        <InstallPrompt />
         <BottomNav />
       </div>
     </AIOverlayContext.Provider>
