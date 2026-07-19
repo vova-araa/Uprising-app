@@ -272,7 +272,7 @@ const HomePage = () => {
         )}
 
         {/* Quick Actions */}
-        {visibleSections.some(s => s.id === "quick_actions") && (
+        {visibleSections.some(s => s.id === "quick_actions") && quickActions.length > 0 && (
         <motion.section variants={item}>
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
             {t("quickActions")}
@@ -368,7 +368,7 @@ const HomePage = () => {
         )}
 
         {/* Featured Studios */}
-        {visibleSections.some(s => s.id === "featured_studios") && (
+        {visibleSections.some(s => s.id === "featured_studios") && studios.length > 0 && (
         <motion.section variants={item} className="pb-4">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
             {t("featuredServices")}

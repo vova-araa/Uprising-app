@@ -179,6 +179,16 @@ const defaultHeroContent: HeroContent = {
   ctaLabelKey: "bookStudio",
 };
 
+// Safety net so the home page is never blank when the `homepage_sections`
+// config row is missing (fresh installs / degraded backend). Sections whose
+// underlying data is absent render gracefully empty; the hero always shows.
+const defaultHomepageSections: HomepageSection[] = [
+  { id: "hero", visible: true, sort: 0 },
+  { id: "quick_actions", visible: true, sort: 1 },
+  { id: "today_availability", visible: true, sort: 2 },
+  { id: "featured_studios", visible: true, sort: 3 },
+];
+
 const defaultBanner: AnnouncementBanner = {
   visible: false,
   message: "",
@@ -224,7 +234,7 @@ export const AppConfigProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     bookingRules: get("booking_rules", defaultBookingRules),
     mixMasterPricing: get("mix_master_pricing", { basePrice: 150, proDiscount: 0.1, unlimitedDiscount: 0.2 }),
     producerPricing: get("producer_pricing", { depositAmount: 350 }),
-    homepageSections: get("homepage_sections", []),
+    homepageSections: get("homepage_sections", defaultHomepageSections),
     quickActions: get("quick_actions", []),
     heroContent: get("hero_content", defaultHeroContent),
     featureFlags: { ...defaultFeatureFlags, ...get("feature_flags", {}) },
