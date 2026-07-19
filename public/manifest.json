@@ -4,8 +4,8 @@
   "description": "Boek muziekstudio's, content ruimtes en creatieve diensten bij Uprising Studio in Amersfoort.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f0f14",
-  "theme_color": "#0f0f14",
+  "background_color": "#08070d",
+  "theme_color": "#08070d",
   "icons": [
     {
       "src": "/uprising-logo.png",

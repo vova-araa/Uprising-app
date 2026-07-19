@@ -276,7 +276,7 @@ const HomePage = () => {
                 key={studio.id}
                 whileHover={{ y: -4 }}
                 onClick={() => navigate(`/book?studio=${studio.id}`)}
-                className="relative flex-shrink-0 w-[260px] lg:w-full rounded-2xl overflow-hidden border border-border bg-card transition-all hover:border-primary/40 hover:shadow-glow active:scale-[0.98] lg:hover:scale-[1.01] lg:hover:-translate-y-1"
+                className="relative flex-shrink-0 w-[260px] lg:w-full rounded-2xl overflow-hidden border border-border card-premium transition-all hover:border-primary/40 hover:shadow-glow active:scale-[0.98] lg:hover:scale-[1.01] lg:hover:-translate-y-1"
               >
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <img
@@ -289,7 +289,7 @@ const HomePage = () => {
                     {...(idx === 0 ? { fetchPriority: "high" as const } : { loading: "lazy" as const })}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
-                  <div className="absolute top-3 right-3 rounded-full bg-background/80 backdrop-blur-sm border border-primary/30 px-3 py-1">
+                  <div className="absolute top-3 right-3 rounded-full glass border border-primary/30 px-3 py-1">
                     <span className="text-xs font-bold text-primary">€{studio.pricePerHour}/{t("perHr")}</span>
                   </div>
                   <div className="absolute bottom-3 left-4 right-4">

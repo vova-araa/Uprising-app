@@ -102,8 +102,11 @@ const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           }}
         >
           <InlineToastRenderer />
-          <div className="flex-1">
-            {children}
+          {/* Ambient studio glow behind all content */}
+          <div className="ambient-glow relative flex-1">
+            <div className="relative z-10">
+              {children}
+            </div>
           </div>
         </main>
         {user && <Suspense fallback={null}><AIAssistantOverlay open={showAI} onClose={() => setShowAI(false)} /></Suspense>}

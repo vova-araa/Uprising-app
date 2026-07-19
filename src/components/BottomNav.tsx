@@ -50,9 +50,8 @@ const BottomNav = () => {
   return (
     <nav
       aria-label="Main navigation"
-      className={`fixed bottom-0 left-0 right-0 z-50 border-t backdrop-blur-xl transition-colors lg:hidden ${navHighlight ? "border-primary" : "border-border"}`}
+      className={`fixed bottom-0 left-0 right-0 z-50 border-t glass hairline-top transition-colors lg:hidden ${navHighlight ? "border-primary" : "border-border"}`}
       style={{
-        backgroundColor: "hsl(var(--card) / 0.97)",
         paddingBottom: "max(env(safe-area-inset-bottom, 0px) - 14px, 0px)",
         paddingLeft: "env(safe-area-inset-left, 0px)",
         paddingRight: "env(safe-area-inset-right, 0px)",

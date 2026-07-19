@@ -42,53 +42,59 @@
   }
 
   :root {
-    --background: 240 10% 6%;
-    --background-hex: #0f0f14;
-    --foreground: 0 0% 96%;
+    /* Premium dark studio: deep near-black with a subtle blue-violet cast so
+       the purple brand reads as a glow rather than a flat fill. */
+    --background: 250 24% 4%;
+    --background-hex: #08070d;
+    --foreground: 250 20% 97%;
 
-    --card: 240 8% 10%;
-    --card-foreground: 0 0% 96%;
+    --card: 250 16% 8%;
+    --card-foreground: 250 15% 97%;
 
-    --popover: 240 8% 10%;
-    --popover-foreground: 0 0% 96%;
+    --popover: 250 18% 9%;
+    --popover-foreground: 250 15% 97%;
 
-    --primary: 272 92% 62%;
+    /* Elevated surface layer for stacked cards / sheets */
+    --elevated: 250 14% 12%;
+
+    --primary: 272 92% 64%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 6% 16%;
-    --secondary-foreground: 0 0% 90%;
+    --secondary: 250 12% 15%;
+    --secondary-foreground: 250 12% 92%;
 
 
-    --muted: 240 6% 14%;
-    --muted-foreground: 240 5% 80%;
+    --muted: 250 12% 13%;
+    --muted-foreground: 250 8% 68%;
 
-    --accent: 272 92% 62%;
+    --accent: 272 92% 64%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 6% 18%;
-    --input: 240 6% 18%;
-    --ring: 272 92% 62%;
+    --border: 250 12% 17%;
+    --input: 250 12% 17%;
+    --ring: 272 92% 64%;
 
-    --radius: 0.75rem;
+    --radius: 0.9rem;
 
-    --nav-active: 272 95% 75%;
+    --nav-active: 272 95% 78%;
 
-    --success: 142 76% 36%;
+    --success: 152 68% 45%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 10%;
+    --warning: 38 95% 55%;
+    --warning-foreground: 40 40% 8%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(272 95% 65%), hsl(282 92% 58%));
-    --gradient-card: linear-gradient(145deg, hsl(240 8% 12%), hsl(240 8% 8%));
+    --gradient-primary: linear-gradient(135deg, hsl(268 96% 68%), hsl(288 90% 56%));
+    --gradient-card: linear-gradient(160deg, hsl(250 16% 11%), hsl(250 18% 7%));
     --gradient-hero: linear-gradient(180deg, hsl(272 95% 65% / 0.22), transparent);
 
-    --shadow-glow: 0 0 48px hsl(272 95% 65% / 0.28);
+    --shadow-glow: 0 0 60px hsl(272 95% 62% / 0.22);
 
-    --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.3);
+    --shadow-card: 0 8px 30px -8px hsl(250 40% 2% / 0.7);
+    --shadow-elevated: 0 16px 50px -12px hsl(250 40% 2% / 0.85);
 
     --font-display: 'Space Grotesk', sans-serif;
     --font-body: 'DM Sans', sans-serif;
@@ -172,6 +178,38 @@
   }
   .shadow-card {
     box-shadow: var(--shadow-card);
+  }
+  .shadow-elevated {
+    box-shadow: var(--shadow-elevated);
+  }
+  /* Premium card: subtle top highlight + soft depth shadow. Layer over
+     bg-card for a lit-from-above studio feel. */
+  .card-premium {
+    background: var(--gradient-card);
+    box-shadow: var(--shadow-card), inset 0 1px 0 0 hsl(0 0% 100% / 0.04);
+  }
+  /* Frosted surface for overlays / sticky headers */
+  .glass {
+    background: hsl(var(--card) / 0.72);
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  }
+  /* Hairline top border to catch the light on stacked panels */
+  .hairline-top {
+    box-shadow: inset 0 1px 0 0 hsl(0 0% 100% / 0.05);
+  }
+  /* Ambient radial glow anchored to the top of the app — the studio "light" */
+  .ambient-glow::before {
+    content: "";
+    position: fixed;
+    top: calc(-30vh + var(--safe-area-top));
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140vw;
+    height: 70vh;
+    background: radial-gradient(ellipse at center, hsl(272 92% 55% / 0.16), transparent 62%);
+    pointer-events: none;
+    z-index: 0;
   }
   .font-display {
     font-family: var(--font-display);

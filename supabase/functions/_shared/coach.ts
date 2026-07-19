@@ -3,6 +3,9 @@
 // EdgeRuntime.waitUntil when available so it never delays booking confirmation,
 // and never throws into the caller.
 
+// Supabase edge runtime global for scheduling background work
+declare const EdgeRuntime: { waitUntil: (p: Promise<unknown>) => void } | undefined;
+
 interface SupabaseAdminLike {
   from: (table: string) => any;
 }
@@ -35,9 +38,7 @@ export async function maybeGenerateSessionPlan(
       });
     }).catch((e) => console.error("[COACH] session plan generation failed:", e));
 
-    // @ts-ignore — EdgeRuntime is available in Supabase edge runtime
-    if (typeof EdgeRuntime !== "undefined" && EdgeRuntime.waitUntil) {
-      // @ts-ignore
+    if (typeof EdgeRuntime !== "undefined" && EdgeRuntime?.waitUntil) {
       EdgeRuntime.waitUntil(call);
     } else {
       await call;
