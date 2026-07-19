@@ -59,7 +59,12 @@ const CollabBoardPage = () => {
   };
 
   const closePost = async (id: string) => {
-    await supabase.from("collab_posts").update({ status: "closed" }).eq("id", id);
+    if (!window.confirm("Deze post sluiten? Anderen kunnen dan niet meer reageren.")) return;
+    const { error } = await supabase.from("collab_posts").update({ status: "closed" }).eq("id", id);
+    if (error) {
+      toast.error("Sluiten mislukt — probeer opnieuw.");
+      return;
+    }
     toast.success("Post gesloten");
     load();
   };
@@ -142,13 +147,13 @@ const CreatePost = ({ onClose, onCreated }: { onClose: () => void; onCreated: ()
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 px-4" onClick={onClose}>
-      <div className="rounded-2xl bg-card border border-border p-5 max-w-sm w-full space-y-3 mb-4 sm:mb-0 max-h-[88vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-background/70 backdrop-blur-sm px-4" onClick={onClose}>
+      <div className="animate-slide-up rounded-2xl card-premium border border-border p-5 max-w-sm w-full space-y-3 mb-4 sm:mb-0 max-h-[88vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h3 className="font-display font-semibold text-base">Nieuwe collab-post</h3>
-          <button onClick={onClose} className="p-1"><X size={18} /></button>
+          <button onClick={onClose} aria-label="Sluiten" className="p-1"><X size={18} /></button>
         </div>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Titel — bijv. 'Zoek zangeres voor R&B hook'" className="w-full rounded-lg bg-secondary border border-border px-3 py-2.5 text-sm" />
+        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Titel — bijv. 'Zoek zangeres voor R&B hook'" className="w-full rounded-lg bg-secondary border border-border px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
         <div>
           <p className="text-xs font-semibold text-muted-foreground mb-1.5">Ik zoek een...</p>
           <div className="flex flex-wrap gap-2">
@@ -163,10 +168,10 @@ const CreatePost = ({ onClose, onCreated }: { onClose: () => void; onCreated: ()
             })}
           </div>
         </div>
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="Beschrijf je project / wat je zoekt" className="w-full rounded-lg bg-secondary border border-border px-3 py-2.5 text-sm resize-none" />
+        <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="Beschrijf je project / wat je zoekt" className="w-full rounded-lg bg-secondary border border-border px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary" />
         <div className="grid grid-cols-2 gap-2">
-          <input value={genre} onChange={(e) => setGenre(e.target.value)} placeholder="Genre" className="rounded-lg bg-secondary border border-border px-3 py-2.5 text-sm" />
-          <input value={contact} onChange={(e) => setContact(e.target.value)} placeholder="Contact (bijv. @insta)" className="rounded-lg bg-secondary border border-border px-3 py-2.5 text-sm" />
+          <input value={genre} onChange={(e) => setGenre(e.target.value)} placeholder="Genre" className="rounded-lg bg-secondary border border-border px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+          <input value={contact} onChange={(e) => setContact(e.target.value)} placeholder="Contact (bijv. @insta)" className="rounded-lg bg-secondary border border-border px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
         </div>
         <button onClick={save} disabled={saving || !title.trim()} className="w-full rounded-xl gradient-primary py-3 text-sm font-bold text-primary-foreground flex items-center justify-center gap-2 disabled:opacity-50">
           {saving ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />} Plaatsen

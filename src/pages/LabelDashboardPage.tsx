@@ -42,6 +42,9 @@ const LabelDashboardPage = () => {
   const [showBook, setShowBook] = useState(false);
   const [showAddArtist, setShowAddArtist] = useState(false);
   const [newArtist, setNewArtist] = useState("");
+  const [addingArtist, setAddingArtist] = useState(false);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!labelId) return;
@@ -69,16 +72,48 @@ const LabelDashboardPage = () => {
   useEffect(() => { if (labelId) load(); else if (!accessLoading) setLoading(false); }, [labelId, accessLoading, load]);
 
   const addArtist = async () => {
-    if (!labelId || !newArtist.trim()) return;
+    if (!labelId || !newArtist.trim() || addingArtist) return;
+    setAddingArtist(true);
     const { error } = await supabase.from("label_artists").insert({ label_id: labelId, name: newArtist.trim() });
+    setAddingArtist(false);
     if (error) toast.error("Toevoegen mislukt");
     else { toast.success("Artiest toegevoegd"); setNewArtist(""); setShowAddArtist(false); load(); }
   };
 
   const downloadInvoice = async (invoiceId: string) => {
+    if (downloadingId) return;
+    // Open the tab synchronously (inside the click) so mobile/Safari popup
+    // blockers don't kill it after the await.
+    const tab = window.open("", "_blank");
+    setDownloadingId(invoiceId);
     const { data, error } = await supabase.functions.invoke("label-invoice", { body: { action: "get_pdf", invoice_id: invoiceId } });
-    if (error || data?.error || !data?.url) toast.error(data?.error || "Geen PDF beschikbaar");
-    else window.open(data.url, "_blank");
+    setDownloadingId(null);
+    if (error || data?.error || !data?.url) {
+      if (tab) tab.close();
+      toast.error(data?.error || "Geen PDF beschikbaar");
+    } else if (tab) {
+      tab.location.href = data.url;
+    } else {
+      // Popup was blocked before we could open — fall back to same-tab.
+      window.location.href = data.url;
+    }
+  };
+
+  const cancelLabelBooking = async (bookingId: string) => {
+    if (cancellingId) return;
+    if (!window.confirm("Sessie annuleren? De uren gaan terug naar de pot.")) return;
+    setCancellingId(bookingId);
+    try {
+      const { data, error } = await supabase.functions.invoke("cancel-booking", { body: { booking_id: bookingId } });
+      if (error || data?.error) {
+        toast.error(data?.error || "Annuleren mislukt — probeer opnieuw.");
+        return;
+      }
+      toast.success("Geannuleerd — uren terug in de pot");
+      load();
+    } finally {
+      setCancellingId(null);
+    }
   };
 
   const { upcoming, past } = useMemo(() => {
@@ -182,8 +217,9 @@ const LabelDashboardPage = () => {
                     <p className="text-sm font-semibold">{studioName(b.studio_id)} · {artistName(b.label_artist_id)}</p>
                     <p className="text-[11px] text-muted-foreground">{format(new Date(b.booking_date), "d MMM", { locale: nl })} • {b.start_time} • {b.duration_hours}u</p>
                   </div>
-                  <button onClick={() => supabase.functions.invoke("cancel-booking", { body: { booking_id: b.id } }).then(() => { toast.success("Geannuleerd — uren terug in de pot"); load(); })}
-                    className="text-xs font-semibold text-destructive">Annuleer</button>
+                  <button onClick={() => cancelLabelBooking(b.id)} disabled={cancellingId === b.id}
+                    className="text-xs font-semibold text-destructive disabled:opacity-50">
+                    {cancellingId === b.id ? "Bezig…" : "Annuleer"}</button>
                 </div>
               ))}
             </div>
@@ -202,7 +238,9 @@ const LabelDashboardPage = () => {
                     <p className="text-[11px] text-muted-foreground">{inv.hours}u • €{Number(inv.total).toFixed(2)} • <span className={inv.status === "paid" ? "text-success" : inv.status === "sent" ? "text-primary" : "text-muted-foreground"}>{inv.status}</span></p>
                   </div>
                   {inv.pdf_path && (
-                    <button onClick={() => downloadInvoice(inv.id)} className="rounded-lg bg-secondary px-3 py-2 text-xs font-semibold flex items-center gap-1"><Download size={13} /> PDF</button>
+                    <button onClick={() => downloadInvoice(inv.id)} disabled={downloadingId === inv.id} className="rounded-lg bg-secondary px-3 py-2 text-xs font-semibold flex items-center gap-1 disabled:opacity-50">
+                      {downloadingId === inv.id ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />} PDF
+                    </button>
                   )}
                 </div>
               ))}
@@ -228,14 +266,16 @@ const LabelDashboardPage = () => {
 
       {showBook && <BookSheet label={label} artists={artists} onClose={() => setShowBook(false)} onBooked={() => { setShowBook(false); load(); }} />}
       {showAddArtist && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-6" onClick={() => setShowAddArtist(false)}>
-          <div className="rounded-2xl bg-card border border-border p-5 max-w-sm w-full space-y-3" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm px-6" onClick={() => setShowAddArtist(false)}>
+          <div className="animate-fade-in rounded-2xl card-premium border border-border p-5 max-w-sm w-full space-y-3" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-display font-semibold">Artiest toevoegen</h3>
             <input value={newArtist} onChange={(e) => setNewArtist(e.target.value)} placeholder="Naam artiest" autoFocus
-              className="w-full rounded-lg bg-secondary border border-border px-3 py-2.5 text-sm" onKeyDown={(e) => e.key === "Enter" && addArtist()} />
+              className="w-full rounded-lg bg-secondary border border-border px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary" onKeyDown={(e) => e.key === "Enter" && addArtist()} />
             <div className="flex gap-2">
               <button onClick={() => setShowAddArtist(false)} className="flex-1 rounded-xl bg-secondary py-2.5 text-sm font-medium">Terug</button>
-              <button onClick={addArtist} disabled={!newArtist.trim()} className="flex-1 rounded-xl gradient-primary py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50">Toevoegen</button>
+              <button onClick={addArtist} disabled={!newArtist.trim() || addingArtist} className="flex-1 rounded-xl gradient-primary py-2.5 text-sm font-semibold text-primary-foreground flex items-center justify-center gap-2 disabled:opacity-50">
+                {addingArtist && <Loader2 size={14} className="animate-spin" />} Toevoegen
+              </button>
             </div>
           </div>
         </div>
@@ -277,8 +317,8 @@ const BookSheet = ({ label, artists, onClose, onBooked }: { label: Label; artist
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 px-4" onClick={onClose}>
-      <div className="rounded-2xl bg-card border border-border p-5 max-w-sm w-full space-y-3 mb-4 sm:mb-0 max-h-[88vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-background/70 backdrop-blur-sm px-4" onClick={onClose}>
+      <div className="animate-slide-up rounded-2xl card-premium border border-border p-5 max-w-sm w-full space-y-3 mb-4 sm:mb-0 max-h-[88vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h3 className="font-display font-semibold text-base">Sessie boeken</h3>
           <button onClick={onClose} className="p-1"><X size={18} /></button>
