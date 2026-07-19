@@ -1,6 +1,6 @@
 import { useI18n } from "@/lib/i18n";
 import { motion } from "framer-motion";
-import { Globe, Bell, HelpCircle, Info, Shield, FileText, LogOut, ChevronRight, Settings } from "lucide-react";
+import { Globe, Bell, HelpCircle, Info, Shield, FileText, LogOut, ChevronRight, Settings, Megaphone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
@@ -28,6 +28,20 @@ const MorePage = () => {
   return (
     <div className="min-h-full px-5 pt-6">
       <h1 className="text-2xl font-bold font-display mb-6">{t("settings")}</h1>
+
+      {user && (
+        <button onClick={() => navigate("/coach")}
+          className="w-full flex items-center gap-4 rounded-xl bg-primary/10 border border-primary/20 px-5 py-4 text-left mb-4 transition-colors hover:bg-primary/20">
+          <Megaphone size={20} className="text-primary" />
+          <div className="flex-1">
+            <span className="block text-sm font-semibold text-primary">Content Coach</span>
+            <span className="block text-[11px] text-muted-foreground">
+              {lang === "nl" ? "Post-ideeën, captions & releaseplannen op maat" : "Personal post ideas, captions & release plans"}
+            </span>
+          </div>
+          <ChevronRight size={16} className="text-primary" />
+        </button>
+      )}
 
       {isAdmin && (
         <button onClick={() => navigate("/admin")}

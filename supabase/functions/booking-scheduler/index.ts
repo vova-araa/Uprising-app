@@ -207,6 +207,38 @@ async function sweepExpiredWalletCredit(supabase: ReturnType<typeof getSupabaseA
   return swept;
 }
 
+/**
+ * Weekly content-goal nudge for creators with a coach profile: Monday
+ * morning (Amsterdam), at most once per 6 days.
+ */
+async function processWeeklyContentReminders(supabase: ReturnType<typeof getSupabaseAdmin>): Promise<number> {
+  const nowAms = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Amsterdam" }));
+  if (nowAms.getDay() !== 1 || nowAms.getHours() < 9 || nowAms.getHours() >= 12) return 0;
+
+  const cutoff = new Date(Date.now() - 6 * 86_400_000).toISOString();
+  const { data: creators } = await supabase
+    .from("creator_profiles")
+    .select("user_id, artist_name, weekly_content_goal, last_weekly_reminder_at")
+    .eq("weekly_reminder", true)
+    .not("weekly_content_goal", "is", null);
+
+  let sent = 0;
+  for (const c of creators || []) {
+    if (c.last_weekly_reminder_at && c.last_weekly_reminder_at > cutoff) continue;
+    const title = "Nieuwe week, nieuwe content 🎯";
+    const message = `Je doel: ${c.weekly_content_goal} post${Number(c.weekly_content_goal) === 1 ? "" : "s"} deze week. Open de Content Coach voor ideeën die bij je passen.`;
+    await supabase.from("notifications").insert({
+      user_id: c.user_id, title, message, type: "info", link: "/coach",
+    });
+    await sendPush(c.user_id, title, message, "/coach");
+    await supabase.from("creator_profiles")
+      .update({ last_weekly_reminder_at: new Date().toISOString() })
+      .eq("user_id", c.user_id);
+    sent++;
+  }
+  return sent;
+}
+
 const WINBACK_MIN_DAYS = 60;
 const WINBACK_MAX_DAYS = 90;
 const WINBACK_COOLDOWN_DAYS = 180;
@@ -330,6 +362,12 @@ Deno.serve(async (req) => {
   } catch (e) {
     console.error("[SCHEDULER] winback failed:", e);
     results.winback_error = String(e);
+  }
+
+  try {
+    results.weekly_content_reminders = await processWeeklyContentReminders(supabase);
+  } catch (e) {
+    console.error("[SCHEDULER] weekly content reminders failed:", e);
   }
 
   try {

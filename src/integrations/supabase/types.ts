@@ -1773,6 +1773,63 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_profiles: {
+        Row: {
+          artist_name: string | null
+          created_at: string
+          followers_total: number | null
+          genre: string | null
+          goals: string | null
+          last_weekly_reminder_at: string | null
+          milestones: Json
+          process_stage: string
+          reference_artists: string | null
+          release_plan: Json
+          releases: string | null
+          socials: Json
+          updated_at: string
+          user_id: string
+          weekly_content_goal: number | null
+          weekly_reminder: boolean
+        }
+        Insert: {
+          artist_name?: string | null
+          created_at?: string
+          followers_total?: number | null
+          genre?: string | null
+          goals?: string | null
+          last_weekly_reminder_at?: string | null
+          milestones?: Json
+          process_stage?: string
+          reference_artists?: string | null
+          release_plan?: Json
+          releases?: string | null
+          socials?: Json
+          updated_at?: string
+          user_id: string
+          weekly_content_goal?: number | null
+          weekly_reminder?: boolean
+        }
+        Update: {
+          artist_name?: string | null
+          created_at?: string
+          followers_total?: number | null
+          genre?: string | null
+          goals?: string | null
+          last_weekly_reminder_at?: string | null
+          milestones?: Json
+          process_stage?: string
+          reference_artists?: string | null
+          release_plan?: Json
+          releases?: string | null
+          socials?: Json
+          updated_at?: string
+          user_id?: string
+          weekly_content_goal?: number | null
+          weekly_reminder?: boolean
+        }
+        Relationships: []
+      }
       media_submissions: {
         Row: {
           booking_id: string | null
