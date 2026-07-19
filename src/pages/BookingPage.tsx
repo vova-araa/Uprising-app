@@ -87,6 +87,8 @@ const BookingPage = () => {
   const [creditStudio1Hours, setCreditStudio1Hours] = useState(0);
   const [creditStudio2Hours, setCreditStudio2Hours] = useState(0);
   const [creditContentHours, setCreditContentHours] = useState(0);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [useWallet, setUseWallet] = useState(true);
 
   const creditHoursMap: Record<string, number> = {
     "studio-1": creditStudio1Hours,
@@ -144,15 +146,20 @@ const BookingPage = () => {
     checkMembership();
   }, [user]);
 
-  // Clean up pending_payment bookings when returning from cancelled Stripe payment
+  // Clean up pending_payment bookings when returning from cancelled Stripe
+  // payment. Goes through cancel-booking so any applied wallet credit is
+  // refunded instead of silently lost.
   useEffect(() => {
     if (!user || searchParams.get("payment") !== "cancelled") return;
     const cleanup = async () => {
-      await supabase
+      const { data: pending } = await supabase
         .from("bookings")
-        .delete()
+        .select("id")
         .eq("user_id", user.id)
         .eq("status", "pending_payment");
+      for (const b of pending || []) {
+        await supabase.functions.invoke("cancel-booking", { body: { booking_id: b.id } });
+      }
       navigate("/book", { replace: true });
     };
     cleanup();
@@ -162,11 +169,12 @@ const BookingPage = () => {
   useEffect(() => {
     if (!user) return;
     const fetchCredits = async () => {
-      const { data: profile } = await supabase.from("profiles").select("studio1_hours, studio2_hours, content_hours").eq("id", user.id).single();
+      const { data: profile } = await supabase.from("profiles").select("studio1_hours, studio2_hours, content_hours, credit_balance").eq("id", user.id).single();
       if (profile) {
         setCreditStudio1Hours((profile as any).studio1_hours || 0);
         setCreditStudio2Hours((profile as any).studio2_hours || 0);
         setCreditContentHours(profile.content_hours || 0);
+        setWalletBalance(Number((profile as any).credit_balance || 0));
       }
     };
     fetchCredits();
@@ -321,8 +329,9 @@ const BookingPage = () => {
     return sum + (ex?.price || 0);
   }, 0);
   const totalPrice = studioPrice + extrasPrice;
+  const walletApplied = useWallet && totalPrice > 0 ? Math.min(walletBalance, totalPrice) : 0;
+  const dueNow = totalPrice - walletApplied;
 
-  
 
   const calendarDays = useMemo(() => {
     const year = calendarMonth.getFullYear();
@@ -463,6 +472,7 @@ const BookingPage = () => {
           duration_hours: selectedDuration,
           extras: selectedExtras,
           photographer_notes: selectedExtras.includes("photographer") ? photographerDescription : undefined,
+          use_wallet: useWallet && walletApplied > 0,
         },
       });
 
@@ -1352,12 +1362,26 @@ const BookingPage = () => {
                         </div>
                       );
                     })}
+                    {walletBalance > 0 && totalPrice > 0 && (
+                      <button
+                        onClick={() => setUseWallet(!useWallet)}
+                        className="flex w-full items-center justify-between text-sm py-1"
+                      >
+                        <span className="flex items-center gap-2 text-muted-foreground">
+                          <div className={`flex h-5 w-5 items-center justify-center rounded ${useWallet ? "bg-primary text-primary-foreground" : "border-2 border-muted-foreground/30"}`}>
+                            {useWallet && <Check size={14} />}
+                          </div>
+                          {lang === "nl" ? `Tegoed gebruiken (€${walletBalance})` : `Use credit (€${walletBalance})`}
+                        </span>
+                        {walletApplied > 0 && <span className="text-success">-€{walletApplied}</span>}
+                      </button>
+                    )}
                     <div className="flex items-center justify-between pt-2 border-t border-border">
                       <span className="font-semibold">{t("total")}</span>
                       {isMember && extrasPrice === 0 ? (
                         <span className="text-2xl font-bold text-success">{t("free")}</span>
                       ) : (
-                        <span className="text-2xl font-bold text-primary">€{totalPrice}</span>
+                        <span className="text-2xl font-bold text-primary">€{dueNow}</span>
                       )}
                     </div>
                   </div>
@@ -1425,10 +1449,10 @@ const BookingPage = () => {
               >
                 {isLoading ? (
                   <Loader2 size={20} className="animate-spin" />
-                ) : isMember && extrasPrice === 0 ? (
+                ) : (isMember && extrasPrice === 0) || dueNow === 0 ? (
                   t("confirm")
                 ) : (
-                  `${t("pay")} — €${totalPrice}`
+                  `${t("pay")} — €${dueNow}`
                 )}
               </button>
             </motion.div>

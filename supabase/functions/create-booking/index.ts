@@ -193,7 +193,7 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { studio_id, booking_date, start_time, duration_hours, extras, photographer_notes } = body;
+    const { studio_id, booking_date, start_time, duration_hours, extras, photographer_notes, use_wallet } = body;
 
     if (!studio_id || !VALID_STUDIOS.has(studio_id)) {
       return new Response(JSON.stringify({ error: "Invalid studio" }), {
@@ -339,7 +339,18 @@ serve(async (req) => {
       ? `Fotograaf/Content Creator aanvraag: ${photographer_notes.trim().slice(0, 500)}`
       : null;
 
-    const needsPayment = totalPrice > 0;
+    // Apply wallet credit when requested: covers (part of) the price, the
+    // remainder goes through Stripe. Actual deduction happens after insert via
+    // wallet_apply(), which guards against concurrent spends.
+    let walletApplied = 0;
+    if (use_wallet === true && totalPrice > 0) {
+      const { data: walletProfile } = await supabaseAdmin
+        .from("profiles").select("credit_balance").eq("id", user.id).single();
+      walletApplied = Math.min(Number(walletProfile?.credit_balance || 0), totalPrice);
+      if (walletApplied < 0) walletApplied = 0;
+    }
+
+    let needsPayment = totalPrice - walletApplied > 0;
 
     const { data: booking, error: insertError } = await supabaseAdmin
       .from("bookings")
@@ -352,6 +363,7 @@ serve(async (req) => {
         session_type: sessionType,
         extras: safeExtras,
         total_price: totalPrice,
+        wallet_applied: walletApplied,
         status: needsPayment ? "pending_payment" : "confirmed",
         notes: bookingNotes,
       })
@@ -370,6 +382,28 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Failed to create booking" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Deduct wallet credit; on failure (balance spent concurrently) fall back
+    // to full payment via Stripe instead of failing the booking.
+    if (walletApplied > 0) {
+      const { error: walletErr } = await supabaseAdmin.rpc("wallet_apply", {
+        p_user_id: user.id,
+        p_amount: -walletApplied,
+        p_type: "spend",
+        p_booking_id: booking.id,
+        p_note: `Boeking ${STUDIO_DISPLAY_NAME[studio_id] || studio_id} ${booking_date} ${start_time}`,
+      });
+      if (walletErr) {
+        console.error("[CREATE-BOOKING] wallet_apply failed, falling back to full payment:", walletErr);
+        walletApplied = 0;
+        needsPayment = totalPrice > 0;
+        await supabaseAdmin.from("bookings").update({
+          wallet_applied: 0,
+          status: needsPayment ? "pending_payment" : "confirmed",
+          updated_at: new Date().toISOString(),
+        }).eq("id", booking.id);
+      }
     }
 
     // Deduct credit hours if used
@@ -444,8 +478,11 @@ serve(async (req) => {
       line_items: [{
         price_data: {
           currency: "eur",
-          product_data: { name: `Studio Booking - ${STUDIO_DISPLAY_NAME[studio_id] || studio_id}` },
-          unit_amount: totalPrice * 100,
+          product_data: {
+            name: `Studio Booking - ${STUDIO_DISPLAY_NAME[studio_id] || studio_id}`,
+            ...(walletApplied > 0 ? { description: `€${walletApplied} tegoed verrekend` } : {}),
+          },
+          unit_amount: Math.round((totalPrice - walletApplied) * 100),
         },
         quantity: 1,
       }],

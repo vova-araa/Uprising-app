@@ -315,6 +315,8 @@ export type Database = {
       bookings: {
         Row: {
           booking_date: string
+          cancellation_refund: string | null
+          cancelled_at: string | null
           created_at: string
           duration_hours: number
           extras: string[] | null
@@ -329,9 +331,12 @@ export type Database = {
           total_price: number
           updated_at: string
           user_id: string
+          wallet_applied: number
         }
         Insert: {
           booking_date: string
+          cancellation_refund?: string | null
+          cancelled_at?: string | null
           created_at?: string
           duration_hours?: number
           extras?: string[] | null
@@ -346,9 +351,12 @@ export type Database = {
           total_price?: number
           updated_at?: string
           user_id: string
+          wallet_applied?: number
         }
         Update: {
           booking_date?: string
+          cancellation_refund?: string | null
+          cancelled_at?: string | null
           created_at?: string
           duration_hours?: number
           extras?: string[] | null
@@ -363,6 +371,7 @@ export type Database = {
           total_price?: number
           updated_at?: string
           user_id?: string
+          wallet_applied?: number
         }
         Relationships: []
       }
@@ -1695,6 +1704,47 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          booking_id: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          note: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          booking_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          note?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          booking_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          note?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referrals: {
         Row: {
           created_at: string
@@ -1808,6 +1858,17 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      wallet_apply: {
+        Args: {
+          p_user_id: string
+          p_amount: number
+          p_type: string
+          p_booking_id?: string
+          p_note?: string
+          p_expires_at?: string
+        }
+        Returns: number
       }
     }
     Enums: {

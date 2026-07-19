@@ -68,6 +68,7 @@ const AccountPage = () => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [creditBalance, setCreditBalance] = useState(0);
+  const [walletTxns, setWalletTxns] = useState<{ id: string; amount: number; type: string; note: string | null; expires_at: string | null; created_at: string }[]>([]);
   const [freeHours, setFreeHours] = useState({ studio1: 0, studio2: 0, content: 0 });
   const [projects, setProjects] = useState<any[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(false);
@@ -236,6 +237,13 @@ const AccountPage = () => {
   const loadCreditBalance = async () => {
     if (!user) return;
     const { data } = await supabase.from("profiles").select("credit_balance, referral_code, studio1_hours, studio2_hours, content_hours, notification_prefs").eq("id", user.id).single();
+    const { data: txns } = await supabase
+      .from("wallet_transactions")
+      .select("id, amount, type, note, expires_at, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(5);
+    setWalletTxns(txns || []);
     if (data) {
       setCreditBalance(data.credit_balance || 0);
       setFreeHours({
@@ -1563,6 +1571,25 @@ const AccountPage = () => {
                   </div>
                   <span className="text-xl font-bold text-primary font-display">{creditBalance > 0 ? `€${creditBalance}` : "-"}</span>
                 </div>
+                {walletTxns.length > 0 && (
+                  <div className="rounded-xl bg-secondary/40 border border-border p-3 space-y-2">
+                    {walletTxns.map((tx) => (
+                      <div key={tx.id} className="flex items-center justify-between text-xs">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-muted-foreground">{tx.note || tx.type}</p>
+                          {tx.amount > 0 && tx.expires_at && (
+                            <p className="text-[10px] text-muted-foreground/70">
+                              geldig t/m {new Date(tx.expires_at).toLocaleDateString("nl-NL")}
+                            </p>
+                          )}
+                        </div>
+                        <span className={`ml-3 shrink-0 font-semibold ${tx.amount > 0 ? "text-success" : "text-foreground"}`}>
+                          {tx.amount > 0 ? "+" : ""}€{Math.abs(tx.amount)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="rounded-xl bg-success/5 border border-success/20 p-4">
                   <p className="text-xs font-semibold text-success mb-3 flex items-center gap-1.5">
                     <Gift size={12} />
