@@ -82,8 +82,8 @@ const CreateLabel = ({ onClose, onCreated }: { onClose: () => void; onCreated: (
     if (error) toast.error("Aanmaken mislukt"); else { toast.success("Label aangemaakt"); onCreated(); }
   };
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-6" onClick={onClose}>
-      <div className="rounded-2xl bg-card border border-border p-5 max-w-sm w-full space-y-3" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm px-6" onClick={onClose}>
+      <div className="animate-fade-in rounded-2xl card-premium border border-border p-5 max-w-sm w-full space-y-3" onClick={(e) => e.stopPropagation()}>
         <h3 className="font-display font-semibold">Nieuw label</h3>
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Labelnaam" className="w-full rounded-lg bg-secondary border border-border px-3 py-2.5 text-sm" />
         <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Factuur-e-mail" className="w-full rounded-lg bg-secondary border border-border px-3 py-2.5 text-sm" />
@@ -292,11 +292,11 @@ const NewInvoice = ({ label, onClose, onCreated }: { label: Label; onClose: () =
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-6" onClick={onClose}>
-      <div className="rounded-2xl bg-card border border-border p-5 max-w-sm w-full space-y-3" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm px-6" onClick={onClose}>
+      <div className="animate-fade-in rounded-2xl card-premium border border-border p-5 max-w-sm w-full space-y-3" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h3 className="font-display font-semibold">Nieuwe factuur — {label.name}</h3>
-          <button onClick={onClose} className="p-1"><X size={17} /></button>
+          <button onClick={onClose} aria-label="Sluiten" className="p-1"><X size={17} /></button>
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div>

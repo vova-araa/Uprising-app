@@ -135,8 +135,8 @@ const BookingModifyDialog = ({ open, onOpenChange, booking, onModified }: Props)
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-6">
-      <div className="rounded-2xl bg-card border border-border p-6 max-w-sm w-full space-y-4 max-h-[85vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm px-6">
+      <div className="animate-fade-in rounded-2xl card-premium border border-border p-6 max-w-sm w-full space-y-4 max-h-[85vh] overflow-y-auto">
         <div className="flex items-center gap-2">
           <Pencil size={18} className="text-primary" />
           <h3 className="font-display font-semibold text-base">Boeking wijzigen</h3>

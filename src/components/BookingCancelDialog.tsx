@@ -91,8 +91,8 @@ const BookingCancelDialog = ({ open, onOpenChange, booking, onCancelled }: Props
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-6">
-      <div className="rounded-2xl bg-card border border-border p-6 max-w-sm w-full space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm px-6">
+      <div className="animate-fade-in rounded-2xl card-premium border border-border p-6 max-w-sm w-full space-y-4">
         <div className="flex items-center gap-2">
           <Trash2 size={18} className="text-destructive" />
           <h3 className="font-display font-semibold text-base">Boeking annuleren</h3>

@@ -2250,8 +2250,8 @@ const AccountPage = () => {
       </motion.div>
       {/* Unregister confirmation dialog */}
       {showUnregisterDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-6">
-          <div className="rounded-2xl bg-card border border-border p-6 max-w-sm w-full space-y-4" data-toast-section>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm px-6">
+          <div className="animate-fade-in rounded-2xl card-premium border border-border p-6 max-w-sm w-full space-y-4" data-toast-section>
             <h3 className="font-display font-semibold text-base">Weet je het zeker?</h3>
             <p className="text-sm text-muted-foreground">
               Je kan je maar 1x aanmelden voor deze dag. Als je je afmeldt, kun je je niet opnieuw inschrijven.

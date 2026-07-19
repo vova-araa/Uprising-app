@@ -70,8 +70,8 @@ const FaultReportDialog = ({ open, onOpenChange, booking, onReported }: Props) =
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-6">
-      <div className="rounded-2xl bg-card border border-border p-6 max-w-sm w-full space-y-4 max-h-[85vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm px-6">
+      <div className="animate-fade-in rounded-2xl card-premium border border-border p-6 max-w-sm w-full space-y-4 max-h-[85vh] overflow-y-auto">
         <div className="flex items-center gap-2">
           <AlertTriangle size={18} className="text-warning" />
           <h3 className="font-display font-semibold text-base">
@@ -108,7 +108,7 @@ const FaultReportDialog = ({ open, onOpenChange, booking, onReported }: Props) =
         {photo ? (
           <div className="flex items-center justify-between rounded-lg bg-secondary/60 border border-border px-3 py-2">
             <span className="truncate text-xs text-muted-foreground">{photo.name}</span>
-            <button onClick={() => setPhoto(null)} className="shrink-0 text-muted-foreground">
+            <button onClick={() => setPhoto(null)} aria-label="Foto verwijderen" className="shrink-0 text-muted-foreground">
               <X size={14} />
             </button>
           </div>
