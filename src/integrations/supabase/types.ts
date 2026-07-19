@@ -2021,6 +2021,35 @@ export type Database = {
           },
         ]
       }
+      label_managers: {
+        Row: {
+          created_at: string
+          id: string
+          label_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "label_managers_label_id_fkey"
+            columns: ["label_id"]
+            isOneToOne: false
+            referencedRelation: "labels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       label_hour_transactions: {
         Row: {
           artist_id: string | null

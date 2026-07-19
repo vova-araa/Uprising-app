@@ -103,25 +103,42 @@ const CreateLabel = ({ onClose, onCreated }: { onClose: () => void; onCreated: (
 const LabelDetail = ({ label, profiles, onBack, onChanged }: { label: Label; profiles: Profile[]; onBack: () => void; onChanged: () => void }) => {
   const [artists, setArtists] = useState<Artist[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [managers, setManagers] = useState<{ id: string; user_id: string }[]>([]);
   const [newArtist, setNewArtist] = useState("");
   const [managerSearch, setManagerSearch] = useState("");
   const [showInvoice, setShowInvoice] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
 
   const load = async () => {
-    const [artistsRes, invoicesRes] = await Promise.all([
+    const [artistsRes, invoicesRes, managersRes] = await Promise.all([
       supabase.from("label_artists").select("id, name").eq("label_id", label.id).eq("active", true).order("name"),
       supabase.from("label_invoices").select("id, invoice_number, hours, total, status, term, created_at, pdf_path").eq("label_id", label.id).order("created_at", { ascending: false }),
+      supabase.from("label_managers").select("id, user_id").eq("label_id", label.id),
     ]);
     setArtists((artistsRes.data as Artist[]) || []);
     setInvoices((invoicesRes.data as Invoice[]) || []);
+    setManagers((managersRes.data as { id: string; user_id: string }[]) || []);
   };
   useEffect(() => { load(); }, [label.id]);
 
-  const setManager = async (userId: string | null) => {
-    await supabase.from("labels").update({ manager_user_id: userId, updated_at: new Date().toISOString() }).eq("id", label.id);
-    toast.success(userId ? "Manager gekoppeld" : "Manager losgekoppeld");
-    onChanged();
+  const addManager = async (userId: string) => {
+    const { error } = await supabase.from("label_managers").insert({ label_id: label.id, user_id: userId });
+    if (error && !String(error.message).includes("duplicate")) { toast.error("Koppelen mislukt"); return; }
+    // Keep the first-added manager as the primary for legacy compatibility
+    if (managers.length === 0) await supabase.from("labels").update({ manager_user_id: userId }).eq("id", label.id);
+    toast.success("Manager gekoppeld");
+    setManagerSearch("");
+    load(); onChanged();
+  };
+
+  const removeManager = async (row: { id: string; user_id: string }) => {
+    await supabase.from("label_managers").delete().eq("id", row.id);
+    if (label.manager_user_id === row.user_id) {
+      const next = managers.find((m) => m.user_id !== row.user_id);
+      await supabase.from("labels").update({ manager_user_id: next?.user_id || null }).eq("id", label.id);
+    }
+    toast.success("Manager losgekoppeld");
+    load(); onChanged();
   };
 
   const addArtist = async () => {
@@ -141,12 +158,13 @@ const LabelDetail = ({ label, profiles, onBack, onChanged }: { label: Label; pro
     load();
   };
 
-  const managerName = label.manager_user_id ? profiles.find((p) => p.id === label.manager_user_id) : null;
+  const profileName = (id: string) => { const p = profiles.find((x) => x.id === id); return p?.full_name || p?.email || "Onbekend"; };
+  const managerIds = new Set(managers.map((m) => m.user_id));
   const managerMatches = useMemo(() => {
     const q = managerSearch.trim().toLowerCase();
     if (!q) return [];
-    return profiles.filter((p) => (p.full_name || "").toLowerCase().includes(q) || (p.email || "").toLowerCase().includes(q)).slice(0, 5);
-  }, [managerSearch, profiles]);
+    return profiles.filter((p) => !managerIds.has(p.id) && ((p.full_name || "").toLowerCase().includes(q) || (p.email || "").toLowerCase().includes(q))).slice(0, 5);
+  }, [managerSearch, profiles, managers]);
 
   return (
     <div className="space-y-4">
@@ -156,26 +174,26 @@ const LabelDetail = ({ label, profiles, onBack, onChanged }: { label: Label; pro
         <p className="text-sm text-muted-foreground flex items-center gap-1.5"><Clock size={13} className="text-primary" /> {label.hours_balance} uur in de pot • €{label.default_rate}/u</p>
       </div>
 
-      {/* Manager */}
+      {/* Managers (multiple) */}
       <div className="rounded-xl bg-card border border-border p-3 space-y-2">
-        <p className="text-xs font-semibold text-muted-foreground">Label-manager (boekt namens artiesten)</p>
-        {managerName ? (
-          <div className="flex items-center justify-between">
-            <span className="text-sm">{managerName.full_name || managerName.email}</span>
-            <button onClick={() => setManager(null)} className="text-xs text-destructive">Loskoppelen</button>
+        <p className="text-xs font-semibold text-muted-foreground">Label-managers (boeken namens artiesten)</p>
+        {managers.length === 0 && <p className="text-xs text-warning">Nog geen manager gekoppeld.</p>}
+        {managers.map((m) => (
+          <div key={m.id} className="flex items-center justify-between">
+            <span className="text-sm">{profileName(m.user_id)}{label.manager_user_id === m.user_id && <span className="ml-1.5 text-[10px] text-primary">primair</span>}</span>
+            <button onClick={() => removeManager(m)} className="text-xs text-destructive">Loskoppelen</button>
           </div>
-        ) : (
-          <div className="relative">
-            <input value={managerSearch} onChange={(e) => setManagerSearch(e.target.value)} placeholder="Zoek gebruiker..." className="w-full rounded-lg bg-secondary border border-border px-3 py-2 text-sm" />
-            {managerMatches.length > 0 && (
-              <div className="mt-1 rounded-lg bg-secondary border border-border overflow-hidden">
-                {managerMatches.map((p) => (
-                  <button key={p.id} onClick={() => { setManager(p.id); setManagerSearch(""); }} className="w-full text-left px-3 py-2 text-sm hover:bg-primary/10">{p.full_name || p.email}</button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        ))}
+        <div className="relative pt-1">
+          <input value={managerSearch} onChange={(e) => setManagerSearch(e.target.value)} placeholder="Manager toevoegen — zoek gebruiker..." className="w-full rounded-lg bg-secondary border border-border px-3 py-2 text-sm" />
+          {managerMatches.length > 0 && (
+            <div className="mt-1 rounded-lg bg-secondary border border-border overflow-hidden">
+              {managerMatches.map((p) => (
+                <button key={p.id} onClick={() => addManager(p.id)} className="w-full text-left px-3 py-2 text-sm hover:bg-primary/10">{p.full_name || p.email}</button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Manual top-up */}

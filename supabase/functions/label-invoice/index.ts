@@ -134,10 +134,10 @@ serve(async (req) => {
 
     // get_pdf: manager of the invoice's label OR staff
     if (action === "get_pdf") {
-      const { data: invoice } = await admin.from("label_invoices").select("*, labels(manager_user_id)").eq("id", body.invoice_id).single();
+      const { data: invoice } = await admin.from("label_invoices").select("*").eq("id", body.invoice_id).single();
       if (!invoice?.pdf_path) return new Response(JSON.stringify({ error: "Geen PDF" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      const isManager = (invoice as any).labels?.manager_user_id === user.id;
-      if (!staff && !isManager) return new Response(JSON.stringify({ error: "Geen toegang" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const { data: isManager } = await admin.rpc("is_label_manager", { _user_id: user.id, _label_id: invoice.label_id });
+      if (!staff && isManager !== true) return new Response(JSON.stringify({ error: "Geen toegang" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       const { data: signed } = await admin.storage.from("invoices").createSignedUrl(invoice.pdf_path, SIGNED_URL_DAYS * 86400);
       return new Response(JSON.stringify({ url: signed?.signedUrl }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -243,15 +243,17 @@ ${link ? `<p><a href="${link}">Download de factuur (PDF)</a></p>` : ""}
 
       await admin.from("label_invoices").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", invoice.id);
 
-      const { data: label } = await admin.from("labels").select("hours_balance, manager_user_id, name").eq("id", invoice.label_id).single();
-      if (label?.manager_user_id) {
-        await admin.from("notifications").insert({
-          user_id: label.manager_user_id,
+      const { data: label } = await admin.from("labels").select("hours_balance, name").eq("id", invoice.label_id).single();
+      // Notify all managers of the label
+      const { data: managers } = await admin.from("label_managers").select("user_id").eq("label_id", invoice.label_id);
+      if (managers && managers.length > 0 && label) {
+        await admin.from("notifications").insert(managers.map((m: { user_id: string }) => ({
+          user_id: m.user_id,
           title: "Uren bijgeschreven 🎉",
           message: `${invoice.hours} uur is toegevoegd aan de pot van ${label.name}. Nieuw saldo: ${label.hours_balance} uur.`,
           type: "success",
           link: "/label",
-        });
+        })));
       }
       return new Response(JSON.stringify({ success: true, hours_balance: label?.hours_balance }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
