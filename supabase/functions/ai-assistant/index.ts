@@ -40,7 +40,108 @@ RICHTLIJNEN VOOR SESSIEDUUR:
 
 BELANGRIJK: Uprising Studio zit in AMERSFOORT, NIET in Den Haag of een andere stad. Verwijs altijd naar de correcte locatie.
 
+BOEKEN VIA CHAT:
+Jij kunt een boekingsvoorstel doen dat de gebruiker met één tap bevestigt. Werkwijze:
+1. Verzamel: welke ruimte (studio-1, studio-2 of content-room), datum, starttijd en duur (2 t/m 12 hele uren). Studio's zijn 24/7 boekbaar.
+2. Zodra je ALLE vier de gegevens hebt, sluit je antwoord af met exact dit blok (en verder niets erachter):
+\`\`\`booking
+{"studio_id": "studio-1", "booking_date": "2026-01-31", "start_time": "20:00", "duration_hours": 3}
+\`\`\`
+3. Gebruik het blok alleen bij een concreet boekingsverzoek, maximaal één blok per antwoord, en nooit met onvolledige gegevens — vraag dan eerst door.
+4. Het systeem checkt daarna zelf de beschikbaarheid en toont een bevestigingsknop; zeg dus niet dat de boeking al rond is.
+
 Wees vriendelijk, behulpzaam en direct. Geef concrete aanbevelingen. Als de taal Engels is, antwoord in het Engels.`;
+
+const VALID_STUDIOS = new Set(["studio-1", "studio-2", "content-room"]);
+const STUDIO_NAMES: Record<string, string> = {
+  "studio-1": "Studio 1",
+  "studio-2": "Studio 2",
+  "content-room": "Content Room",
+};
+
+interface BookingProposal {
+  studio_id: string;
+  booking_date: string;
+  start_time: string;
+  duration_hours: number;
+  studio_name: string;
+  available: boolean;
+  alternatives: string[]; // free start times on the same day, if unavailable
+}
+
+/**
+ * Parse the ```booking fence the model emits and verify the slot against
+ * real bookings + room blocks. Returns null when there is no valid fence.
+ */
+async function extractProposal(content: string): Promise<{ proposal: BookingProposal | null; cleaned: string }> {
+  const match = content.match(/```booking\s*([\s\S]*?)```/);
+  if (!match) return { proposal: null, cleaned: content };
+  const cleaned = content.replace(match[0], "").trim();
+
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = JSON.parse(match[1].trim());
+  } catch {
+    return { proposal: null, cleaned };
+  }
+
+  const studio_id = String(parsed.studio_id || "");
+  const booking_date = String(parsed.booking_date || "");
+  const start_time = String(parsed.start_time || "");
+  const duration_hours = Number(parsed.duration_hours);
+
+  if (!VALID_STUDIOS.has(studio_id)) return { proposal: null, cleaned };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(booking_date) || isNaN(Date.parse(booking_date))) return { proposal: null, cleaned };
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(start_time)) return { proposal: null, cleaned };
+  if (!Number.isInteger(duration_hours) || duration_hours < 2 || duration_hours > 12) return { proposal: null, cleaned };
+
+  const admin = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
+
+  // Room blocked?
+  const { data: blocks } = await admin
+    .from("room_blocks").select("blocked_until").eq("studio_id", studio_id).eq("active", true);
+  const blocked = (blocks || []).some((b: { blocked_until: string | null }) => !b.blocked_until || new Date(b.blocked_until) > new Date());
+
+  // Overlapping bookings + free alternatives on the same day
+  const { data: existing } = await admin
+    .from("bookings")
+    .select("start_time, duration_hours")
+    .eq("studio_id", studio_id)
+    .eq("booking_date", booking_date)
+    .in("status", ["confirmed", "pending_payment", "pending"]);
+
+  const busy = (existing || []).map((b: { start_time: string; duration_hours: number }) => {
+    const [h, m] = String(b.start_time).split(":").map(Number);
+    const s = h * 60 + (m || 0);
+    return [s, s + (b.duration_hours || 0) * 60] as [number, number];
+  });
+
+  const fits = (startMin: number, durH: number) =>
+    !busy.some(([s, e]) => startMin < e && startMin + durH * 60 > s);
+
+  const [reqH, reqM] = start_time.split(":").map(Number);
+  const available = !blocked && fits(reqH * 60 + (reqM || 0), duration_hours);
+
+  let alternatives: string[] = [];
+  if (!available && !blocked) {
+    for (let h = 0; h < 24 && alternatives.length < 4; h++) {
+      if (fits(h * 60, duration_hours)) alternatives.push(`${String(h).padStart(2, "0")}:00`);
+    }
+  }
+
+  return {
+    proposal: {
+      studio_id, booking_date, start_time, duration_hours,
+      studio_name: STUDIO_NAMES[studio_id],
+      available,
+      alternatives,
+    },
+    cleaned,
+  };
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -74,9 +175,11 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("API key not configured");
 
-    const systemPrompt = lang === "en"
+    const todayAms = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Amsterdam" });
+    const dateLine = `\n\nVANDAAG IS: ${todayAms} (gebruik dit voor "morgen", "volgende week", etc.).`;
+    const systemPrompt = (lang === "en"
       ? SYSTEM_PROMPT + "\n\nThe user prefers English. Respond in English."
-      : SYSTEM_PROMPT;
+      : SYSTEM_PROMPT) + dateLine;
 
     // Validate & sanitize user-supplied messages: only allow user/assistant roles,
     // cap message count and per-message length to prevent prompt/role injection.
@@ -122,9 +225,12 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || "";
+    const rawContent = data.choices?.[0]?.message?.content || "";
 
-    return new Response(JSON.stringify({ content }), {
+    // Booking proposal: parse the fence, verify against real availability
+    const { proposal, cleaned } = await extractProposal(rawContent);
+
+    return new Response(JSON.stringify({ content: cleaned || rawContent, proposal }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
