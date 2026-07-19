@@ -430,7 +430,7 @@ const ContentCoachPage = () => {
           {plans.map((plan) => {
             const doneCount = plan.items.filter((it) => it.done).length;
             return (
-              <div key={plan.id} className="rounded-2xl bg-card border border-border overflow-hidden">
+              <div key={plan.id} className="rounded-2xl card-premium border border-border overflow-hidden">
                 <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-border">
                   <div className="min-w-0">
                     <p className="text-sm font-bold font-display truncate flex items-center gap-1.5">

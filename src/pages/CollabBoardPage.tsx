@@ -90,7 +90,7 @@ const CollabBoardPage = () => {
           const mine = post.user_id === user?.id;
           return (
             <motion.div key={post.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl bg-card border border-border p-4 space-y-2">
+              className="rounded-2xl card-premium border border-border p-4 space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <h3 className="text-sm font-bold font-display">{post.title}</h3>

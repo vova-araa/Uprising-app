@@ -15,6 +15,7 @@ import AccountAccessSection from "@/components/AccountAccessSection";
 import BookingCancelDialog from "@/components/BookingCancelDialog";
 import FaultReportDialog from "@/components/FaultReportDialog";
 import SubmissionUploadDialog from "@/components/SubmissionUploadDialog";
+import ProjectFileUploadDialog from "@/components/ProjectFileUploadDialog";
 import GiftCardSection from "@/components/GiftCardSection";
 import BookingModifyDialog from "@/components/BookingModifyDialog";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -103,6 +104,7 @@ const AccountPage = () => {
   const [profileMembership, setProfileMembership] = useState<string | null>(null);
   const [profileBroedplaats, setProfileBroedplaats] = useState<string | null>(null);
   const [subLoading, setSubLoading] = useState(true);
+  const [subError, setSubError] = useState(false);
   
   const [portalLoading, setPortalLoading] = useState(false);
   const [broedplaatsRsvp, setBroedplaatsRsvp] = useState<Record<string, { attending: boolean; activity: string | null }>>({
@@ -128,6 +130,7 @@ const AccountPage = () => {
   const [bookingsFilter, setBookingsFilter] = useState<"upcoming" | "past">("upcoming");
   const [whatsappOptIn, setWhatsappOptIn] = useState(false);
   const [submissionDialog, setSubmissionDialog] = useState<{ booking: any; kind: "session_video" | "clean_room_photo" } | null>(null);
+  const [projectUploadTarget, setProjectUploadTarget] = useState<any | null>(null);
   const [pointsBalance, setPointsBalance] = useState(0);
   const [rewardsCatalog, setRewardsCatalog] = useState<{ id: string; points: number; label: string }[]>([]);
   const [redeemingReward, setRedeemingReward] = useState<string | null>(null);
@@ -302,7 +305,9 @@ const AccountPage = () => {
     const { data: allBookings } = await supabase.from("bookings").select("booking_date, duration_hours, status");
     const { data: allProjects } = await supabase.from("projects").select("status");
 
-    const bookings = allBookings || [];
+    // Exclude cancelled bookings from all aggregates so cancelled sessions
+    // don't inflate the stat tiles.
+    const bookings = (allBookings || []).filter(b => b.status !== "cancelled");
     const projs = allProjects || [];
     const now = new Date();
     const todayStr = format(now, "yyyy-MM-dd");
@@ -507,9 +512,11 @@ const AccountPage = () => {
 
   const checkSubscription = async () => {
     setSubLoading(true);
+    setSubError(false);
     try {
       const { data, error } = await supabase.functions.invoke("check-subscription");
-      if (!error && data) setSubscription(data);
+      if (error) throw error;
+      if (data) setSubscription(data);
       // Also check profile for admin-assigned membership/broedplaats
       if (user) {
         const { data: profile } = await supabase.from("profiles").select("membership, broedplaats").eq("id", user.id).single();
@@ -520,6 +527,7 @@ const AccountPage = () => {
       }
     } catch (err) {
       console.error("Failed to check subscription:", err);
+      setSubError(true);
     } finally {
       setSubLoading(false);
     }
@@ -588,14 +596,16 @@ const AccountPage = () => {
     }
   };
 
+  const reloadProjects = async () => {
+    setProjectsLoading(true);
+    const { data, error } = await supabase.from("projects").select("*").order("created_at", { ascending: false });
+    if (!error && data) setProjects(data);
+    setProjectsLoading(false);
+  };
+
   useEffect(() => {
     if ((activeTab === "projects" || activeTab === "dashboard") && user) {
-      setProjectsLoading(true);
-      supabase.from("projects").select("*").order("created_at", { ascending: false })
-        .then(({ data, error }) => {
-          if (!error && data) setProjects(data);
-          setProjectsLoading(false);
-        });
+      reloadProjects();
     }
     if (activeTab === "producer" && user) {
       setProducerLoading(true);
@@ -631,11 +641,15 @@ const AccountPage = () => {
     toast.success(t("signOut"));
   };
 
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(referralCode);
-    setCopied(true);
-    toast.success(t("codeCopied"));
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(referralCode);
+      setCopied(true);
+      toast.success(t("codeCopied"));
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Kopiëren mislukt — selecteer en kopieer de code handmatig.");
+    }
   };
 
   const activeReferrals = referrals.filter(r => r.status === "completed");
@@ -671,9 +685,15 @@ const AccountPage = () => {
   const webPush = useWebPush();
 
   const saveNotifPrefs = async (updated: typeof notifPrefs) => {
+    const previous = notifPrefs;
     setNotifPrefs(updated);
     if (user) {
-      await supabase.from("profiles").update({ notification_prefs: updated } as any).eq("id", user.id);
+      const { error } = await supabase.from("profiles").update({ notification_prefs: updated } as any).eq("id", user.id);
+      if (error) {
+        setNotifPrefs(previous);
+        toast.error("Voorkeur opslaan mislukt — probeer opnieuw.");
+        return;
+      }
     }
     // Sync web push subscription when push toggle changes in browser
     if (webPush.supported && webPush.configured) {
@@ -753,7 +773,7 @@ const AccountPage = () => {
                 </p>
                 <p className="text-xs text-foreground mb-3">{project.staff_notes}</p>
                 <button
-                  onClick={() => setActiveTab("projects")}
+                  onClick={() => setProjectUploadTarget(project)}
                   className="w-full flex items-center justify-center gap-1.5 rounded-lg gradient-primary py-2.5 text-xs font-semibold text-primary-foreground shadow-glow"
                 >
                   <Upload size={13} /> Upload bestanden
@@ -1083,6 +1103,16 @@ const AccountPage = () => {
                       </div>
                     )
                   )}
+                </div>
+              ) : subError ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Kon je abonnementsstatus niet laden. Controleer je verbinding en probeer opnieuw.
+                  </p>
+                  <button onClick={() => checkSubscription()}
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-3 text-sm font-semibold active:scale-[0.97] transition-transform">
+                    <Loader2 size={16} className={subLoading ? "animate-spin" : ""} /> Opnieuw proberen
+                  </button>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -1836,7 +1866,7 @@ const AccountPage = () => {
                       </div>
                       <p className="text-xs text-foreground mb-2.5">{project.staff_notes}</p>
                       <button
-                        onClick={() => setActiveTab("projects")}
+                        onClick={() => setProjectUploadTarget(project)}
                         className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-warning/20 py-2 text-xs font-semibold text-warning"
                       >
                         <Upload size={13} /> Ga naar upload
@@ -1953,8 +1983,8 @@ const AccountPage = () => {
                                 {format(new Date(b.booking_date), "d MMMM", { locale })} • {b.start_time} • {b.duration_hours}h
                               </p>
                             </div>
-                            <span className="rounded-full px-2.5 py-1 text-[10px] font-semibold bg-success/20 text-success">
-                              {t("confirmed")}
+                            <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${b.status === "pending" ? "bg-warning/20 text-warning" : "bg-success/20 text-success"}`}>
+                              {b.status === "pending" ? t("pending") : t("confirmed")}
                             </span>
                           </div>
 
@@ -2072,6 +2102,15 @@ const AccountPage = () => {
             toast.success("Ingestuurd! Je punten volgen na goedkeuring door het team.");
           }}
         />
+        <ProjectFileUploadDialog
+          open={!!projectUploadTarget}
+          onOpenChange={(open) => { if (!open) setProjectUploadTarget(null); }}
+          project={projectUploadTarget}
+          onUploaded={() => {
+            toast.success("Bestanden geüpload — het team gaat verder met je project.");
+            reloadProjects();
+          }}
+        />
         <FaultReportDialog
           open={!!faultDialogBooking}
           onOpenChange={(open) => { if (!open) setFaultDialogBooking(null); }}
@@ -2155,7 +2194,12 @@ const AccountPage = () => {
                       if (!user) return;
                       const next = !whatsappOptIn;
                       setWhatsappOptIn(next);
-                      await supabase.from("profiles").update({ whatsapp_opt_in: next }).eq("id", user.id);
+                      const { error } = await supabase.from("profiles").update({ whatsapp_opt_in: next }).eq("id", user.id);
+                      if (error) {
+                        setWhatsappOptIn(!next);
+                        toast.error("Opslaan mislukt — probeer opnieuw.");
+                        return;
+                      }
                       toast.success(next ? "WhatsApp-herinneringen aan" : "WhatsApp-herinneringen uit");
                     }}
                     className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${whatsappOptIn ? "bg-primary" : "bg-muted"}`}

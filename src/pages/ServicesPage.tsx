@@ -166,7 +166,7 @@ const ServicesPage = () => {
               const Icon = iconMap[service.icon] || Mic;
               return (
                 <motion.button key={service.id} variants={item} onClick={() => handleServiceClick(service.id)}
-                className="group relative flex w-full items-center gap-4 rounded-2xl bg-card border border-border p-4 text-left transition-all hover:border-primary/40 active:scale-[0.99] overflow-hidden">
+                className="group relative flex w-full items-center gap-4 rounded-2xl card-premium border border-border p-4 text-left transition-all hover:border-primary/40 active:scale-[0.99] overflow-hidden">
                   <div className="absolute -left-4 top-1/2 -translate-y-1/2 h-20 w-20 rounded-full bg-primary/10 blur-2xl" />
                   <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl gradient-primary shadow-glow">
                     <Icon size={24} className="text-primary-foreground" />
@@ -279,7 +279,7 @@ const ServicesPage = () => {
                   }
                 }}
                 disabled={isDisabled}
-                className={`group relative flex w-full items-center gap-4 rounded-2xl bg-card border border-border p-4 text-left transition-all ${plan.borderColor} active:scale-[0.99] overflow-hidden ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}>
+                className={`group relative flex w-full items-center gap-4 rounded-2xl card-premium border border-border p-4 text-left transition-all ${plan.borderColor} active:scale-[0.99] overflow-hidden ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}>
                   <div className={`absolute -left-4 top-1/2 -translate-y-1/2 h-20 w-20 rounded-full ${plan.bgIcon} blur-2xl opacity-50`} />
                   <div className={`relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${plan.bgIcon}`}>
                     <plan.icon size={24} className={plan.color} />
@@ -323,7 +323,7 @@ const ServicesPage = () => {
               return (
                 <motion.button key={service.id} variants={item}
                 onClick={() => handleServiceClick(service.id)}
-                className="group flex flex-col items-center gap-3 rounded-2xl bg-card border border-border p-5 text-center transition-all hover:border-primary/30 active:scale-[0.98]">
+                className="group flex flex-col items-center gap-3 rounded-2xl card-premium border border-border p-5 text-center transition-all hover:border-primary/30 active:scale-[0.98]">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary">
                     <Icon size={22} className="text-primary" />
                   </div>

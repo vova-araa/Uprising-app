@@ -379,7 +379,7 @@ const HomePage = () => {
                 key={studio.id}
                 whileHover={{ y: -4 }}
                 onClick={() => navigate(`/book?studio=${studio.id}`)}
-                className="relative flex-shrink-0 w-[260px] lg:w-full rounded-2xl overflow-hidden border border-border card-premium transition-all hover:border-primary/40 hover:shadow-glow active:scale-[0.98] lg:hover:scale-[1.01] lg:hover:-translate-y-1"
+                className="group relative flex-shrink-0 w-[260px] lg:w-full rounded-2xl overflow-hidden border border-border card-premium transition-all hover:border-primary/40 hover:shadow-glow active:scale-[0.98] lg:hover:scale-[1.01] lg:hover:-translate-y-1"
               >
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <img

@@ -150,7 +150,7 @@ const LabelDashboardPage = () => {
               {artists.map((a) => {
                 const used = usage.get(a.id) || 0;
                 return (
-                  <div key={a.id} className="flex items-center gap-3 rounded-xl bg-card border border-border p-3">
+                  <div key={a.id} className="flex items-center gap-3 rounded-xl card-premium border border-border p-3">
                     <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 shrink-0"><Mic size={15} className="text-primary" /></div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold truncate">{a.name}</p>
@@ -196,7 +196,7 @@ const LabelDashboardPage = () => {
             <h2 className="text-sm font-semibold mb-2 flex items-center gap-1.5"><FileText size={15} className="text-primary" /> Facturen</h2>
             <div className="space-y-1.5">
               {invoices.map((inv) => (
-                <div key={inv.id} className="flex items-center gap-3 rounded-xl bg-card border border-border p-3">
+                <div key={inv.id} className="flex items-center gap-3 rounded-xl card-premium border border-border p-3">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold">{inv.invoice_number}</p>
                     <p className="text-[11px] text-muted-foreground">{inv.hours}u • €{Number(inv.total).toFixed(2)} • <span className={inv.status === "paid" ? "text-success" : inv.status === "sent" ? "text-primary" : "text-muted-foreground"}>{inv.status}</span></p>

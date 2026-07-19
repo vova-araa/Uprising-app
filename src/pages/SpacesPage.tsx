@@ -126,10 +126,10 @@ const SpacesPage = () => {
           return (
             <motion.div key={space.id} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.08, duration: 0.5 }} layout
-            className="relative overflow-hidden rounded-2xl border border-border bg-card">
+            className="relative overflow-hidden rounded-2xl border border-border card-premium">
               <button onClick={() => setExpandedSpace(isExpanded ? null : space.id)} className="relative w-full aspect-[2/1] overflow-hidden">
                 <img src={(() => { const studio = configStudios.find(s => s.id === space.id); const configImg = studio?.imageUrl || (space.id === "print-shop" ? printShopConfig?.imageUrl : ""); return configImg || fallbackImages[space.id] || ""; })()} alt={t(space.nameKey as any)} className="h-full w-full object-cover transition-transform duration-700 hover:scale-105" loading="lazy" decoding="async" width={600} height={240} />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
 
                 <div className="absolute top-2 right-2">
                   {isMember && space.pricePerHour > 0 ?
@@ -218,7 +218,7 @@ const SpacesPage = () => {
                   if (space.pricePerHour > 0) navigate(`/book?studio=${space.id}`);else
                   navigate(`/request?type=${space.id}`);
                 }}
-                className="shrink-0 flex items-center gap-1 rounded-full gradient-primary px-4 py-2 text-[11px] font-bold text-primary-foreground shadow-glow active:scale-[0.97] transition-transform bg-primary">
+                className="shrink-0 flex items-center gap-1 rounded-full gradient-primary px-4 py-2 text-[11px] font-bold text-primary-foreground shadow-glow active:scale-[0.97] transition-transform">
                     {t("book2")}
                     <ChevronRight size={12} />
                   </button>

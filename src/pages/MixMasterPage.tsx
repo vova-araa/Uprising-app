@@ -250,19 +250,19 @@ const MixMasterPage = () => {
 
         {description.trim() && style.trim() && (
           <button onClick={handleSubmit} disabled={isLoading}
-            className="w-full rounded-xl bg-card border border-primary/30 p-4 text-left transition-all hover:border-primary active:scale-[0.99] disabled:opacity-50">
+            className="w-full rounded-xl gradient-primary text-primary-foreground shadow-glow p-4 text-left transition-all hover:opacity-95 active:scale-[0.99] disabled:opacity-50">
             {isLoading ? (
-              <div className="flex items-center justify-center py-2"><Loader2 size={20} className="animate-spin text-primary" /></div>
+              <div className="flex items-center justify-center py-2"><Loader2 size={20} className="animate-spin text-primary-foreground" /></div>
             ) : (
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Mix & Master</p>
+                  <p className="text-sm text-primary-foreground/80">Mix & Master</p>
                   <p className="font-semibold">{trackCount} {trackCount === 1 ? "track" : "tracks"}</p>
-                  <p className="text-xs text-muted-foreground">€{pricePerTrack} {t("perTrack")}</p>
+                  <p className="text-xs text-primary-foreground/80">€{pricePerTrack} {t("perTrack")}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xl font-bold text-primary">€{totalPrice}</p>
-                  <p className="text-xs text-primary font-medium mt-1">{t("continueBtn")} →</p>
+                  <p className="text-xl font-bold">€{totalPrice}</p>
+                  <p className="text-xs font-medium mt-1">{t("continueBtn")} →</p>
                 </div>
               </div>
             )}
