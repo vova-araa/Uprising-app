@@ -13,6 +13,7 @@ import {
 import NukiAccessButton from "@/components/NukiAccessButton";
 import AccountAccessSection from "@/components/AccountAccessSection";
 import BookingCancelDialog from "@/components/BookingCancelDialog";
+import FaultReportDialog from "@/components/FaultReportDialog";
 import BookingModifyDialog from "@/components/BookingModifyDialog";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { format, differenceInDays, startOfMonth, endOfMonth, isBefore } from "date-fns";
@@ -119,6 +120,7 @@ const AccountPage = () => {
   const [workshopConfig, setWorkshopConfig] = useState<{ title?: string; description?: string; date?: string; learning_module?: string; start_time?: string; end_time?: string } | null>(null);
   const [weeklyDaysConfig, setWeeklyDaysConfig] = useState<any>(null);
   const [cancelDialogBooking, setCancelDialogBooking] = useState<any>(null);
+  const [faultDialogBooking, setFaultDialogBooking] = useState<any>(null);
   const [modifyDialogBooking, setModifyDialogBooking] = useState<any>(null);
   const defaultNotifPrefs = { push: true, email: true, bookingReminders: true, promotions: false };
   const [notifPrefs, setNotifPrefs] = useState(defaultNotifPrefs);
@@ -1829,30 +1831,29 @@ const AccountPage = () => {
                             </span>
                           </div>
 
-                          {/* Member/Gratis: show modify & cancel buttons */}
-                          {isMemberOrGratis ? (
-                            <div className="flex gap-2 mt-3">
+                          {/* Modify (members/free) + cancel (everyone, policy-based refund) */}
+                          <div className="flex gap-2 mt-3">
+                            {isMemberOrGratis && (
                               <button
                                 onClick={() => setModifyDialogBooking(b)}
                                 className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-secondary py-2 text-xs font-semibold text-foreground transition-all hover:bg-secondary/80"
                               >
                                 <Pencil size={13} /> Wijzigen
                               </button>
-                              <button
-                                onClick={() => setCancelDialogBooking(b)}
-                                className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-destructive/10 border border-destructive/20 py-2 text-xs font-semibold text-destructive transition-all hover:bg-destructive/20"
-                              >
-                                <Trash2 size={13} /> Annuleren
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="flex items-start gap-2 mt-3 rounded-lg bg-muted/50 p-3">
-                              <Info size={14} className="text-muted-foreground shrink-0 mt-0.5" />
-                              <p className="text-[11px] text-muted-foreground">
-                                Deze boeking is definitief. Neem contact op met de administratie voor wijzigingen.
-                              </p>
-                            </div>
-                          )}
+                            )}
+                            <button
+                              onClick={() => setCancelDialogBooking(b)}
+                              className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-destructive/10 border border-destructive/20 py-2 text-xs font-semibold text-destructive transition-all hover:bg-destructive/20"
+                            >
+                              <Trash2 size={13} /> Annuleren
+                            </button>
+                            <button
+                              onClick={() => setFaultDialogBooking(b)}
+                              className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-warning/10 border border-warning/20 py-2 text-xs font-semibold text-warning transition-all hover:bg-warning/20"
+                            >
+                              <AlertTriangle size={13} /> Storing
+                            </button>
+                          </div>
 
                           <NukiAccessButton
                             bookingId={b.id}
@@ -1895,6 +1896,19 @@ const AccountPage = () => {
         )}
 
         {/* Booking management dialogs */}
+        <FaultReportDialog
+          open={!!faultDialogBooking}
+          onOpenChange={(open) => { if (!open) setFaultDialogBooking(null); }}
+          booking={faultDialogBooking}
+          onReported={(result) => {
+            toast.success(
+              result.compensated
+                ? `Melding ontvangen — €${result.compensated} compensatie toegekend`
+                : "Melding ontvangen, het team is op de hoogte"
+            );
+            loadCreditBalance();
+          }}
+        />
         <BookingCancelDialog
           open={!!cancelDialogBooking}
           onOpenChange={(open) => { if (!open) setCancelDialogBooking(null); }}

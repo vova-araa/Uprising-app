@@ -7,8 +7,10 @@ import { nl } from "date-fns/locale";
 import { inlineToast as toast } from "@/components/InlineToast";
 import {
   SprayCan, Package, ShoppingCart, AlertTriangle, Plus, Trash2,
-  Pencil, X, Save, Loader2, ChevronDown, ChevronRight, ArrowLeft, GripVertical
+  Pencil, X, Save, Loader2, ChevronDown, ChevronRight, ArrowLeft, GripVertical,
+  Wrench, CheckCircle, Ban, ImageIcon
 } from "lucide-react";
+import { getSignedUrl } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -17,6 +19,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 
 type CleaningLog = { id: string; cleaned_by: string; cleaned_at: string; areas: string[]; notes: string | null };
+type FaultReport = { id: string; user_id: string; studio_id: string; category: string; description: string; photo_path: string | null; status: string; compensation: number; created_at: string };
+type RoomBlock = { id: string; studio_id: string; reason: string; fault_report_id: string | null; active: boolean; created_at: string };
 type InventoryItem = { id: string; item_name: string; quantity: number; min_quantity: number; category: string };
 type VendingItem = { id: string; item_name: string; quantity: number; max_quantity: number; next_purchase_date: string | null; is_full: boolean };
 
@@ -39,7 +43,12 @@ const AdminFacilitiesPage = () => {
   const [admins, setAdmins] = useState<{ id: string; full_name: string }[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [sections, setSections] = useState({ cleaning: true, inventory: true, vending: true });
+  const [faultReports, setFaultReports] = useState<FaultReport[]>([]);
+  const [roomBlocks, setRoomBlocks] = useState<RoomBlock[]>([]);
+  const [reporterNames, setReporterNames] = useState<Map<string, string>>(new Map());
+  const [resolvingFault, setResolvingFault] = useState<string | null>(null);
+
+  const [sections, setSections] = useState({ faults: true, cleaning: true, inventory: true, vending: true });
   const toggleSection = (key: keyof typeof sections) => setSections((s) => ({ ...s, [key]: !s[key] }));
 
   const [cleanAreas, setCleanAreas] = useState<string[]>([]);
@@ -79,7 +88,46 @@ const AdminFacilitiesPage = () => {
     setInventory((invRes.data as any[] || []) as InventoryItem[]);
     setVending((vendRes.data as any[] || []) as VendingItem[]);
     setAdmins(adminsRes as any[]);
+
+    const [faultsRes, blocksRes] = await Promise.all([
+      supabase.from("fault_reports").select("*").neq("status", "resolved").order("created_at", { ascending: false }),
+      supabase.from("room_blocks").select("*").eq("active", true).order("created_at", { ascending: false }),
+    ]);
+    const faults = (faultsRes.data as any[] || []) as FaultReport[];
+    setFaultReports(faults);
+    setRoomBlocks((blocksRes.data as any[] || []) as RoomBlock[]);
+    const reporterIds = [...new Set(faults.map((f) => f.user_id))];
+    if (reporterIds.length > 0) {
+      const { data: reporters } = await supabase.from("profiles").select("id, full_name, email").in("id", reporterIds);
+      setReporterNames(new Map((reporters || []).map((p: any) => [p.id, p.full_name || p.email || "Onbekend"])));
+    }
     setLoading(false);
+  };
+
+  const resolveFault = async (fault: FaultReport) => {
+    setResolvingFault(fault.id);
+    try {
+      await supabase.from("fault_reports")
+        .update({ status: "resolved", resolved_at: new Date().toISOString(), resolved_by: user?.id })
+        .eq("id", fault.id);
+      // Lift any room block created by this report
+      await supabase.from("room_blocks").update({ active: false }).eq("fault_report_id", fault.id);
+      toast.success("Melding opgelost — ruimte weer boekbaar");
+      loadAll();
+    } finally {
+      setResolvingFault(null);
+    }
+  };
+
+  const liftBlock = async (block: RoomBlock) => {
+    await supabase.from("room_blocks").update({ active: false }).eq("id", block.id);
+    toast.success("Blokkade opgeheven");
+    loadAll();
+  };
+
+  const openPhoto = async (path: string) => {
+    const url = await getSignedUrl("uploads", path);
+    window.open(url, "_blank");
   };
 
   useEffect(() => { loadAll(); }, []);
@@ -165,6 +213,76 @@ const AdminFacilitiesPage = () => {
         </button>
         <h1 className="text-lg sm:text-xl font-bold">Faciliteitenbeheer</h1>
       </div>
+
+      {/* ── FAULT REPORTS & ROOM BLOCKS ────────────────────────── */}
+      <Card className={faultReports.length > 0 ? "border-warning/40" : ""}>
+        <CardHeader className="pb-1 pt-3 px-3 sm:px-4">
+          <SectionHeader icon={Wrench} title={`Storingen${faultReports.length > 0 ? ` (${faultReports.length})` : ""}`} sectionKey="faults" color={faultReports.length > 0 ? "text-warning" : "text-primary"} />
+        </CardHeader>
+        {sections.faults && (
+          <CardContent className="px-3 sm:px-4 pb-4 pt-1 space-y-3">
+            {roomBlocks.length > 0 && (
+              <div className="space-y-1.5">
+                {roomBlocks.map((block) => (
+                  <div key={block.id} className="flex items-center gap-2 p-2.5 rounded-lg bg-destructive/5 border border-destructive/20">
+                    <Ban size={14} className="text-destructive shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-medium">{block.studio_id} geblokkeerd</span>
+                      <p className="text-xs text-muted-foreground truncate">{block.reason}</p>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => liftBlock(block)} className="min-h-[44px] shrink-0">
+                      Opheffen
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {faultReports.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Geen open storingen 🎉</p>
+            ) : (
+              <div className="space-y-2">
+                {faultReports.map((fault) => (
+                  <div key={fault.id} className="p-3 rounded-lg bg-warning/5 border border-warning/20 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Badge variant="outline" className="text-[10px] shrink-0">{fault.studio_id}</Badge>
+                        <Badge variant="secondary" className="text-[10px] shrink-0">{fault.category}</Badge>
+                        {fault.compensation > 0 && (
+                          <Badge className="text-[10px] bg-success/20 text-success shrink-0">€{fault.compensation} comp.</Badge>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-muted-foreground shrink-0">
+                        {format(new Date(fault.created_at), "d MMM HH:mm", { locale: nl })}
+                      </span>
+                    </div>
+                    <p className="text-sm">{fault.description}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Gemeld door: {reporterNames.get(fault.user_id) || "Onbekend"}
+                    </p>
+                    <div className="flex gap-2">
+                      {fault.photo_path && (
+                        <Button size="sm" variant="outline" onClick={() => openPhoto(fault.photo_path!)} className="min-h-[44px]">
+                          <ImageIcon size={14} /> Foto
+                        </Button>
+                      )}
+                      <Button
+                        size="sm"
+                        onClick={() => resolveFault(fault)}
+                        disabled={resolvingFault === fault.id}
+                        className="flex-1 min-h-[44px]"
+                      >
+                        {resolvingFault === fault.id ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
+                        Opgelost & vrijgeven
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        )}
+      </Card>
 
       {/* ── CLEANING ───────────────────────────────────────────── */}
       <Card>

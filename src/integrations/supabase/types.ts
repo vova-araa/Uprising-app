@@ -1743,6 +1743,103 @@ export type Database = {
         }
         Relationships: []
       }
+      fault_reports: {
+        Row: {
+          booking_id: string | null
+          category: string
+          compensation: number
+          created_at: string
+          description: string
+          id: string
+          photo_path: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          studio_id: string
+          user_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          category: string
+          compensation?: number
+          created_at?: string
+          description: string
+          id?: string
+          photo_path?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          studio_id: string
+          user_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          category?: string
+          compensation?: number
+          created_at?: string
+          description?: string
+          id?: string
+          photo_path?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          studio_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fault_reports_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      room_blocks: {
+        Row: {
+          active: boolean
+          blocked_from: string
+          blocked_until: string | null
+          created_at: string
+          created_by: string | null
+          fault_report_id: string | null
+          id: string
+          reason: string
+          studio_id: string
+        }
+        Insert: {
+          active?: boolean
+          blocked_from?: string
+          blocked_until?: string | null
+          created_at?: string
+          created_by?: string | null
+          fault_report_id?: string | null
+          id?: string
+          reason: string
+          studio_id: string
+        }
+        Update: {
+          active?: boolean
+          blocked_from?: string
+          blocked_until?: string | null
+          created_at?: string
+          created_by?: string | null
+          fault_report_id?: string | null
+          id?: string
+          reason?: string
+          studio_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_blocks_fault_report_id_fkey"
+            columns: ["fault_report_id"]
+            isOneToOne: false
+            referencedRelation: "fault_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wallet_transactions: {
         Row: {
           amount: number

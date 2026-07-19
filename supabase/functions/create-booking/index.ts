@@ -75,6 +75,24 @@ const STUDIO_DISPLAY_NAME: Record<string, string> = {
   "content-room": "Content Room",
 };
 
+/** A room with an active block (fault report / maintenance) is not bookable. */
+async function isRoomBlocked(
+  supabaseAdmin: any,
+  studio_id: string,
+  booking_date: string,
+  start_time: string,
+): Promise<boolean> {
+  const { data: blocks } = await supabaseAdmin
+    .from("room_blocks")
+    .select("blocked_until")
+    .eq("studio_id", studio_id)
+    .eq("active", true);
+  if (!blocks || blocks.length === 0) return false;
+  const [h, m] = start_time.split(":").map(Number);
+  const sessionStart = buildLocalDate(booking_date, h, m);
+  return blocks.some((b: any) => !b.blocked_until || new Date(b.blocked_until) > sessionStart);
+}
+
 async function checkAvailability(
   supabaseAdmin: any,
   studio_id: string,
@@ -256,6 +274,11 @@ serve(async (req) => {
     );
 
     // --- Check availability ---
+    if (await isRoomBlocked(supabaseAdmin, studio_id, booking_date, start_time)) {
+      return new Response(JSON.stringify({ error: "Deze ruimte is tijdelijk niet boekbaar vanwege een storing of onderhoud." }), {
+        status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const isAvailable = await checkAvailability(supabaseAdmin, studio_id, booking_date, start_time, duration_hours);
     if (!isAvailable) {
       return new Response(JSON.stringify({ error: "Dit tijdslot is niet meer beschikbaar. Kies een ander tijdstip." }), {

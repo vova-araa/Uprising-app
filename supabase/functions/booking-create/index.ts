@@ -84,6 +84,15 @@ Deno.serve(async (req) => {
     const resolved = await resolveCustomer(supabase, customer);
     if ("error" in resolved) return json({ error: resolved.error }, resolved.status);
 
+    // Rooms with an active block (fault report / maintenance) are not bookable
+    const { data: blocks } = await supabase
+      .from("room_blocks")
+      .select("blocked_until")
+      .eq("studio_id", studio_id)
+      .eq("active", true);
+    const blocked = (blocks ?? []).some((b: any) => !b.blocked_until || new Date(b.blocked_until) > new Date());
+    if (blocked) return json({ error: "room_blocked" }, 409);
+
     const available = await checkAvailability(supabase, studio_id, booking_date, start_time, duration_hours);
     if (!available) return json({ error: "slot_unavailable" }, 409);
 
