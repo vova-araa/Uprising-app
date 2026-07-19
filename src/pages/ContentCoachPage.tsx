@@ -202,7 +202,12 @@ const ContentCoachPage = () => {
   const toggleItem = async (plan: ContentPlan, itemId: string) => {
     const items = plan.items.map((it) => (it.id === itemId ? { ...it, done: !it.done } : it));
     setPlans((prev) => prev.map((p) => (p.id === plan.id ? { ...p, items } : p)));
-    await supabase.from("content_plans").update({ items: items as never, updated_at: new Date().toISOString() }).eq("id", plan.id);
+    const { error } = await supabase.from("content_plans").update({ items: items as never, updated_at: new Date().toISOString() }).eq("id", plan.id);
+    if (error) {
+      // Revert the optimistic toggle so the UI matches the server.
+      setPlans((prev) => prev.map((p) => (p.id === plan.id ? { ...p, items: plan.items } : p)));
+      toast.error("Opslaan mislukt — probeer opnieuw.");
+    }
   };
 
   const addMilestone = async () => {
@@ -211,7 +216,8 @@ const ContentCoachPage = () => {
     const { error } = await supabase.from("creator_profiles")
       .update({ milestones: milestones as never, updated_at: new Date().toISOString() })
       .eq("user_id", user.id);
-    if (!error) { setNewMilestone(""); toast.success("Mijlpaal toegevoegd! 🏆"); loadProfile(); }
+    if (error) { toast.error("Toevoegen mislukt — probeer opnieuw."); return; }
+    setNewMilestone(""); toast.success("Mijlpaal toegevoegd! 🏆"); loadProfile();
   };
 
   const sendMessage = async (text: string) => {
@@ -255,7 +261,7 @@ const ContentCoachPage = () => {
     return (
       <div className="min-h-full bg-background pb-28">
         <SEO title="Content Coach — Uprising Studio" description="Jouw persoonlijke content-coach." path="/coach" />
-        <div className="sticky top-0 z-40 border-b border-border bg-background/95 px-5 py-4 backdrop-blur-xl" style={{ paddingTop: "calc(var(--safe-area-top) + 12px)" }}>
+        <div className="glass hairline-top sticky top-0 z-40 border-b border-border px-5 py-4" style={{ paddingTop: "calc(var(--safe-area-top) + 12px)" }}>
           <div className="flex items-center gap-3">
             <button onClick={() => (profile ? setShowIntake(false) : navigate(-1))} className="p-1 -ml-1"><ChevronLeft size={22} /></button>
             <h1 className="text-lg font-bold font-display">{profile ? "Profiel bewerken" : "Vertel over jezelf"}</h1>
@@ -551,17 +557,21 @@ const CheckinSheet = ({ plan, onClose, onDone }: { plan: ContentPlan; onClose: (
   const submit = async () => {
     if (!user) return;
     setSaving(true);
-    await supabase.from("coach_checkins").insert({
+    const { error } = await supabase.from("coach_checkins").insert({
       user_id: user.id, content_plan_id: plan.id, posted,
       reflection: reflection.trim() || null, reach_note: reach.trim() || null,
     });
     setSaving(false);
+    if (error) {
+      toast.error("Opslaan mislukt — probeer opnieuw.");
+      return;
+    }
     onDone();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 px-4" onClick={onClose}>
-      <div className="rounded-2xl bg-card border border-border p-5 max-w-sm w-full space-y-4 mb-4 sm:mb-0" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-background/70 backdrop-blur-sm px-4" onClick={onClose}>
+      <div className="animate-slide-up rounded-2xl card-premium border border-border p-5 max-w-sm w-full space-y-4 mb-4 sm:mb-0" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-2">
           <RefreshCw size={17} className="text-primary" />
           <h3 className="font-display font-semibold text-base">Check-in</h3>
@@ -575,9 +585,9 @@ const CheckinSheet = ({ plan, onClose, onDone }: { plan: ContentPlan; onClose: (
           </div>
         </div>
         <textarea value={reflection} onChange={(e) => setReflection(e.target.value)} rows={2} placeholder="Wat ging goed / minder goed?"
-          className="w-full rounded-lg bg-secondary border border-border px-3 py-2.5 text-sm resize-none" />
+          className="w-full rounded-lg bg-secondary border border-border px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary" />
         <input value={reach} onChange={(e) => setReach(e.target.value)} placeholder="Bereik? (bijv. 1.2k views, 40 likes)"
-          className="w-full rounded-lg bg-secondary border border-border px-3 py-2.5 text-sm" />
+          className="w-full rounded-lg bg-secondary border border-border px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
         <div className="flex gap-2">
           <button onClick={onClose} className="flex-1 rounded-xl bg-secondary px-4 py-2.5 text-sm font-medium">Sluit</button>
           <button onClick={submit} disabled={saving} className="flex-1 rounded-xl gradient-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground flex items-center justify-center gap-2 disabled:opacity-60">

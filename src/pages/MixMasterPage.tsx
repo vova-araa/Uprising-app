@@ -96,7 +96,7 @@ const MixMasterPage = () => {
         onAuthenticated={() => { setShowAuthGate(false); }}
         context="service"
       />
-      <div className="sticky top-0 z-40 border-b border-border bg-background/95 px-5 py-4 backdrop-blur-xl" style={{ paddingTop: "calc(var(--safe-area-top) + 12px)" }}>
+      <div className="glass hairline-top sticky top-0 z-40 border-b border-border px-5 py-4" style={{ paddingTop: "calc(var(--safe-area-top) + 12px)" }}>
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="p-1 -ml-1">
             <ChevronLeft size={22} />
