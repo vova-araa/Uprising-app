@@ -46,7 +46,7 @@ const StudioSessionDetailPage = () => {
 
       <motion.div variants={container} initial="hidden" animate="show" className="px-5 space-y-6">
         {/* Intro — waveform decoration */}
-        <motion.div variants={item} className="relative rounded-2xl bg-card border border-border p-5 overflow-hidden">
+        <motion.div variants={item} className="relative rounded-2xl card-premium border border-border p-5 overflow-hidden">
           <div aria-hidden className="absolute right-3 top-3 flex items-end gap-0.5 h-8">
             {[3, 6, 4, 8, 5, 7, 3, 6, 4, 2].map((h, i) => (
               <span key={i} className="w-0.5 rounded-full bg-primary/40" style={{ height: `${h * 4}px` }} />

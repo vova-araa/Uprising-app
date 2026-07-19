@@ -897,7 +897,9 @@ const BookingPage = () => {
                               : "This agreement is governed by Dutch law. Disputes shall be submitted to the competent court in the Central Netherlands district."}
                           </p>
                         </div>
-                        <button onClick={() => setContractAccepted(!contractAccepted)} className="flex items-center gap-2 mt-3">
+                        <button onClick={() => setContractAccepted(!contractAccepted)}
+                          role="checkbox" aria-checked={contractAccepted} aria-label={t("agreeTerms")}
+                          className="flex items-center gap-2 mt-3">
                           <div className={`flex h-5 w-5 items-center justify-center rounded ${contractAccepted ? "bg-primary text-primary-foreground" : "border-2 border-muted-foreground/30"}`}>
                             {contractAccepted && <CheckSquare size={14} />}
                           </div>
@@ -1485,6 +1487,8 @@ const BookingPage = () => {
                     {walletBalance > 0 && totalPrice > 0 && (
                       <button
                         onClick={() => setUseWallet(!useWallet)}
+                        role="checkbox" aria-checked={useWallet}
+                        aria-label={lang === "nl" ? "Tegoed gebruiken" : "Use credit"}
                         className="flex w-full items-center justify-between text-sm py-1"
                       >
                         <span className="flex items-center gap-2 text-muted-foreground">
@@ -1549,6 +1553,7 @@ const BookingPage = () => {
                         : "10. Follow staff instructions at all times."}</p>
                     </div>
                     <button onClick={() => setRulesAccepted(!rulesAccepted)}
+                      role="checkbox" aria-checked={rulesAccepted} aria-label={t("agreeHouseRules")}
                       className="flex items-center gap-2 mt-3">
                       <div className={`flex h-5 w-5 items-center justify-center rounded ${rulesAccepted ? "bg-primary text-primary-foreground" : "border-2 border-muted-foreground/30"}`}>
                         {rulesAccepted && <Check size={14} />}

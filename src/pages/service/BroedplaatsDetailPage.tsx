@@ -92,7 +92,7 @@ const BroedplaatsDetailPage = () => {
 
       <motion.div variants={container} initial="hidden" animate="show" className="px-5 space-y-6">
         {/* Intro */}
-        <motion.div variants={item} className="rounded-2xl bg-card border border-border p-5">
+        <motion.div variants={item} className="rounded-2xl card-premium border border-border p-5">
           <p className="text-sm text-muted-foreground leading-relaxed">
             {lang === "nl"
               ? "De Broedplaats is een creatieve ontwikkelplek waar makers samenkomen om zich te ontwikkelen in muziek, content en creatieve projecten. Iedereen kan deelnemen, met een speciale optie voor scholieren."
@@ -110,7 +110,7 @@ const BroedplaatsDetailPage = () => {
           <h3 className="font-semibold font-display text-sm mb-3 px-1">{t("youCanComeFor")}</h3>
           <div className="grid grid-cols-3 gap-2">
             {activities.map((a) => (
-              <div key={a.nl} className="rounded-2xl bg-card border border-border p-4 text-center flex flex-col items-center gap-2">
+              <div key={a.nl} className="rounded-2xl card-premium border border-border p-4 text-center flex flex-col items-center gap-2">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/30 to-primary/5">
                   <a.icon size={22} className="text-primary" strokeWidth={1.5} />
                 </div>

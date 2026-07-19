@@ -48,7 +48,7 @@ const ContentDetailPage = () => {
 
       <motion.div variants={container} initial="hidden" animate="show" className="px-5 space-y-6">
         {/* Editorial intro with film-strip motif */}
-        <motion.div variants={item} className="relative rounded-2xl bg-card border border-border p-5 overflow-hidden">
+        <motion.div variants={item} className="relative rounded-2xl card-premium border border-border p-5 overflow-hidden">
           <span aria-hidden className="absolute top-0 left-0 right-0 h-2 flex gap-1 px-2 pt-1">
             {Array.from({ length: 14 }).map((_, i) => (
               <span key={i} className="flex-1 h-1 rounded-full bg-primary/30" />

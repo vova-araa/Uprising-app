@@ -55,7 +55,7 @@ const ProducerSessionDetailPage = () => {
 
       <motion.div variants={container} initial="hidden" animate="show" className="px-5 space-y-6">
         {/* Intro */}
-        <motion.div variants={item} className="rounded-2xl bg-card border border-border p-5">
+        <motion.div variants={item} className="rounded-2xl card-premium border border-border p-5">
           <p className="text-sm text-muted-foreground leading-relaxed">
             {lang === "nl"
               ? "Tijdens een producer sessie werk je samen met een ervaren producer aan het maken van een volledige track. Samen werk je van idee tot een complete productie."
@@ -69,7 +69,7 @@ const ProducerSessionDetailPage = () => {
         {/* Pricing — COMPARISON BARS */}
         <motion.div variants={item}>
           <h3 className="font-semibold font-display text-sm mb-3 px-1">{t("pricingLabel")}</h3>
-          <div className="rounded-2xl bg-card border border-border p-5 space-y-3">
+          <div className="rounded-2xl card-premium border border-border p-5 space-y-3">
             {pricingRows.map((r) => {
               const widthPct = (r.price / basePrice) * 100;
               return (
@@ -108,7 +108,7 @@ const ProducerSessionDetailPage = () => {
           <h3 className="font-semibold font-display text-sm mb-3 px-1">{t("sessionCanInclude")}</h3>
           <div className="grid grid-cols-2 gap-2">
             {sessionParts.map((sp, i) => (
-              <div key={sp.nl} className="relative rounded-2xl bg-card border border-border p-4 overflow-hidden">
+              <div key={sp.nl} className="relative rounded-2xl card-premium border border-border p-4 overflow-hidden">
                 <span aria-hidden className="absolute -bottom-4 -right-4 h-14 w-14 rounded-full bg-primary/10 blur-xl" />
                 <p className="text-[10px] font-bold tracking-widest text-primary/60 mb-2">0{i + 1}</p>
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/20 mb-3">

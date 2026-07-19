@@ -251,6 +251,7 @@ const AIAssistantPage = () => {
             placeholder={t("askQuestion")} disabled={isLoading}
             className="flex-1 rounded-xl bg-card border border-border px-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-muted-foreground disabled:opacity-50" />
           <button onClick={() => sendMessage(input)} disabled={!input.trim() || isLoading}
+            aria-label={lang === "nl" ? "Verstuur" : "Send"}
             className="flex h-12 w-12 items-center justify-center rounded-xl gradient-primary shadow-glow active:scale-[0.95] disabled:opacity-50">
             <Send size={18} className="text-primary-foreground" />
           </button>

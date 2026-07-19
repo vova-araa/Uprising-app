@@ -118,7 +118,7 @@ const DrukkerijDetailPage = () => {
       </div>
 
       <motion.div variants={container} initial="hidden" animate="show" className="px-5 space-y-5">
-        <motion.div variants={item} className="rounded-2xl bg-card border border-border p-5">
+        <motion.div variants={item} className="rounded-2xl card-premium border border-border p-5">
           <p className="text-sm text-muted-foreground leading-relaxed">
             {lang === "nl"
               ? "Met onze drukkerij kun je eenvoudig eigen kleding en merchandise laten produceren. Wij bedrukken t-shirts, hoodies, merchandise en accessoires — ideaal voor artiesten, creators en merken die hun eigen kledinglijn willen aanbieden."
@@ -191,7 +191,7 @@ const DrukkerijDetailPage = () => {
         </motion.div>
 
         {/* App features */}
-        <motion.div variants={item} className="rounded-2xl bg-card border border-border p-5">
+        <motion.div variants={item} className="rounded-2xl card-premium border border-border p-5">
           <h3 className="font-semibold font-display text-sm mb-3">{t("throughTheAppCan")}</h3>
           <div className="space-y-2">
             {[t("requestPrintJob"), t("haveMerchDeveloped"), t("startMerchManagement")].map((f, i) => (

@@ -89,7 +89,7 @@ const MembershipsDetailPage = () => {
 
       <motion.div variants={container} initial="hidden" animate="show" className="px-5 space-y-5">
         {/* Intro */}
-        <motion.div variants={item} className="rounded-2xl bg-card border border-border p-5">
+        <motion.div variants={item} className="rounded-2xl card-premium border border-border p-5">
           <p className="text-sm text-muted-foreground leading-relaxed">
             {lang === "nl"
               ? "Met een Uprising Producer Membership krijg je vaste toegang tot onze studio's en creatieve ruimtes. Speciaal ontwikkeld voor producers die regelmatig willen werken aan hun beats, tracks en projecten in een professionele studio omgeving. Minimaal 3 maanden commitment, maandelijks betalen."
@@ -225,7 +225,7 @@ const MembershipsDetailPage = () => {
               const price = yearly ? tier.priceYearly : tier.priceMonthly;
               const savings = (tier.priceMonthly - tier.priceYearly) * 12;
               return (
-                <div key={tier.name} className="rounded-2xl bg-card border border-border p-5">
+                <div key={tier.name} className="rounded-2xl card-premium border border-border p-5">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/20">
