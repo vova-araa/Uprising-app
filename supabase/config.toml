@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.nuki-webhook]
 verify_jwt = false
+
+[functions.booking-scheduler]
+verify_jwt = false
