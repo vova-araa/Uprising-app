@@ -729,6 +729,33 @@ const AdminPage = () => {
                   ))}
                 </motion.div>
 
+                {/* Quick access to management areas */}
+                <motion.div variants={item}>
+                  <h3 className="font-semibold font-display text-sm mb-3 text-muted-foreground uppercase tracking-wider">
+                    {lang === "nl" ? "Snel naar" : "Quick access"}
+                  </h3>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    {[
+                      { label: "Insights", icon: TrendingUp, tab: "insights" as Tab },
+                      { label: lang === "nl" ? "Kalender" : "Calendar", icon: CalendarClock, path: "/planning" },
+                      { label: "Labels", icon: Building2, tab: "labels" as Tab },
+                      { label: "Coach-intakes", icon: Megaphone, tab: "intakes" as Tab },
+                      { label: lang === "nl" ? "Faciliteiten" : "Facilities", icon: Package, path: "/admin-faciliteiten" },
+                      { label: lang === "nl" ? "Gebruikers" : "Users", icon: Users, tab: "users" as Tab },
+                      { label: lang === "nl" ? "Nuki sloten" : "Nuki locks", icon: Shield, tab: "nuki" as Tab },
+                      { label: "Config", icon: Settings, tab: "config" as Tab },
+                    ].map((s) => (
+                      <button key={s.label} onClick={() => (s.path ? navigate(s.path) : handleTabChange(s.tab!))}
+                        className="flex flex-col items-center gap-2 rounded-xl bg-card border border-border p-3 text-center transition-all hover:border-primary/40 hover:shadow-glow active:scale-[0.98]">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15">
+                          <s.icon size={16} className="text-primary" />
+                        </div>
+                        <span className="text-[10px] font-medium leading-tight">{s.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+
                 <motion.div variants={item} className="rounded-xl bg-card border border-border p-5">
                   <h3 className="font-semibold font-display text-sm mb-3">
                     {lang === "nl" ? "Openstaande acties" : "Pending actions"}

@@ -124,6 +124,7 @@ const AccountPage = () => {
   const [weeklyDaysConfig, setWeeklyDaysConfig] = useState<any>(null);
   const [cancelDialogBooking, setCancelDialogBooking] = useState<any>(null);
   const [faultDialogBooking, setFaultDialogBooking] = useState<any>(null);
+  const [bookingsFilter, setBookingsFilter] = useState<"upcoming" | "past">("upcoming");
   const [submissionDialog, setSubmissionDialog] = useState<{ booking: any; kind: "session_video" | "clean_room_photo" } | null>(null);
   const [pointsBalance, setPointsBalance] = useState(0);
   const [rewardsCatalog, setRewardsCatalog] = useState<{ id: string; points: number; label: string }[]>([]);
@@ -1912,7 +1913,24 @@ const AccountPage = () => {
             </motion.div>
           ) : (
             <>
-              {upcomingBookings.length > 0 && (
+              {/* Segmented filter: upcoming vs history */}
+              <div className="flex gap-1 rounded-xl bg-secondary p-1 mb-3">
+                <button onClick={() => setBookingsFilter("upcoming")}
+                  className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${bookingsFilter === "upcoming" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>
+                  {t("upcoming")} ({upcomingBookings.length})
+                </button>
+                <button onClick={() => setBookingsFilter("past")}
+                  className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${bookingsFilter === "past" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>
+                  {t("history")} ({pastBookings.length})
+                </button>
+              </div>
+              {bookingsFilter === "upcoming" && upcomingBookings.length === 0 && (
+                <div className="rounded-xl bg-card border border-border p-6 text-center">
+                  <p className="text-xs text-muted-foreground mb-3">{t("scheduleFirstSession")}</p>
+                  <button onClick={() => navigate("/book")} className="rounded-xl gradient-primary px-4 py-2 text-xs font-semibold text-primary-foreground">{t("bookStudio")}</button>
+                </div>
+              )}
+              {bookingsFilter === "upcoming" && upcomingBookings.length > 0 && (
                 <div>
                   <h3 className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">
                     {t("upcoming")}
@@ -1990,7 +2008,10 @@ const AccountPage = () => {
                   </div>
                 </div>
               )}
-              {pastBookings.length > 0 && (
+              {bookingsFilter === "past" && pastBookings.length === 0 && (
+                <p className="rounded-xl bg-card border border-border p-6 text-center text-xs text-muted-foreground">{t("history")} — {t("noBookingsLabel")}</p>
+              )}
+              {bookingsFilter === "past" && pastBookings.length > 0 && (
                 <div>
                   <h3 className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">
                     {t("history")}
