@@ -27,16 +27,16 @@ const COUNTRY_CODES = [
 ];
 
 const AuthPage = ({ embedded }: { embedded?: boolean }) => {
-  const navigate = embedded ? undefined : useNavigate();
+  const navigate = useNavigate();
   const { signIn, signUp, user } = useAuth();
   const { t, lang, setLang } = useI18n();
 
   // Redirect to home if already logged in (only when on /auth route directly)
   useEffect(() => {
-    if (user && navigate) {
+    if (user && !embedded) {
       navigate("/", { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, embedded, navigate]);
   const [isLogin, setIsLogin] = useState(true);
   const [view, setView] = useState<View>("auth");
   const [email, setEmail] = useState("");
@@ -314,7 +314,7 @@ const AuthPage = ({ embedded }: { embedded?: boolean }) => {
                     </div>
                   )}
                 </div>
-                <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^\d\s\-]/g, ""))}
+                <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^\d\s-]/g, ""))}
                   placeholder={`${t("phoneNumberPlaceholder")} *`} required
                   className="flex-1 rounded-r-xl bg-card border border-border border-l-0 pr-4 py-3.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-muted-foreground" />
               </div>

@@ -113,7 +113,7 @@ const OrgSchoolDetail = ({ schoolId, onBack }: Props) => {
 
   const schoolProgress = useMemo(() => {
     if (trajecten.length === 0) return 0;
-    let total = 4;
+    const total = 4;
     let done = 0;
     if (trajecten.length > 0) done++;
     if (totalParticipants > 0) done++;

@@ -43,7 +43,6 @@ const OrgDashboardPage = lazy(() => import("./pages/OrgDashboardPage"));
 const AdminTasksPage = lazy(() => import("./pages/AdminTasksPage"));
 const AdminFacilitiesPage = lazy(() => import("./pages/AdminFacilitiesPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const TestttPage = lazy(() => import("./pages/TestttPage"));
 
 // Admin pages — completely separate bundle, only loaded for admins
 const AdminPage = lazy(() => import("./pages/AdminPage"));
@@ -118,7 +117,6 @@ const AppRoutes = () => {
             <Route path="/privacy" element={<PrivacyPolicyPage />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/auth" element={<AuthPage />} />
-            <Route path="/testttt" element={<TestttPage />} />
 
             {/* Auth-required routes */}
             <Route path="/account" element={<RequireAuth><AccountPage /></RequireAuth>} />

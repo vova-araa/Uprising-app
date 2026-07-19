@@ -21,6 +21,11 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "@typescript-eslint/no-unused-vars": "off",
+      // Large parts of the codebase predate strict typing; keep these visible
+      // as warnings without drowning out real errors.
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-require-imports": "warn",
+      "no-empty": ["error", { allowEmptyCatch: true }],
     },
   },
 );

@@ -186,7 +186,7 @@ const OrgWorkshopDetail = ({ workshopId, onBack }: Props) => {
   const workshopProgress = useMemo(() => {
     if (!workshop) return 0;
     const isPastW = new Date(workshop.workshop_date) < new Date(new Date().toDateString());
-    let total = 5;
+    const total = 5;
     let done = 1; // created
     if (participants.length > 0 || rsvpProfiles.length > 0) done++;
     if (checkedCount === checklists.length && checklists.length > 0) done++;

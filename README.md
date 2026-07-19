@@ -1,73 +1,45 @@
-# Welcome to your Lovable project
+# Uprising Studio App
 
-## Project info
+De app van [Uprising Studio](https://uprisingstudio.nl) — muziekstudio & creatieve hub in Amersfoort.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Studio's boeken met automatische Nuki smart-lock toegang, memberships, mix & master, producer-sessies, content-creatie, drukkerij, broedplaats en jongerenwerk — alles in één app.
 
-## How can I edit this code?
+## Stack
 
-There are several ways of editing your application.
+- **Frontend**: React 18 + Vite + TypeScript, shadcn/ui, Tailwind CSS, TanStack Query, react-router (HashRouter)
+- **Backend**: Supabase (Postgres + RLS, Auth, Storage, Edge Functions in Deno)
+- **Betalingen**: Stripe (checkout, subscriptions, customer portal, iDEAL)
+- **Toegang**: Nuki Web API (smart locks, boeking-gescopede toegang)
+- **Mobiel**: Capacitor (iOS/Android) met push notifications, biometrie, haptics
+- **i18n**: 8 talen (NL, EN, DE, FR, ES, TR, AR, HY)
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Ontwikkelen
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+npm install
+npm run dev        # dev server op :8080
+npm run build      # productie-build
+npm test           # vitest
+npm run lint       # eslint
 ```
 
-**Edit a file directly in GitHub**
+## Structuur
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```
+src/
+  pages/            # route-pagina's (booking, diensten, admin, org, account)
+  components/       # gedeelde componenten; admin/ en org/ subsets
+  contexts/         # Auth + AppConfig providers
+  hooks/            # camera, geolocatie, push, haptics, e.d.
+  integrations/     # Supabase client + gegenereerde DB-types
+  lib/              # i18n, storage, utils, prefetch
+supabase/
+  functions/        # Deno edge functions (booking, Stripe, Nuki, e-mail, AI)
+  migrations/       # SQL-migraties
+docs/
+  MARKTONDERZOEK.md # marktonderzoek + feature-roadmap
+```
 
-**Use GitHub Codespaces**
+## Documentatie
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Zie [`docs/MARKTONDERZOEK.md`](docs/MARKTONDERZOEK.md) voor het marktonderzoek en de geprioriteerde feature-roadmap.

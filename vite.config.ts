@@ -45,8 +45,12 @@ export default defineConfig(({ mode }) => ({
       output: {
         // Keep a single shared vendor chunk to avoid cross-chunk React runtime ordering issues
         // that can cause `__SECRET_INTERNALS...` errors in production.
+        // recharts (+ d3) is safe to split out: it has no React-internal coupling and is
+        // only imported by lazy-loaded admin/org pages, so regular visitors skip ~400kB.
         manualChunks(id) {
-          if (id.includes("node_modules")) return "vendor";
+          if (!id.includes("node_modules")) return undefined;
+          if (/node_modules\/(recharts|d3-[^/]+|victory-vendor)\//.test(id)) return "vendor-charts";
+          return "vendor";
         },
       },
     },

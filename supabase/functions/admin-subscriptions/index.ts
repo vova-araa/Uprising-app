@@ -178,7 +178,7 @@ serve(async (req) => {
     }
 
     // Also fetch canceled (past_due, etc.) for full picture
-    let canceledSubs: any[] = [];
+    const canceledSubs: any[] = [];
     hasMore = true;
     startingAfter = undefined;
     while (hasMore) {
