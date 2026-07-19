@@ -2021,6 +2021,48 @@ export type Database = {
           },
         ]
       }
+      gift_cards: {
+        Row: {
+          amount: number
+          code: string
+          created_at: string
+          id: string
+          message: string | null
+          purchaser_user_id: string | null
+          recipient_email: string | null
+          redeemed_at: string | null
+          redeemed_by: string | null
+          status: string
+          stripe_session_id: string | null
+        }
+        Insert: {
+          amount: number
+          code: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          purchaser_user_id?: string | null
+          recipient_email?: string | null
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          status?: string
+          stripe_session_id?: string | null
+        }
+        Update: {
+          amount?: number
+          code?: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          purchaser_user_id?: string | null
+          recipient_email?: string | null
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          status?: string
+          stripe_session_id?: string | null
+        }
+        Relationships: []
+      }
       label_managers: {
         Row: {
           created_at: string

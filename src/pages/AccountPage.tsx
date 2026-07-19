@@ -15,6 +15,7 @@ import AccountAccessSection from "@/components/AccountAccessSection";
 import BookingCancelDialog from "@/components/BookingCancelDialog";
 import FaultReportDialog from "@/components/FaultReportDialog";
 import SubmissionUploadDialog from "@/components/SubmissionUploadDialog";
+import GiftCardSection from "@/components/GiftCardSection";
 import BookingModifyDialog from "@/components/BookingModifyDialog";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { format, differenceInDays, startOfMonth, endOfMonth, isBefore } from "date-fns";
@@ -208,6 +209,8 @@ const AccountPage = () => {
             toast.success(t("paymentReceivedProject"));
           } else if (verifyResult.type === "producer-session") {
             toast.success(t("paymentReceivedReview"));
+          } else if (verifyResult.type === "gift-card") {
+            toast.success(lang === "nl" ? "Cadeaubon aangemaakt! 🎁" : "Gift card created! 🎁");
           } else {
             toast.success(t("bookingConfirmed"));
             // Auto-provision Nuki access for studio bookings
@@ -2094,6 +2097,9 @@ const AccountPage = () => {
         />
         {activeTab === "settings" && (
           <>
+            <motion.div variants={item}>
+              <GiftCardSection onRedeemed={loadCreditBalance} />
+            </motion.div>
             <motion.div variants={item} className="rounded-xl bg-card border border-border p-5">
               <div className="flex items-center gap-2 mb-4">
                 <Bell size={16} className="text-primary" />

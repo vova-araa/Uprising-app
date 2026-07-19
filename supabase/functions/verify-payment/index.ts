@@ -114,6 +114,45 @@ serve(async (req) => {
       });
     }
 
+    // Handle gift card: activate + issue code, email recipient/buyer
+    if (paymentType === "gift-card") {
+      const giftCardId = session.metadata?.gift_card_id;
+      if (giftCardId) {
+        const { data: gc } = await supabaseAdmin.from("gift_cards").select("*").eq("id", giftCardId).eq("status", "pending").maybeSingle();
+        if (gc) {
+          // Generate a readable, unique code
+          const digits = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+          const seg = () => Array.from(crypto.getRandomValues(new Uint8Array(4))).map((b) => digits[b % digits.length]).join("");
+          const code = `GIFT-${seg()}-${seg()}`;
+          await supabaseAdmin.from("gift_cards").update({ code, status: "active" }).eq("id", gc.id);
+
+          const { data: buyer } = await supabaseAdmin.from("profiles").select("full_name, email").eq("id", gc.purchaser_user_id).single();
+          const buyerName = buyer?.full_name || "Iemand";
+          const to = gc.recipient_email || buyer?.email;
+          if (to) {
+            await supabaseAdmin.rpc("enqueue_email", {
+              queue_name: "transactional_emails",
+              payload: {
+                to,
+                subject: `🎁 Je Uprising Studio cadeaubon (€${gc.amount})`,
+                html: `<p>Hoi!</p><p>${gc.recipient_email ? `${buyerName} heeft je` : "Je hebt jezelf"} een cadeaubon van <strong>€${gc.amount}</strong> gegeven voor Uprising Studio.</p>${gc.message ? `<p><em>"${gc.message}"</em></p>` : ""}<p>Losse je in met deze code in de app (Account → Cadeaubon inwisselen):</p><p style="font-size:22px;font-weight:bold;letter-spacing:2px">${code}</p><p>1 jaar geldig. Veel plezier in de studio!<br/>Uprising Studio</p>`,
+                message_id: `gift-card-${gc.id}`,
+                purpose: "transactional",
+              },
+            });
+          }
+          await supabaseAdmin.from("notifications").insert({
+            user_id: gc.purchaser_user_id,
+            title: "Cadeaubon aangemaakt 🎁",
+            message: gc.recipient_email ? `De cadeaubon van €${gc.amount} is verstuurd naar ${gc.recipient_email}.` : `Je cadeaubon-code: ${code}`,
+            type: "success", link: "/account?tab=settings",
+          });
+          logStep("Gift card activated", { giftCardId, code });
+        }
+      }
+      return new Response(JSON.stringify({ verified: true, type: "gift-card" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // Handle producer-session: mark booking as paid
     if (paymentType === "producer-session") {
       const { data: pendingProducer } = await supabaseAdmin
