@@ -90,6 +90,8 @@ const BookingPage = () => {
   const [creditContentHours, setCreditContentHours] = useState(0);
   const [walletBalance, setWalletBalance] = useState(0);
   const [useWallet, setUseWallet] = useState(true);
+  const [waitlistJoined, setWaitlistJoined] = useState(false);
+  useEffect(() => { setWaitlistJoined(false); }, [selectedDate, selectedStudio]);
 
   const creditHoursMap: Record<string, number> = {
     "studio-1": creditStudio1Hours,
@@ -1231,6 +1233,33 @@ const BookingPage = () => {
                     );
                   })}
                 </div>
+
+                {/* Waitlist: day fully booked → get a push the moment a slot frees up */}
+                {user && selectedDate && timeSlots.length > 0 && timeSlots.every((s) => !s.available) && (
+                  <button
+                    onClick={async () => {
+                      if (!selectedStudio || waitlistJoined) return;
+                      const { error } = await supabase.from("booking_waitlist").insert({
+                        user_id: user.id,
+                        studio_id: selectedStudio,
+                        booking_date: format(selectedDate, "yyyy-MM-dd"),
+                      });
+                      if (error && !error.message.includes("duplicate")) {
+                        toast.error(lang === "nl" ? "Er ging iets mis" : "Something went wrong");
+                      } else {
+                        setWaitlistJoined(true);
+                        toast.success(lang === "nl"
+                          ? "Je staat op de wachtlijst — je krijgt direct bericht als er een plek vrijkomt!"
+                          : "You're on the waitlist — we'll notify you the moment a slot frees up!");
+                      }
+                    }}
+                    className={`mt-3 w-full rounded-xl border py-3 text-sm font-semibold transition-all ${waitlistJoined ? "bg-success/10 border-success/30 text-success" : "bg-primary/10 border-primary/30 text-primary active:scale-[0.98]"}`}
+                  >
+                    {waitlistJoined
+                      ? (lang === "nl" ? "✓ Op de wachtlijst" : "✓ On the waitlist")
+                      : (lang === "nl" ? "🔔 Zet me op de wachtlijst voor deze dag" : "🔔 Join the waitlist for this day")}
+                  </button>
+                )}
               </div>
 
 

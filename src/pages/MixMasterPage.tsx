@@ -19,6 +19,7 @@ const MixMasterPage = () => {
   const BASE_PRICE = mixMasterPricing.basePrice;
 
   const [trackCount, setTrackCount] = useState(1);
+  const [turnaround, setTurnaround] = useState<"standard" | "fast">("standard");
   const [description, setDescription] = useState("");
   const [style, setStyle] = useState("");
   const [reference, setReference] = useState("");
@@ -47,7 +48,8 @@ const MixMasterPage = () => {
 
   const tierConfig = membershipTiers.find(t => t.id === memberTier?.toLowerCase());
   const discount = tierConfig?.discount || 0;
-  const pricePerTrack = Math.round(BASE_PRICE * (1 - discount));
+  // Fast-track (48h) carries a 50% surcharge — mirrored server-side
+  const pricePerTrack = Math.round(BASE_PRICE * (1 - discount) * (turnaround === "fast" ? 1.5 : 1));
   const totalPrice = trackCount * pricePerTrack;
 
   const handleSubmit = async () => {
@@ -63,6 +65,7 @@ const MixMasterPage = () => {
           booking_data: {
             type: "mix-master",
             track_count: trackCount,
+            turnaround,
             description,
             style,
             reference: reference || null,
@@ -129,6 +132,41 @@ const MixMasterPage = () => {
               </p>
             )}
             <p className="text-[10px] text-muted-foreground mt-1">{t("includingMixMaster")}</p>
+          </div>
+
+          {/* Turnaround: standard vs 48h fast-track */}
+          <div className="mt-3">
+            <label className="text-sm font-medium mb-2 block">{lang === "nl" ? "Levertijd" : "Turnaround"}</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setTurnaround("standard")}
+                className={`rounded-xl border p-3 text-left transition-all ${turnaround === "standard" ? "border-primary bg-primary/10" : "border-border bg-card"}`}
+              >
+                <p className="text-sm font-semibold">{lang === "nl" ? "Standaard" : "Standard"}</p>
+                <p className="text-[11px] text-muted-foreground">{lang === "nl" ? "±7 dagen" : "±7 days"}</p>
+              </button>
+              <button
+                onClick={() => setTurnaround("fast")}
+                className={`rounded-xl border p-3 text-left transition-all ${turnaround === "fast" ? "border-primary bg-primary/10" : "border-border bg-card"}`}
+              >
+                <p className="text-sm font-semibold">⚡ Fast-track</p>
+                <p className="text-[11px] text-muted-foreground">{lang === "nl" ? "48 uur (+50%)" : "48 hours (+50%)"}</p>
+              </button>
+            </div>
+          </div>
+
+          {/* What's included — human premium positioning vs. AI mastering */}
+          <div className="mt-3 rounded-xl bg-card border border-border p-4 space-y-1.5">
+            <p className="text-xs font-semibold">{lang === "nl" ? "Inbegrepen" : "Included"}</p>
+            {[
+              lang === "nl" ? "Gemixt & gemasterd door een engineer, geen AI-preset" : "Mixed & mastered by an engineer, not an AI preset",
+              lang === "nl" ? "2 revisierondes inbegrepen" : "2 revision rounds included",
+              lang === "nl" ? "Levering in alle formaten (streaming, club, social)" : "Delivery in all formats (streaming, club, social)",
+            ].map((line) => (
+              <p key={line} className="text-[11px] text-muted-foreground flex items-start gap-1.5">
+                <span className="text-success mt-px">✓</span> {line}
+              </p>
+            ))}
           </div>
 
           {/* Member pricing tiers */}

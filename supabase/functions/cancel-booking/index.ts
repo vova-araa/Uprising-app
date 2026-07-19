@@ -218,6 +218,44 @@ serve(async (req) => {
       .eq("booking_id", booking.id);
     await deleteBookingAuths(booking.id);
 
+    // Waitlist auto-offer: the freed slot goes out to everyone waiting for
+    // this studio+date via push + in-app notification (first come first served)
+    try {
+      const { data: waiting } = await supabaseAdmin
+        .from("booking_waitlist")
+        .select("id, user_id")
+        .eq("studio_id", booking.studio_id)
+        .eq("booking_date", booking.booking_date)
+        .eq("status", "waiting");
+
+      if (waiting && waiting.length > 0) {
+        const title = "Er is een plek vrijgekomen! ⚡";
+        const message = `${booking.studio_id === "studio-1" ? "Studio 1" : booking.studio_id === "studio-2" ? "Studio 2" : "Content Room"} heeft weer ruimte op ${booking.booking_date} (${booking.start_time}, ${booking.duration_hours}u). Wie het eerst boekt...`;
+
+        await supabaseAdmin.from("notifications").insert(waiting.map((w: { user_id: string }) => ({
+          user_id: w.user_id, title, message, type: "info", link: "/book",
+        })));
+
+        await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-web-push`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+          },
+          body: JSON.stringify({
+            user_ids: waiting.map((w: { user_id: string }) => w.user_id),
+            title, message, link: "/book",
+          }),
+        }).catch((e) => console.error("[CANCEL-BOOKING] waitlist push failed:", e));
+
+        await supabaseAdmin.from("booking_waitlist")
+          .update({ status: "notified", notified_at: new Date().toISOString() })
+          .in("id", waiting.map((w: { id: string }) => w.id));
+      }
+    } catch (e) {
+      console.error("[CANCEL-BOOKING] waitlist notify failed:", e);
+    }
+
     // Notify the user
     const refundText = plan.cashAmount > 0 && plan.walletAmount > 0
       ? `€${plan.cashAmount} wordt teruggestort en €${plan.walletAmount} staat als tegoed in je account.`

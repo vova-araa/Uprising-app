@@ -1602,6 +1602,7 @@ export type Database = {
           full_name: string | null
           id: string
           language: string | null
+          last_winback_at: string | null
           membership: string | null
           membership_end_date: string | null
           membership_override: string | null
@@ -1624,6 +1625,7 @@ export type Database = {
           full_name?: string | null
           id: string
           language?: string | null
+          last_winback_at?: string | null
           membership?: string | null
           membership_end_date?: string | null
           membership_override?: string | null
@@ -1646,6 +1648,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           language?: string | null
+          last_winback_at?: string | null
           membership?: string | null
           membership_end_date?: string | null
           membership_override?: string | null
@@ -1739,6 +1742,36 @@ export type Database = {
           platform?: string
           updated_at?: string
           user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      booking_waitlist: {
+        Row: {
+          booking_date: string
+          created_at: string
+          id: string
+          notified_at: string | null
+          status: string
+          studio_id: string
+          user_id: string
+        }
+        Insert: {
+          booking_date: string
+          created_at?: string
+          id?: string
+          notified_at?: string | null
+          status?: string
+          studio_id: string
+          user_id: string
+        }
+        Update: {
+          booking_date?: string
+          created_at?: string
+          id?: string
+          notified_at?: string | null
+          status?: string
+          studio_id?: string
           user_id?: string
         }
         Relationships: []

@@ -241,9 +241,12 @@ serve(async (req) => {
 
       if (booking_data.type === "mix-master") {
         const trackCount = Math.max(1, Math.min(50, booking_data.track_count || 1));
-        const pricePerTrack = Math.round(15000 * (1 - discount));
+        // Fast-track (48h delivery) carries a 50% surcharge on top of the
+        // member-discounted price
+        const fastTrack = booking_data.turnaround === "fast";
+        const pricePerTrack = Math.round(15000 * (1 - discount) * (fastTrack ? 1.5 : 1));
         unitAmount = trackCount * pricePerTrack;
-        productName = `Mix & Master - ${trackCount} ${trackCount === 1 ? "track" : "tracks"}`;
+        productName = `Mix & Master - ${trackCount} ${trackCount === 1 ? "track" : "tracks"}${fastTrack ? " (48u fast-track)" : ""}`;
         if (discount > 0) productName += ` (${discount * 100}% member discount)`;
       } else if (booking_data.type === "producer-session") {
         unitAmount = Math.round(35000 * (1 - discount));
@@ -269,6 +272,7 @@ serve(async (req) => {
         metadata.description = booking_data.description || "";
         metadata.style = booking_data.style || "";
         metadata.reference = booking_data.reference || "";
+        metadata.turnaround = booking_data.turnaround === "fast" ? "fast" : "standard";
       }
 
       const session = await stripe.checkout.sessions.create({

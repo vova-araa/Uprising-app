@@ -83,6 +83,8 @@ const AccountPage = () => {
   const [bookingsLoading, setBookingsLoading] = useState(false);
   const [realStats, setRealStats] = useState({ totalHours: 0, sessionsThisMonth: 0, activeBookings: 0, totalSessions: 0, activeProjects: 0, mixMasterProjects: 0 });
   const [referrals, setReferrals] = useState<any[]>([]);
+  const [redeemCode, setRedeemCode] = useState("");
+  const [redeemLoading, setRedeemLoading] = useState(false);
 
   const [subscription, setSubscription] = useState<{
     subscribed: boolean;
@@ -1449,6 +1451,45 @@ const AccountPage = () => {
                   </p>
                 </div>
               )}
+
+              {/* Redeem a friend's code (new accounts, two-sided EUR 10 credit) */}
+              <div className="mt-3 border-t border-border pt-3">
+                <p className="text-xs text-muted-foreground mb-2">
+                  Code van een vriend? Jullie krijgen allebei €10 tegoed.
+                </p>
+                <div className="flex items-center gap-2">
+                  <input
+                    value={redeemCode}
+                    onChange={(e) => setRedeemCode(e.target.value.toUpperCase())}
+                    placeholder="UPRISING-XXXX"
+                    className="flex-1 rounded-lg bg-secondary border border-border px-3 py-2 text-sm font-mono"
+                  />
+                  <button
+                    onClick={async () => {
+                      if (!redeemCode.trim() || redeemLoading) return;
+                      setRedeemLoading(true);
+                      try {
+                        const { data, error } = await supabase.functions.invoke("redeem-referral", {
+                          body: { code: redeemCode.trim() },
+                        });
+                        if (error || data?.error) {
+                          toast.error(data?.error || "Er ging iets mis");
+                        } else {
+                          toast.success(`€${data.reward} tegoed ontvangen! 🎁`);
+                          setRedeemCode("");
+                          loadCreditBalance();
+                        }
+                      } finally {
+                        setRedeemLoading(false);
+                      }
+                    }}
+                    disabled={redeemLoading || !redeemCode.trim()}
+                    className="rounded-lg bg-primary/20 px-3 py-2 text-xs font-semibold text-primary disabled:opacity-50"
+                  >
+                    {redeemLoading ? <Loader2 size={14} className="animate-spin" /> : "Verzilveren"}
+                  </button>
+                </div>
+              </div>
             </motion.div>
 
             {/* Stats */}

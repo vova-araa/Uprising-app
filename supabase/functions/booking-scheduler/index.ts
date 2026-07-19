@@ -216,6 +216,87 @@ async function sweepExpiredWalletCredit(supabase: ReturnType<typeof getSupabaseA
   return swept;
 }
 
+const WINBACK_MIN_DAYS = 60;
+const WINBACK_MAX_DAYS = 90;
+const WINBACK_COOLDOWN_DAYS = 180;
+const WINBACK_CREDIT_EUR = 10;
+const WINBACK_CREDIT_VALID_DAYS = 30;
+
+/**
+ * Win-back: users whose last confirmed booking is 60-90 days ago get a small
+ * comeback credit (once per 180 days). Multi-channel: in-app + push + e-mail.
+ */
+async function processWinback(supabase: ReturnType<typeof getSupabaseAdmin>): Promise<number> {
+  const now = Date.now();
+  const minCutoff = new Date(now - WINBACK_MAX_DAYS * 86_400_000).toISOString().split("T")[0];
+  const maxCutoff = new Date(now - WINBACK_MIN_DAYS * 86_400_000).toISOString().split("T")[0];
+
+  // Users whose most recent confirmed booking falls in the lapse window
+  const { data: lastBookings } = await supabase
+    .from("bookings")
+    .select("user_id, booking_date")
+    .eq("status", "confirmed")
+    .order("booking_date", { ascending: false })
+    .limit(2000);
+
+  const latestByUser = new Map<string, string>();
+  for (const b of lastBookings || []) {
+    if (!latestByUser.has(b.user_id)) latestByUser.set(b.user_id, b.booking_date);
+  }
+
+  const lapsedUserIds = [...latestByUser.entries()]
+    .filter(([, date]) => date >= minCutoff && date <= maxCutoff)
+    .map(([userId]) => userId);
+  if (lapsedUserIds.length === 0) return 0;
+
+  const cooldownCutoff = new Date(now - WINBACK_COOLDOWN_DAYS * 86_400_000).toISOString();
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, email, full_name, last_winback_at")
+    .in("id", lapsedUserIds);
+
+  let sent = 0;
+  for (const p of profiles || []) {
+    if (p.last_winback_at && p.last_winback_at > cooldownCutoff) continue;
+
+    const expiresAt = new Date(now + WINBACK_CREDIT_VALID_DAYS * 86_400_000).toISOString();
+    const { error: creditErr } = await supabase.rpc("wallet_apply", {
+      p_user_id: p.id,
+      p_amount: WINBACK_CREDIT_EUR,
+      p_type: "compensation",
+      p_note: "We missen je — comeback tegoed",
+      p_expires_at: expiresAt,
+    });
+    if (creditErr) continue;
+
+    const title = "We missen je in de studio! 🎶";
+    const message = `Er staat €${WINBACK_CREDIT_EUR} tegoed voor je klaar (30 dagen geldig). Kom je weer een sessie draaien?`;
+
+    await supabase.from("notifications").insert({
+      user_id: p.id, title, message, type: "info", link: "/book",
+    });
+    await sendPush(p.id, title, message, "/book");
+    if (p.email) {
+      await supabase.rpc("enqueue_email", {
+        queue_name: "transactional_emails",
+        payload: {
+          to: p.email,
+          subject: "We missen je bij Uprising Studio — €10 tegoed",
+          html: `<p>Hoi ${p.full_name || ""},</p><p>Het is even geleden! Er staat <strong>€${WINBACK_CREDIT_EUR} tegoed</strong> voor je klaar in de app — 30 dagen geldig voor elke studioboeking.</p><p>Tot snel!<br/>Uprising Studio</p>`,
+          message_id: `winback-${p.id}-${new Date().toISOString().split("T")[0]}`,
+          purpose: "transactional",
+        },
+      });
+    }
+
+    await supabase.from("profiles")
+      .update({ last_winback_at: new Date().toISOString() })
+      .eq("id", p.id);
+    sent++;
+  }
+  return sent;
+}
+
 Deno.serve(async (req) => {
   // pg_cron calls this with the project's anon key; manual runs may use the
   // service role key. All work is idempotent, but reject anonymous internet
@@ -263,6 +344,24 @@ Deno.serve(async (req) => {
   } catch (e) {
     console.error("[SCHEDULER] wallet sweep failed:", e);
     results.wallet_error = String(e);
+  }
+
+  try {
+    results.winback_sent = await processWinback(supabase);
+  } catch (e) {
+    console.error("[SCHEDULER] winback failed:", e);
+    results.winback_error = String(e);
+  }
+
+  try {
+    // Expire waitlist entries for dates that have passed
+    await supabase
+      .from("booking_waitlist")
+      .update({ status: "expired" })
+      .in("status", ["waiting", "notified"])
+      .lt("booking_date", new Date().toISOString().split("T")[0]);
+  } catch (e) {
+    console.error("[SCHEDULER] waitlist expiry failed:", e);
   }
 
   return new Response(JSON.stringify({ ok: true, ...results }), {
