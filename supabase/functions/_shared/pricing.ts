@@ -20,6 +20,42 @@ export const DEFAULT_OFFPEAK: OffPeakConfig = {
   weekday_end_hour: 17,
 };
 
+// Last-minute deals: discount slots that start soon TODAY to fill otherwise
+// empty hours. Applied at the whole-booking level; the app takes whichever of
+// off-peak / last-minute yields the bigger discount (never stacked).
+export interface LastMinuteConfig {
+  enabled: boolean;
+  discount_pct: number;   // e.g. 25 = 25% off
+  within_hours: number;   // slot starts within this many hours from now
+}
+
+export const DEFAULT_LASTMINUTE: LastMinuteConfig = {
+  enabled: false,
+  discount_pct: 25,
+  within_hours: 6,
+};
+
+/**
+ * Returns the last-minute discount pct that applies to a slot, or 0. Only
+ * applies to same-day bookings whose start is within `within_hours` of now.
+ * `nowMinutes` = current minutes-into-day in Europe/Amsterdam; `isToday` says
+ * whether booking_date is today there.
+ */
+export function lastMinuteDiscountPct(
+  startTime: string,
+  isToday: boolean,
+  nowMinutes: number,
+  cfg: LastMinuteConfig = DEFAULT_LASTMINUTE,
+): number {
+  if (!cfg.enabled || !isToday) return 0;
+  const [h, m] = startTime.split(":").map(Number);
+  const startMin = h * 60 + (m || 0);
+  const lead = startMin - nowMinutes;
+  if (lead <= 0) return 0; // already started / past
+  if (lead > cfg.within_hours * 60) return 0;
+  return Math.min(90, Math.max(0, cfg.discount_pct));
+}
+
 export interface StudioPriceResult {
   total: number;        // what the customer pays for studio hours
   fullPrice: number;    // without any off-peak discount (paid hours only)

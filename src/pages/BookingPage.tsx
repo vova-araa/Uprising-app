@@ -11,7 +11,7 @@ import {
   GraduationCap, Flame, Rocket
 } from "lucide-react";
 import { generateTimeSlots } from "@/lib/data";
-import { computeStudioPricing, DEFAULT_OFFPEAK, type OffPeakConfig } from "../../supabase/functions/_shared/pricing";
+import { computeStudioPricing, DEFAULT_OFFPEAK, DEFAULT_LASTMINUTE, lastMinuteDiscountPct, type OffPeakConfig, type LastMinuteConfig } from "../../supabase/functions/_shared/pricing";
 import { format, addMonths, subMonths, isSameDay, isBefore, startOfDay } from "date-fns";
 import { nl, enUS } from "date-fns/locale";
 import studioAImg from "@/assets/studio-a.webp";
@@ -337,8 +337,17 @@ const BookingPage = () => {
         offPeakCfg,
       )
     : { total: studio ? paidHours * studio.pricePerHour : 0, fullPrice: studio ? paidHours * studio.pricePerHour : 0, discount: 0, paidHours, offPeakHours: 0 };
-  const studioPrice = studioPricing.total;
-  const offPeakDiscount = studioPricing.discount;
+  // Last-minute deal beats off-peak when bigger (never stacked)
+  const lastMinuteCfg: LastMinuteConfig = { ...DEFAULT_LASTMINUTE, ...(config.getConfigRaw("lastminute_pricing") || {}) };
+  const nowForLm = new Date();
+  const lmPct = studio && selectedDate && selectedTime
+    ? lastMinuteDiscountPct(selectedTime, format(selectedDate, "yyyy-MM-dd") === format(nowForLm, "yyyy-MM-dd"), nowForLm.getHours() * 60 + nowForLm.getMinutes(), lastMinuteCfg)
+    : 0;
+  const lmTotal = lmPct > 0 ? Math.round(studioPricing.fullPrice * (1 - lmPct / 100) * 100) / 100 : studioPricing.total;
+  const useLastMinute = lmPct > 0 && lmTotal < studioPricing.total;
+  const studioPrice = useLastMinute ? lmTotal : studioPricing.total;
+  const offPeakDiscount = useLastMinute ? 0 : studioPricing.discount;
+  const lastMinuteDiscount = useLastMinute ? Math.round((studioPricing.fullPrice - lmTotal) * 100) / 100 : 0;
   const extrasPrice = selectedExtras.reduce((sum, eId) => {
     const ex = extras.find((e) => e.id === eId);
     return sum + (ex?.price || 0);
@@ -1408,6 +1417,12 @@ const BookingPage = () => {
                       <div className="flex justify-between text-sm">
                         <span className="text-success">{t("offPeakDiscount")} ({studioPricing.offPeakHours}u)</span>
                         <span className="text-success">-€{offPeakDiscount}</span>
+                      </div>
+                    )}
+                    {lastMinuteDiscount > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-success">⚡ {lang === "nl" ? "Last-minute korting" : "Last-minute deal"} ({lmPct}%)</span>
+                        <span className="text-success">-€{lastMinuteDiscount}</span>
                       </div>
                     )}
                     {walletBalance > 0 && totalPrice > 0 && (

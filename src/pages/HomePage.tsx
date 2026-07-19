@@ -93,6 +93,20 @@ const HomePage = () => {
     return todaySlots.filter((_, i) => i > currentHour).slice(0, 8);
   }, [todaySlots]);
 
+  // Last-minute deals: free slots starting within the configured window today
+  const lastMinuteCfg = { enabled: false, discount_pct: 25, within_hours: 6, ...(config.getConfigRaw("lastminute_pricing") || {}) };
+  const dealSlots = useMemo(() => {
+    if (!lastMinuteCfg.enabled) return [] as TimeSlotAvailability[];
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    return todaySlots.filter((s) => {
+      if (!s.available) return false;
+      const startMin = parseInt(s.time.split(":")[0], 10) * 60;
+      const lead = startMin - nowMin;
+      return lead > 0 && lead <= lastMinuteCfg.within_hours * 60;
+    }).slice(0, 8);
+  }, [todaySlots, lastMinuteCfg.enabled, lastMinuteCfg.within_hours]);
+
   const quickActions = config.quickActions
     .filter(a => a.visible)
     .map(a => ({ label: t(a.labelKey as any), icon: iconMap[a.icon] || Layers, path: a.path }));
@@ -207,6 +221,29 @@ const HomePage = () => {
                 <span className="text-[11px] lg:text-xs font-medium leading-tight">{action.label}</span>
               </button>
             )}
+          </div>
+        </motion.section>
+        )}
+
+        {/* Last-minute deals */}
+        {featureFlags.booking_enabled && dealSlots.length > 0 && (
+        <motion.section variants={item}>
+          <div className="rounded-2xl border border-primary/30 card-premium p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-lg">⚡</span>
+              <h2 className="text-sm font-bold font-display">{lang === "nl" ? `Last-minute — ${lastMinuteCfg.discount_pct}% korting vandaag` : `Last-minute — ${lastMinuteCfg.discount_pct}% off today`}</h2>
+            </div>
+            <p className="text-[11px] text-muted-foreground mb-3">{lang === "nl" ? "Boek een vrij slot dat binnenkort start en pak de korting." : "Book a free slot starting soon and grab the discount."}</p>
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
+              {dealSlots.map((slot) => (
+                <button key={slot.time} onClick={() => navigate("/book?type=studio")}
+                  className="flex shrink-0 flex-col items-center rounded-lg bg-primary/10 border border-primary/30 px-3 py-2.5 text-xs font-semibold min-w-[76px] active:scale-[0.97]">
+                  <Clock size={14} className="text-primary mb-1" />
+                  <span>{slot.time}</span>
+                  <span className="text-[9px] text-primary mt-0.5">-{lastMinuteCfg.discount_pct}%</span>
+                </button>
+              ))}
+            </div>
           </div>
         </motion.section>
         )}

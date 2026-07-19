@@ -3,7 +3,7 @@ import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 import { notifyZapierBooking, STUDIO_LABELS } from "../_shared/zapier.ts";
 import { provisionBookingAccess } from "../_shared/nuki.ts";
-import { computeStudioPricing, DEFAULT_OFFPEAK, type OffPeakConfig } from "../_shared/pricing.ts";
+import { computeStudioPricing, DEFAULT_OFFPEAK, DEFAULT_LASTMINUTE, lastMinuteDiscountPct, type OffPeakConfig, type LastMinuteConfig } from "../_shared/pricing.ts";
 import { maybeGenerateSessionPlan } from "../_shared/coach.ts";
 
 const corsHeaders = {
@@ -276,7 +276,7 @@ serve(async (req) => {
     const { data: configRows } = await supabaseAdmin
       .from("app_config")
       .select("config_key, config_value")
-      .in("config_key", ["booking_rules", "offpeak_pricing"])
+      .in("config_key", ["booking_rules", "offpeak_pricing", "lastminute_pricing"])
       .eq("is_active", true);
     const configMap = new Map((configRows || []).map((r: any) => [r.config_key, r.config_value]));
 
@@ -291,6 +291,7 @@ serve(async (req) => {
     }
 
     const offPeakCfg: OffPeakConfig = { ...DEFAULT_OFFPEAK, ...((configMap.get("offpeak_pricing") as object) || {}) };
+    const lastMinuteCfg: LastMinuteConfig = { ...DEFAULT_LASTMINUTE, ...((configMap.get("lastminute_pricing") as object) || {}) };
 
     const safeExtras: string[] = [];
     if (Array.isArray(extras)) {
@@ -389,8 +390,18 @@ serve(async (req) => {
       duration_hours - paidHours,
       offPeakCfg,
     );
+
+    // Last-minute deal: if it beats the off-peak price, use it (never stacked).
+    let studioTotal = studioPricing.total;
+    const nowMin = nowAmsterdam.getHours() * 60 + nowAmsterdam.getMinutes();
+    const lmPct = lastMinuteDiscountPct(start_time, booking_date === todayStr, nowMin, lastMinuteCfg);
+    if (lmPct > 0) {
+      const lmTotal = Math.round(studioPricing.fullPrice * (1 - lmPct / 100) * 100) / 100;
+      if (lmTotal < studioTotal) studioTotal = lmTotal;
+    }
+
     const extrasPrice = safeExtras.reduce((sum, eId) => sum + (extrasPrices[eId] || 0), 0);
-    const totalPrice = Math.round((studioPricing.total + extrasPrice) * 100) / 100;
+    const totalPrice = Math.round((studioTotal + extrasPrice) * 100) / 100;
 
     const bookingNotes = safeExtras.includes("photographer") && typeof photographer_notes === "string" && photographer_notes.trim()
       ? `Fotograaf/Content Creator aanvraag: ${photographer_notes.trim().slice(0, 500)}`
