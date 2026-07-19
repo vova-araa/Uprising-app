@@ -1,6 +1,6 @@
 import { useI18n } from "@/lib/i18n";
 import { motion } from "framer-motion";
-import { Globe, Bell, HelpCircle, Info, Shield, FileText, LogOut, ChevronRight, Settings, Megaphone, Building2 } from "lucide-react";
+import { Globe, Bell, HelpCircle, Info, Shield, FileText, LogOut, ChevronRight, Settings, Megaphone, Building2, Handshake } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
@@ -40,6 +40,18 @@ const MorePage = () => {
             <span className="block text-[11px] text-muted-foreground">Uren-pot, artiesten, boeken & facturen</span>
           </div>
           <ChevronRight size={16} className="text-primary" />
+        </button>
+      )}
+
+      {user && (
+        <button onClick={() => navigate("/collab")}
+          className="w-full flex items-center gap-4 rounded-xl bg-card border border-border px-5 py-4 text-left mb-4 transition-colors hover:border-primary/40">
+          <Handshake size={20} className="text-primary" />
+          <div className="flex-1">
+            <span className="block text-sm font-semibold">Collab Board</span>
+            <span className="block text-[11px] text-muted-foreground">Vind een zanger, producer, beatmaker of engineer</span>
+          </div>
+          <ChevronRight size={16} className="text-muted-foreground" />
         </button>
       )}
 

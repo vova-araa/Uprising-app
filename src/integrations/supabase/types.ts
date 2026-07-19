@@ -2021,6 +2021,42 @@ export type Database = {
           },
         ]
       }
+      collab_posts: {
+        Row: {
+          contact_info: string | null
+          created_at: string
+          description: string | null
+          genre: string | null
+          id: string
+          looking_for: string[]
+          status: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          contact_info?: string | null
+          created_at?: string
+          description?: string | null
+          genre?: string | null
+          id?: string
+          looking_for?: string[]
+          status?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          contact_info?: string | null
+          created_at?: string
+          description?: string | null
+          genre?: string | null
+          id?: string
+          looking_for?: string[]
+          status?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       gift_cards: {
         Row: {
           amount: number

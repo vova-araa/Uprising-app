@@ -36,6 +36,7 @@ const TermsPage = lazy(() => import("./pages/TermsPage"));
 const AIAssistantPage = lazy(() => import("./pages/AIAssistantPage"));
 const ContentCoachPage = lazy(() => import("./pages/ContentCoachPage"));
 const LabelDashboardPage = lazy(() => import("./pages/LabelDashboardPage"));
+const CollabBoardPage = lazy(() => import("./pages/CollabBoardPage"));
 const RequestPage = lazy(() => import("./pages/RequestPage"));
 const ProducerBookingPage = lazy(() => import("./pages/ProducerBookingPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
@@ -126,6 +127,7 @@ const AppRoutes = () => {
             <Route path="/ai-assistant" element={<RequireAuth><AIAssistantPage /></RequireAuth>} />
             <Route path="/coach" element={<RequireAuth><ContentCoachPage /></RequireAuth>} />
             <Route path="/label" element={<RequireAuth><LabelDashboardPage /></RequireAuth>} />
+            <Route path="/collab" element={<RequireAuth><CollabBoardPage /></RequireAuth>} />
             <Route path="/request" element={<RequestPage />} />
             <Route path="/producer-booking" element={<ProducerBookingPage />} />
             <Route path="/feedback/:bookingId" element={<RequireAuth><FeedbackPage /></RequireAuth>} />
