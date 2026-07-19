@@ -27,6 +27,23 @@ function getSupabaseAdmin() {
   );
 }
 
+// WhatsApp reminder template name (configure the approved template in Meta;
+// override via env). No-ops if WhatsApp isn't configured.
+const WHATSAPP_REMINDER_TEMPLATE = Deno.env.get("WHATSAPP_TEMPLATE_REMINDER") || "booking_reminder";
+
+async function sendWhatsApp(userId: string, phone: string | null, optIn: boolean, params: string[]) {
+  if (!optIn || !phone) return;
+  try {
+    await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-whatsapp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}` },
+      body: JSON.stringify({ to: phone, template: WHATSAPP_REMINDER_TEMPLATE, lang: "nl", params }),
+    });
+  } catch (e) {
+    console.error("[SCHEDULER] whatsapp failed:", e);
+  }
+}
+
 async function sendPush(userId: string, title: string, message: string, link: string) {
   try {
     await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-web-push`, {
@@ -109,6 +126,9 @@ async function processReminders(supabase: ReturnType<typeof getSupabaseAdmin>): 
         user_id: b.user_id, title, message, type: "info", link: "/account?tab=bookings",
       });
       await sendPush(b.user_id, title, message, "/account?tab=bookings");
+      // WhatsApp (opt-in) — template params: studio, time
+      const { data: waProfile } = await supabase.from("profiles").select("phone, whatsapp_opt_in").eq("id", b.user_id).single();
+      await sendWhatsApp(b.user_id, waProfile?.phone || null, waProfile?.whatsapp_opt_in === true, [studioName, b.start_time]);
 
       await supabase.from("bookings").update({
         notifications_sent: { ...sent, reminder_2h: true },

@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.collab-respond]
 verify_jwt = false
+
+[functions.send-whatsapp]
+verify_jwt = false

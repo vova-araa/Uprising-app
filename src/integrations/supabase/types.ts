@@ -1614,6 +1614,7 @@ export type Database = {
           studio1_hours: number
           studio2_hours: number
           updated_at: string
+          whatsapp_opt_in: boolean
         }
         Insert: {
           address?: string | null
@@ -1638,6 +1639,7 @@ export type Database = {
           studio1_hours?: number
           studio2_hours?: number
           updated_at?: string
+          whatsapp_opt_in?: boolean
         }
         Update: {
           address?: string | null
@@ -1662,6 +1664,7 @@ export type Database = {
           studio1_hours?: number
           studio2_hours?: number
           updated_at?: string
+          whatsapp_opt_in?: boolean
         }
         Relationships: []
       }

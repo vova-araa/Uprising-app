@@ -126,6 +126,7 @@ const AccountPage = () => {
   const [cancelDialogBooking, setCancelDialogBooking] = useState<any>(null);
   const [faultDialogBooking, setFaultDialogBooking] = useState<any>(null);
   const [bookingsFilter, setBookingsFilter] = useState<"upcoming" | "past">("upcoming");
+  const [whatsappOptIn, setWhatsappOptIn] = useState(false);
   const [submissionDialog, setSubmissionDialog] = useState<{ booking: any; kind: "session_video" | "clean_room_photo" } | null>(null);
   const [pointsBalance, setPointsBalance] = useState(0);
   const [rewardsCatalog, setRewardsCatalog] = useState<{ id: string; points: number; label: string }[]>([]);
@@ -249,7 +250,7 @@ const AccountPage = () => {
 
   const loadCreditBalance = async () => {
     if (!user) return;
-    const { data } = await supabase.from("profiles").select("credit_balance, referral_code, studio1_hours, studio2_hours, content_hours, notification_prefs").eq("id", user.id).single();
+    const { data } = await supabase.from("profiles").select("credit_balance, referral_code, studio1_hours, studio2_hours, content_hours, notification_prefs, whatsapp_opt_in").eq("id", user.id).single();
     const { data: txns } = await supabase
       .from("wallet_transactions")
       .select("id, amount, type, note, expires_at, created_at")
@@ -274,6 +275,7 @@ const AccountPage = () => {
       if (data.notification_prefs) {
         setNotifPrefs({ ...defaultNotifPrefs, ...(data.notification_prefs as any) });
       }
+      setWhatsappOptIn((data as any).whatsapp_opt_in === true);
       if (data.referral_code) {
         setReferralCode(data.referral_code);
       } else {
@@ -2129,6 +2131,30 @@ const AccountPage = () => {
                     </button>
                   </div>
                 ))}
+
+                {/* WhatsApp reminders opt-in */}
+                <div className="flex items-center justify-between border-t border-border pt-4">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium flex items-center gap-1.5">
+                      <span className="text-success">✓</span> WhatsApp-herinneringen
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Sessie-reminders op WhatsApp (via ons zakelijke nummer). Zorg dat je telefoonnummer klopt.
+                    </p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      if (!user) return;
+                      const next = !whatsappOptIn;
+                      setWhatsappOptIn(next);
+                      await supabase.from("profiles").update({ whatsapp_opt_in: next }).eq("id", user.id);
+                      toast.success(next ? "WhatsApp-herinneringen aan" : "WhatsApp-herinneringen uit");
+                    }}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${whatsappOptIn ? "bg-primary" : "bg-muted"}`}
+                  >
+                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition duration-200 ${whatsappOptIn ? "translate-x-5" : "translate-x-0"}`} />
+                  </button>
+                </div>
               </div>
             </motion.div>
 
