@@ -113,9 +113,9 @@ const ProducerBookingPage = () => {
         onAuthenticated={() => { setShowAuthGate(false); }}
         context="service"
       />
-      <div className="sticky top-0 z-40 border-b border-border bg-background/95 px-5 py-4 backdrop-blur-xl" style={{ paddingTop: "calc(var(--safe-area-top) + 12px)" }}>
+      <div className="glass hairline-top sticky top-0 z-40 border-b border-border px-5 py-4" style={{ paddingTop: "calc(var(--safe-area-top) + 12px)" }}>
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="p-1 -ml-1">
+          <button onClick={() => navigate(-1)} aria-label={lang === "nl" ? "Terug" : "Back"} className="p-1 -ml-1">
             <ChevronLeft size={22} />
           </button>
           <div>
@@ -198,31 +198,36 @@ const ProducerBookingPage = () => {
             className="w-full rounded-xl bg-card border border-border p-4 text-sm resize-none h-28 focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-muted-foreground" />
         </div>
 
-        {date && time && (
+        {date && time ? (
           <button onClick={handleSubmit} disabled={isLoading}
-            className="w-full rounded-xl bg-card border border-primary/30 p-4 text-left transition-all hover:border-primary active:scale-[0.99] disabled:opacity-50">
+            className="w-full rounded-xl gradient-primary text-primary-foreground shadow-glow p-4 text-left transition-all hover:opacity-95 active:scale-[0.99] disabled:opacity-50">
             {isLoading ? (
-              <div className="flex items-center justify-center py-2"><Loader2 size={20} className="animate-spin text-primary" /></div>
+              <div className="flex items-center justify-center py-2"><Loader2 size={20} className="animate-spin text-primary-foreground" /></div>
             ) : (
               <>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">{t("producerSessionTitle")}</p>
+                    <p className="text-sm text-primary-foreground/80">{t("producerSessionTitle")}</p>
                     <p className="font-semibold">{date ? format(date, "d MMMM", { locale }) : ""} · {time}</p>
-                    <p className="text-xs text-muted-foreground">€{finalPrice} {t("prepaymentLabel")}</p>
+                    <p className="text-xs text-primary-foreground/80">€{finalPrice} {t("prepaymentLabel")}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xl font-bold text-primary">€{finalPrice}</p>
-                    <p className="text-xs text-primary font-medium mt-1">{t("continueBtn")} →</p>
+                    <p className="text-xl font-bold">€{finalPrice}</p>
+                    <p className="text-xs font-medium mt-1">{t("continueBtn")} →</p>
                   </div>
                 </div>
                 {discount > 0 && (
-                  <p className="text-[10px] text-success font-semibold mt-2 flex items-center justify-center gap-1">
+                  <p className="text-[10px] text-primary-foreground font-semibold mt-2 flex items-center justify-center gap-1">
                     <Crown size={10} /> {lang === "nl" ? `${discount * 100}% member korting` : `${discount * 100}% member discount`}
                   </p>
                 )}
               </>
             )}
+          </button>
+        ) : (
+          <button disabled
+            className="w-full rounded-xl bg-secondary p-4 text-sm font-semibold text-muted-foreground disabled:opacity-70">
+            {lang === "nl" ? "Kies eerst een datum & tijd" : "Pick a date & time first"}
           </button>
         )}
       </div>

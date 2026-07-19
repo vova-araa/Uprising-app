@@ -96,7 +96,9 @@ const BookingModifyDialog = ({ open, onOpenChange, booking, onModified }: Props)
         duration_hours: duration,
         session_type: booking.session_type,
         status: "confirmed",
-        total_price: 0,
+        // Preserve the original price rather than zeroing it — a reschedule
+        // must not silently wipe what the member already paid/owes.
+        total_price: booking.total_price ?? 0,
         notes: booking.notes,
       });
       if (insErr) {
@@ -110,7 +112,7 @@ const BookingModifyDialog = ({ open, onOpenChange, booking, onModified }: Props)
           duration_hours: booking.duration_hours,
           session_type: booking.session_type,
           status: "confirmed",
-          total_price: 0,
+          total_price: booking.total_price ?? 0,
           notes: booking.notes,
         });
         if ((insErr as { code?: string }).code === "23P01") {
