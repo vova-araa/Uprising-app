@@ -77,6 +77,7 @@ const BookingPage = () => {
   const [showAuthGate, setShowAuthGate] = useState(false);
   const [authGateContext, setAuthGateContext] = useState<"booking" | "membership">("booking");
   const [upgradeLoading, setUpgradeLoading] = useState<string | null>(null);
+  const [pendingUpgrade, setPendingUpgrade] = useState<{ planKey: string; planName: string; kind: "upgrade" | "downgrade" } | null>(null);
 
   const [isMember, setIsMember] = useState(false);
   const [memberTier, setMemberTier] = useState<string | null>(null);
@@ -91,6 +92,7 @@ const BookingPage = () => {
   const [walletBalance, setWalletBalance] = useState(0);
   const [useWallet, setUseWallet] = useState(true);
   const [waitlistJoined, setWaitlistJoined] = useState(false);
+  const [waitlistJoining, setWaitlistJoining] = useState(false);
   useEffect(() => { setWaitlistJoined(false); }, [selectedDate, selectedStudio]);
 
   const creditHoursMap: Record<string, number> = {
@@ -560,6 +562,47 @@ const BookingPage = () => {
         onAuthenticated={() => setShowAuthGate(false)}
         context={authGateContext}
       />
+      {/* Confirm subscription upgrade/downgrade before charging the card */}
+      {pendingUpgrade && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-background/70 backdrop-blur-sm px-6" onClick={() => !upgradeLoading && setPendingUpgrade(null)}>
+          <div className="animate-fade-in rounded-2xl card-premium border border-border p-6 max-w-sm w-full space-y-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-2">
+              <Crown size={18} className="text-primary" />
+              <h3 className="font-display font-semibold text-base">
+                {pendingUpgrade.kind === "upgrade"
+                  ? (lang === "nl" ? `Upgraden naar ${pendingUpgrade.planName}?` : `Upgrade to ${pendingUpgrade.planName}?`)
+                  : (lang === "nl" ? `Downgraden naar ${pendingUpgrade.planName}?` : `Downgrade to ${pendingUpgrade.planName}?`)}
+              </h3>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {pendingUpgrade.kind === "upgrade"
+                ? (lang === "nl"
+                    ? "Het verrekende bedrag voor de rest van je termijn wordt direct van je kaart afgeschreven."
+                    : "The prorated amount for the rest of your term will be charged to your card right away.")
+                : (lang === "nl"
+                    ? "De downgrade gaat in aan het einde van je huidige termijn. Tot die tijd houd je je huidige plan."
+                    : "The downgrade takes effect at the end of your current term. Until then you keep your current plan.")}
+            </p>
+            <div className="flex gap-2">
+              <button onClick={() => setPendingUpgrade(null)} disabled={!!upgradeLoading}
+                className="flex-1 rounded-xl bg-secondary px-4 py-2.5 text-sm font-medium disabled:opacity-60">
+                {lang === "nl" ? "Annuleren" : "Cancel"}
+              </button>
+              <button
+                onClick={async () => {
+                  const target = pendingUpgrade.planKey;
+                  await handleUpgrade(target);
+                  setPendingUpgrade(null);
+                }}
+                disabled={!!upgradeLoading}
+                className="flex-1 rounded-xl gradient-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground flex items-center justify-center gap-2 disabled:opacity-60">
+                {upgradeLoading ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                {lang === "nl" ? "Bevestigen" : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="sticky top-0 z-40 border-b border-border bg-background/95 px-5 py-4 backdrop-blur-xl" style={{ paddingTop: "calc(var(--safe-area-top) + 12px)" }}>
         <div className="flex items-center gap-3">
@@ -589,7 +632,7 @@ const BookingPage = () => {
                 setPhotographerDescription("");
               }
               setStep(prev);
-            }} className="p-1 -ml-1">
+            }} aria-label={lang === "nl" ? "Terug" : "Back"} className="p-1 -ml-1">
               <ChevronLeft size={22} />
             </button>
           )}
@@ -888,7 +931,7 @@ const BookingPage = () => {
                           } else if (isCurrentPlan) {
                             // Already on this plan
                           } else if (hasStripeSubscription && isMember && (isUpgradeOption || isDowngradeOption)) {
-                            handleUpgrade(planKey);
+                            setPendingUpgrade({ planKey, planName: plan.name, kind: isUpgradeOption ? "upgrade" : "downgrade" });
                           } else {
                             handleMembershipCheckout(plan.name);
                           }
@@ -1050,13 +1093,13 @@ const BookingPage = () => {
           ) : step === 2 ? (
             <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
               <div className="flex items-center justify-between">
-                <button onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))} className="p-2 rounded-lg bg-card border border-border">
+                <button onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))} aria-label={lang === "nl" ? "Vorige maand" : "Previous month"} className="p-2 rounded-lg bg-card border border-border">
                   <ChevronLeft size={16} />
                 </button>
                 <h3 className="font-semibold font-display capitalize">
                   {format(calendarMonth, "MMMM yyyy", { locale })}
                 </h3>
-                <button onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))} className="p-2 rounded-lg bg-card border border-border">
+                <button onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))} aria-label={lang === "nl" ? "Volgende maand" : "Next month"} className="p-2 rounded-lg bg-card border border-border">
                   <ChevronRight size={16} />
                 </button>
               </div>
@@ -1246,13 +1289,16 @@ const BookingPage = () => {
                 {/* Waitlist: day fully booked → get a push the moment a slot frees up */}
                 {user && selectedDate && timeSlots.length > 0 && timeSlots.every((s) => !s.available) && (
                   <button
+                    disabled={waitlistJoined || waitlistJoining}
                     onClick={async () => {
-                      if (!selectedStudio || waitlistJoined) return;
+                      if (!selectedStudio || waitlistJoined || waitlistJoining) return;
+                      setWaitlistJoining(true);
                       const { error } = await supabase.from("booking_waitlist").insert({
                         user_id: user.id,
                         studio_id: selectedStudio,
                         booking_date: format(selectedDate, "yyyy-MM-dd"),
                       });
+                      setWaitlistJoining(false);
                       if (error && !error.message.includes("duplicate")) {
                         toast.error(lang === "nl" ? "Er ging iets mis" : "Something went wrong");
                       } else {
@@ -1262,11 +1308,22 @@ const BookingPage = () => {
                           : "You're on the waitlist — we'll notify you the moment a slot frees up!");
                       }
                     }}
-                    className={`mt-3 w-full rounded-xl border py-3 text-sm font-semibold transition-all ${waitlistJoined ? "bg-success/10 border-success/30 text-success" : "bg-primary/10 border-primary/30 text-primary active:scale-[0.98]"}`}
+                    className={`mt-3 w-full rounded-xl border py-3 text-sm font-semibold transition-all disabled:opacity-70 ${waitlistJoined ? "bg-success/10 border-success/30 text-success" : "bg-primary/10 border-primary/30 text-primary active:scale-[0.98]"}`}
                   >
-                    {waitlistJoined
+                    {waitlistJoining
+                      ? (lang === "nl" ? "Bezig…" : "Joining…")
+                      : waitlistJoined
                       ? (lang === "nl" ? "✓ Op de wachtlijst" : "✓ On the waitlist")
                       : (lang === "nl" ? "🔔 Zet me op de wachtlijst voor deze dag" : "🔔 Join the waitlist for this day")}
+                  </button>
+                )}
+                {/* Logged-out visitors hit a dead-end on a full day — offer login + waitlist */}
+                {!user && selectedDate && timeSlots.length > 0 && timeSlots.every((s) => !s.available) && (
+                  <button
+                    onClick={() => { setAuthGateContext("booking"); setShowAuthGate(true); }}
+                    className="mt-3 w-full rounded-xl border border-primary/30 bg-primary/10 py-3 text-sm font-semibold text-primary active:scale-[0.98] transition-all"
+                  >
+                    {lang === "nl" ? "🔔 Log in om je op de wachtlijst te zetten" : "🔔 Log in to join the waitlist"}
                   </button>
                 )}
               </div>
