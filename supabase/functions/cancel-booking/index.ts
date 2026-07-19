@@ -7,6 +7,7 @@ import {
   WALLET_CREDIT_VALID_DAYS,
   computeRefundPlan,
 } from "../_shared/cancellation-policy.ts";
+import { deleteBookingAuths } from "../_shared/nuki.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -211,10 +212,11 @@ serve(async (req) => {
       }
     }
 
-    // Revoke door access for this booking
+    // Revoke door access for this booking and kill its keypad code
     await supabaseAdmin.from("booking_access")
-      .update({ access_status: "revoked", updated_at: new Date().toISOString() })
+      .update({ access_status: "revoked", auths_cleaned: true, updated_at: new Date().toISOString() })
       .eq("booking_id", booking.id);
+    await deleteBookingAuths(booking.id);
 
     // Notify the user
     const refundText = plan.cashAmount > 0 && plan.walletAmount > 0

@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 import { notifyZapierBooking, STUDIO_LABELS } from "../_shared/zapier.ts";
+import { provisionBookingAccess } from "../_shared/nuki.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -440,7 +441,11 @@ serve(async (req) => {
         await supabaseAdmin.from("notifications").insert(adminNotifications);
       }
 
-      // Door access is now managed manually by admin — no auto-provisioning
+      // Auto-provision booking-scoped door access (keypad code + remote unlock)
+      const provision = await provisionBookingAccess(supabaseAdmin, booking.id);
+      if (!provision.ok) {
+        console.error("[CREATE-BOOKING] Nuki provisioning failed:", provision.reason);
+      }
 
       await notifyZapierBooking({
         naam: userName,

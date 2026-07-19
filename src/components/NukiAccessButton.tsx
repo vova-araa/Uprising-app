@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/lib/i18n";
-import { Lock, Unlock, LockKeyhole, Clock, AlertTriangle, Loader2, CheckCircle, DoorOpen } from "lucide-react";
+import { Lock, Unlock, LockKeyhole, Clock, AlertTriangle, Loader2, CheckCircle, DoorOpen, KeyRound, LifeBuoy } from "lucide-react";
 import { inlineToast as toast } from "@/components/InlineToast";
 import {
   Dialog,
@@ -33,6 +33,8 @@ const NukiAccessButton = ({ bookingId, bookingDate, startTime, durationHours, st
   const [unlockSuccess, setUnlockSuccess] = useState<string | null>(null);
   const [now, setNow] = useState(new Date());
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [helpLoading, setHelpLoading] = useState(false);
+  const [helpMessage, setHelpMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 10000);
@@ -104,6 +106,37 @@ const NukiAccessButton = ({ bookingId, bookingDate, startTime, durationHours, st
     }
   };
 
+  const handleAccessHelp = async () => {
+    if (!access) return;
+    setHelpLoading(true);
+    setHelpMessage(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/nuki-integration?action=access-help`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({ booking_access_id: access.id }),
+        }
+      );
+      const result = await res.json();
+      if (!res.ok) {
+        toast.error(result.error || t("connectionError"));
+      } else {
+        setHelpMessage(result.message);
+        if (result.remote_unlock) toast.success(t("doorOpenedShort"));
+      }
+    } catch {
+      toast.error(t("connectionError"));
+    } finally {
+      setHelpLoading(false);
+    }
+  };
+
   if (loading) return null;
   if (status !== "confirmed") return null;
   if (accessState === "no_access") return null;
@@ -149,6 +182,21 @@ const NukiAccessButton = ({ bookingId, bookingDate, startTime, durationHours, st
           </div>
         )}
       </div>
+
+      {/* Keypad code: visible from the moment access is provisioned */}
+      {(accessState === "active" || accessState === "upcoming") && access?.keypad_code && (
+        <div className="mt-2 rounded-lg bg-card/60 border border-border p-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <KeyRound size={14} className="text-primary" />
+            <span className="text-[11px] font-medium text-muted-foreground">
+              {lang === "nl" ? "Jouw code (voordeur + studio)" : "Your code (entrance + studio)"}
+            </span>
+          </div>
+          <span className="font-mono text-lg font-bold tracking-[0.3em] text-foreground">
+            {access.keypad_code}
+          </span>
+        </div>
+      )}
 
       {accessState === "active" && (
         <div className="grid grid-cols-2 gap-2 mt-2">
@@ -208,6 +256,24 @@ const NukiAccessButton = ({ bookingId, bookingDate, startTime, durationHours, st
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Panic button: "I can't get in" — remote-unlock fallback + team alert */}
+      {accessState === "active" && (
+        <button
+          onClick={handleAccessHelp}
+          disabled={helpLoading}
+          className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-destructive/10 border border-destructive/30 py-2 text-xs font-semibold text-destructive active:scale-[0.98] transition-all disabled:opacity-60"
+        >
+          {helpLoading ? <Loader2 size={12} className="animate-spin" /> : <LifeBuoy size={12} />}
+          {lang === "nl" ? "Ik kom er niet in" : "I can't get in"}
+        </button>
+      )}
+
+      {helpMessage && (
+        <p className="mt-2 rounded-lg bg-card/60 border border-border p-2.5 text-[11px] leading-relaxed text-foreground">
+          {helpMessage}
+        </p>
+      )}
 
       {accessState === "upcoming" && access && (
         <p className="text-[10px] mt-1 opacity-70">

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+import { provisionBookingAccess, remoteUnlock, resolveLocksForStudio } from "../_shared/nuki.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -1390,6 +1391,152 @@ async function handleAdminAccessList(req: Request) {
   });
 }
 
+// Compensation for access failures where remote fallback also fails: the
+// session was disrupted through no fault of the customer.
+const ACCESS_FAILURE_COMPENSATION_EUR = 10;
+
+/**
+ * Panic button: "I can't get in". Validates the caller's access window, then
+ * tries a remote unlock of the entrance + room locks. If everything fails the
+ * team is alerted and the customer is compensated automatically.
+ */
+async function handleAccessHelp(req: Request) {
+  const user = await authenticateUser(req);
+  const supabaseAdmin = getSupabaseAdmin();
+
+  const { booking_access_id } = await req.json();
+  if (!booking_access_id) {
+    return new Response(JSON.stringify({ error: "booking_access_id required" }), {
+      status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const { data: access } = await supabaseAdmin
+    .from("booking_access").select("*").eq("id", booking_access_id).single();
+
+  if (!access || access.user_id !== user.id) {
+    return new Response(JSON.stringify({ error: "Toegangsrecord niet gevonden" }), {
+      status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  if (access.access_status === "revoked") {
+    return new Response(JSON.stringify({ error: "Je toegang is ingetrokken." }), {
+      status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const now = new Date();
+  // Allow the panic flow from 15 min before the window opens until it closes
+  const panicStart = new Date(new Date(access.access_start).getTime() - 15 * 60 * 1000);
+  if (now < panicStart || now > new Date(access.access_end)) {
+    return new Response(JSON.stringify({ error: "Je hebt op dit moment geen actieve toegang." }), {
+      status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  // Try remote unlock of every relevant lock (entrance first, then room)
+  const { allLocks } = await resolveLocksForStudio(supabaseAdmin, access.studio_id);
+  const locks = allLocks.length > 0 ? allLocks : [{ smartlock_id: access.smartlock_id }];
+  const unlocked: string[] = [];
+  for (const lock of locks) {
+    const ok = await remoteUnlock(String(lock.smartlock_id));
+    if (ok) unlocked.push(String(lock.smartlock_id));
+  }
+
+  const allFailed = unlocked.length === 0;
+
+  await logUnlockAttempt(supabaseAdmin, {
+    booking_access_id,
+    user_id: user.id,
+    studio_id: access.studio_id,
+    smartlock_id: access.smartlock_id,
+    action: "access_help",
+    result: allFailed ? "all_locks_failed" : "remote_unlock_fallback",
+    error_message: allFailed ? "Panic button: remote unlock failed on all locks" : undefined,
+  });
+
+  // Always alert the team — a panic button press is a signal even when the
+  // remote fallback worked.
+  const { data: profile } = await supabaseAdmin.from("profiles").select("full_name, email, phone").eq("id", user.id).single();
+  const who = profile?.full_name || profile?.email || "Onbekend";
+  const { data: adminRoles } = await supabaseAdmin.from("user_roles").select("user_id").in("role", ["admin", "staff"]);
+  if (adminRoles && adminRoles.length > 0) {
+    await supabaseAdmin.from("notifications").insert(adminRoles.map((r: any) => ({
+      user_id: r.user_id,
+      title: allFailed ? "🚨 Klant komt er niet in!" : "⚠️ Toegangsprobleem (opgelost via remote unlock)",
+      message: `${who} gebruikte de noodknop bij ${access.studio_id}.${allFailed ? ` Remote unlock MISLUKT — bel: ${profile?.phone || "geen nummer"}` : " Deur is op afstand geopend."}`,
+      type: allFailed ? "error" : "warning",
+      link: "/admin?tab=nuki",
+    })));
+  }
+
+  if (allFailed) {
+    // Automatic compensation, once per access record
+    const { data: existingComp } = await supabaseAdmin
+      .from("wallet_transactions")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("type", "compensation")
+      .eq("booking_id", access.booking_id)
+      .limit(1);
+
+    let compensated = false;
+    if (!existingComp || existingComp.length === 0) {
+      const { error: compErr } = await supabaseAdmin.rpc("wallet_apply", {
+        p_user_id: user.id,
+        p_amount: ACCESS_FAILURE_COMPENSATION_EUR,
+        p_type: "compensation",
+        p_booking_id: access.booking_id,
+        p_note: "Compensatie: toegangsprobleem studio",
+      });
+      compensated = !compErr;
+    }
+
+    return new Response(JSON.stringify({
+      success: false,
+      remote_unlock: false,
+      compensated,
+      message: `We konden de deur niet op afstand openen. Het team is direct ingelicht en belt je zo snel mogelijk.${compensated ? ` Je hebt €${ACCESS_FAILURE_COMPENSATION_EUR} tegoed ontvangen voor het ongemak.` : ""}`,
+    }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  return new Response(JSON.stringify({
+    success: true,
+    remote_unlock: true,
+    message: "De deur is op afstand geopend. Het team is op de hoogte gebracht.",
+  }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+/** Admin: (re)provision booking-scoped access incl. keypad code. */
+async function handleProvisionAccess(req: Request) {
+  const user = await authenticateUser(req);
+  const supabaseAdmin = getSupabaseAdmin();
+  const isAdmin = await checkIsAdmin(supabaseAdmin, user.id);
+  if (!isAdmin) {
+    return new Response(JSON.stringify({ error: "Geen admin rechten" }), {
+      status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const { booking_id } = await req.json();
+  if (!booking_id) {
+    return new Response(JSON.stringify({ error: "booking_id required" }), {
+      status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const result = await provisionBookingAccess(supabaseAdmin, booking_id);
+  return new Response(JSON.stringify(result), {
+    status: result.ok ? 200 : 422,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 // --- Main router ---
 
 serve(async (req) => {
@@ -1417,6 +1564,10 @@ serve(async (req) => {
         return await handleTestConnection(req);
       case "create-access":
         return await handleCreateAccess(req);
+      case "provision-access":
+        return await handleProvisionAccess(req);
+      case "access-help":
+        return await handleAccessHelp(req);
       case "revoke-access":
         return await handleRevokeAccess(req);
       case "auto-provision":

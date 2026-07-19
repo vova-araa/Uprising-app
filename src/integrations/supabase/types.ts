@@ -226,9 +226,12 @@ export type Database = {
           access_end: string
           access_start: string
           access_status: string
+          auths_cleaned: boolean
           booking_id: string | null
+          checked_in_at: string | null
           created_at: string
           id: string
+          keypad_code: string | null
           last_unlock_attempt: string | null
           last_unlock_result: string | null
           nuki_authorization_id: string | null
@@ -241,9 +244,12 @@ export type Database = {
           access_end: string
           access_start: string
           access_status?: string
+          auths_cleaned?: boolean
           booking_id?: string | null
+          checked_in_at?: string | null
           created_at?: string
           id?: string
+          keypad_code?: string | null
           last_unlock_attempt?: string | null
           last_unlock_result?: string | null
           nuki_authorization_id?: string | null
@@ -256,9 +262,12 @@ export type Database = {
           access_end?: string
           access_start?: string
           access_status?: string
+          auths_cleaned?: boolean
           booking_id?: string | null
+          checked_in_at?: string | null
           created_at?: string
           id?: string
+          keypad_code?: string | null
           last_unlock_attempt?: string | null
           last_unlock_result?: string | null
           nuki_authorization_id?: string | null
@@ -668,6 +677,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
+          is_entrance: boolean
           name: string
           smartlock_id: string
           studio_id: string
@@ -677,6 +687,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          is_entrance?: boolean
           name: string
           smartlock_id: string
           studio_id: string
@@ -686,10 +697,38 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          is_entrance?: boolean
           name?: string
           smartlock_id?: string
           studio_id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      nuki_events: {
+        Row: {
+          created_at: string
+          event_type: string | null
+          feature: string | null
+          id: string
+          payload: Json
+          smartlock_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type?: string | null
+          feature?: string | null
+          id?: string
+          payload: Json
+          smartlock_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string | null
+          feature?: string | null
+          id?: string
+          payload?: Json
+          smartlock_id?: string | null
         }
         Relationships: []
       }
