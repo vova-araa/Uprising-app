@@ -206,7 +206,7 @@ const DienstenPage = () => {
           <motion.div key={cat.id} variants={item}>
             <button
               onClick={() => navigate(`/diensten/${cat.id}`)}
-              className="group relative flex w-full items-center gap-4 rounded-2xl bg-card border border-border p-4 lg:p-5 text-left transition-all hover:border-primary/40 active:scale-[0.99] lg:hover:scale-[1.01] lg:hover:-translate-y-0.5 lg:hover:shadow-glow overflow-hidden"
+              className="group relative flex w-full items-center gap-4 rounded-2xl card-premium border border-border p-4 lg:p-5 text-left transition-all hover:border-primary/40 active:scale-[0.99] lg:hover:scale-[1.01] lg:hover:-translate-y-0.5 lg:hover:shadow-glow overflow-hidden"
             >
               <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/20">
                 <cat.icon size={22} className="text-primary" />

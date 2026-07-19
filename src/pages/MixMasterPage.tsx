@@ -122,7 +122,7 @@ const MixMasterPage = () => {
               <Plus size={20} />
             </button>
           </div>
-          <div className="mt-3 rounded-xl bg-card border border-border p-4 text-center">
+          <div className="mt-3 rounded-xl card-premium border border-border p-4 text-center">
             <p className="text-sm text-muted-foreground">
               {trackCount} × €{pricePerTrack} = <span className="font-bold text-primary text-lg">€{totalPrice}</span>
             </p>
