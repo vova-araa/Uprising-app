@@ -12,7 +12,7 @@ import {
   BarChart3, CreditCard, Bell, Gift, UserCheck, Megaphone, TrendingUp,
   ChevronRight, ChevronDown, AlertTriangle, Bug,
   Edit3, Save, Phone, MapPin, Mail, Crown, Trash2,
-  Database, ChevronLeft, RefreshCw, Upload, Settings, Plus
+  Database, ChevronLeft, RefreshCw, Upload, Settings, Plus, Building2
 } from "lucide-react";
 import { format, startOfMonth, endOfMonth, subDays } from "date-fns";
 const AdminConfigTab = lazy(() => import("@/components/admin/AdminConfigTab"));
@@ -25,13 +25,14 @@ const AdminBlastTab = lazy(() => import("@/components/admin/AdminBlastTab"));
 const AdminPerfTab = lazy(() => import("@/components/admin/AdminPerfTab"));
 const AdminInsightsTab = lazy(() => import("@/components/admin/AdminInsightsTab"));
 const AdminIntakesTab = lazy(() => import("@/components/admin/AdminIntakesTab"));
+const AdminLabelsTab = lazy(() => import("@/components/admin/AdminLabelsTab"));
 import { nl, enUS } from "date-fns/locale";
 import { inlineToast as toast } from "@/components/InlineToast";
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
 const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
 
-type Tab = "overview" | "insights" | "diensten" | "bookings" | "producer" | "requests" | "projects" | "users" | "intakes" | "notifications" | "referrals" | "errors" | "database" | "products" | "config" | "configsettings" | "nuki" | "access" | "blast" | "subscriptions" | "perf";
+type Tab = "overview" | "insights" | "diensten" | "bookings" | "producer" | "requests" | "projects" | "users" | "intakes" | "labels" | "notifications" | "referrals" | "errors" | "database" | "products" | "config" | "configsettings" | "nuki" | "access" | "blast" | "subscriptions" | "perf";
 
 const AdminPage = () => {
   const { lang } = useI18n();
@@ -602,6 +603,7 @@ const AdminPage = () => {
     { id: "requests", label: lang === "nl" ? "Aanvragen" : "Requests", icon: Camera },
     { id: "projects", label: lang === "nl" ? "Projecten" : "Projects", icon: Package },
     { id: "intakes", label: "Coach-intakes", icon: Megaphone },
+    { id: "labels", label: "Labels", icon: Building2 },
     { id: "subscriptions", label: "Abonnementen", icon: Crown },
     { id: "referrals", label: "Referrals", icon: Gift },
   ];
@@ -1848,6 +1850,13 @@ const AdminPage = () => {
               </motion.div>
             )}
 
+            {/* ===== LABELS ===== */}
+            {activeTab === "labels" && (
+              <motion.div variants={item}>
+                <Suspense fallback={<PageLoader />}><AdminLabelsTab /></Suspense>
+              </motion.div>
+            )}
+
             {/* ===== PERFORMANCE ===== */}
             {activeTab === "perf" && (
               <motion.div variants={item}>
@@ -1858,7 +1867,7 @@ const AdminPage = () => {
               </motion.div>
             )}
 
-            {activeTab !== "overview" && activeTab !== "insights" && activeTab !== "intakes" && activeTab !== "errors" && activeTab !== "database" && activeTab !== "products" && activeTab !== "config" && activeTab !== "nuki" && activeTab !== "access" && activeTab !== "blast" && activeTab !== "subscriptions" && activeTab !== "perf" && (
+            {activeTab !== "overview" && activeTab !== "insights" && activeTab !== "intakes" && activeTab !== "labels" && activeTab !== "errors" && activeTab !== "database" && activeTab !== "products" && activeTab !== "config" && activeTab !== "nuki" && activeTab !== "access" && activeTab !== "blast" && activeTab !== "subscriptions" && activeTab !== "perf" && (
               (activeTab === "bookings" && bookings.length === 0) ||
               (activeTab === "producer" && producerBookings.length === 0) ||
               (activeTab === "requests" && contentRequests.length === 0) ||

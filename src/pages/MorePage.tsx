@@ -1,15 +1,17 @@
 import { useI18n } from "@/lib/i18n";
 import { motion } from "framer-motion";
-import { Globe, Bell, HelpCircle, Info, Shield, FileText, LogOut, ChevronRight, Settings, Megaphone } from "lucide-react";
+import { Globe, Bell, HelpCircle, Info, Shield, FileText, LogOut, ChevronRight, Settings, Megaphone, Building2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
+import { useLabelAccess } from "@/hooks/useLabelAccess";
 
 const MorePage = () => {
   const { t, lang, setLang } = useI18n();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdminRole();
+  const { isLabelManager } = useLabelAccess();
 
   const menuItems = [
     {
@@ -28,6 +30,18 @@ const MorePage = () => {
   return (
     <div className="min-h-full px-5 pt-6">
       <h1 className="text-2xl font-bold font-display mb-6">{t("settings")}</h1>
+
+      {isLabelManager && (
+        <button onClick={() => navigate("/label")}
+          className="w-full flex items-center gap-4 rounded-xl bg-primary/10 border border-primary/20 px-5 py-4 text-left mb-4 transition-colors hover:bg-primary/20">
+          <Building2 size={20} className="text-primary" />
+          <div className="flex-1">
+            <span className="block text-sm font-semibold text-primary">Label Dashboard</span>
+            <span className="block text-[11px] text-muted-foreground">Uren-pot, artiesten, boeken & facturen</span>
+          </div>
+          <ChevronRight size={16} className="text-primary" />
+        </button>
+      )}
 
       {user && (
         <button onClick={() => navigate("/coach")}
