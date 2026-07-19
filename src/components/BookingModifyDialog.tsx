@@ -4,7 +4,8 @@ import { format, addDays } from "date-fns";
 import { nl } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 
-const HOURS = Array.from({ length: 15 }, (_, i) => `${(i + 8).toString().padStart(2, "0")}:00`);
+// 24/7 self-service: every hour of the day is bookable
+const HOURS = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, "0")}:00`);
 const STUDIOS = [
   { id: "studio-1", label: "Studio 1" },
   { id: "studio-2", label: "Studio 2" },

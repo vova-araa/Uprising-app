@@ -260,7 +260,7 @@ serve(async (req) => {
           });
         }
 
-        // Auto-provision booking-scoped door access (keypad code + remote unlock)
+        // Auto-provision booking-scoped door access (app-based front-door unlock)
         const provision = await provisionBookingAccess(supabaseAdmin, b.id);
         if (!provision.ok) {
           logStep("Nuki provisioning failed", { bookingId: b.id, reason: provision.reason });

@@ -496,7 +496,7 @@ serve(async (req) => {
         await supabaseAdmin.from("notifications").insert(adminNotifications);
       }
 
-      // Auto-provision booking-scoped door access (keypad code + remote unlock)
+      // Auto-provision booking-scoped door access (app-based front-door unlock)
       const provision = await provisionBookingAccess(supabaseAdmin, booking.id);
       if (!provision.ok) {
         console.error("[CREATE-BOOKING] Nuki provisioning failed:", provision.reason);

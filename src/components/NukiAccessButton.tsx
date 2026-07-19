@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/lib/i18n";
-import { Lock, Unlock, LockKeyhole, Clock, AlertTriangle, Loader2, CheckCircle, DoorOpen, KeyRound, LifeBuoy } from "lucide-react";
+import { Lock, Unlock, LockKeyhole, Clock, AlertTriangle, Loader2, CheckCircle, DoorOpen, LifeBuoy } from "lucide-react";
 import { inlineToast as toast } from "@/components/InlineToast";
 import {
   Dialog,
@@ -182,21 +182,6 @@ const NukiAccessButton = ({ bookingId, bookingDate, startTime, durationHours, st
           </div>
         )}
       </div>
-
-      {/* Keypad code: visible from the moment access is provisioned */}
-      {(accessState === "active" || accessState === "upcoming") && access?.keypad_code && (
-        <div className="mt-2 rounded-lg bg-card/60 border border-border p-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <KeyRound size={14} className="text-primary" />
-            <span className="text-[11px] font-medium text-muted-foreground">
-              {lang === "nl" ? "Jouw code (voordeur + studio)" : "Your code (entrance + studio)"}
-            </span>
-          </div>
-          <span className="font-mono text-lg font-bold tracking-[0.3em] text-foreground">
-            {access.keypad_code}
-          </span>
-        </div>
-      )}
 
       {accessState === "active" && (
         <div className="grid grid-cols-2 gap-2 mt-2">

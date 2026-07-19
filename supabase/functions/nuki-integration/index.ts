@@ -1512,7 +1512,7 @@ async function handleAccessHelp(req: Request) {
   });
 }
 
-/** Admin: (re)provision booking-scoped access incl. keypad code. */
+/** Admin: (re)provision booking-scoped access for a booking. */
 async function handleProvisionAccess(req: Request) {
   const user = await authenticateUser(req);
   const supabaseAdmin = getSupabaseAdmin();

@@ -3,14 +3,14 @@
 //    the 2h reminder carries the door code so the access info is at hand.
 // 2. Expire stale pending_payment bookings (>30 min) and refund any wallet
 //    credit that was applied to them.
-// 3. Clean up expired Nuki keypad auths (keypads cap at 200 codes).
-// 4. Sweep expired wallet credit (ledger-visible, never silent).
+// 3. Sweep expired wallet credit (ledger-visible, never silent).
+// 4. Win-back outreach for lapsed users and waitlist expiry.
 //
 // Every action is idempotent and time-gated (notifications_sent flags,
 // status filters, sweep markers), so extra invocations are harmless.
 
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
-import { buildLocalDate, cleanupExpiredAuths } from "../_shared/nuki.ts";
+import { buildLocalDate } from "../_shared/nuki.ts";
 
 const STUDIO_DISPLAY_NAME: Record<string, string> = {
   "studio-1": "Studio 1",
@@ -102,17 +102,8 @@ async function processReminders(supabase: ReturnType<typeof getSupabaseAdmin>): 
 
     // 2h reminder with access info
     if (!sent.reminder_2h && hoursUntil <= 2 && hoursUntil > 0.5) {
-      const { data: access } = await supabase
-        .from("booking_access")
-        .select("keypad_code")
-        .eq("booking_id", b.id)
-        .maybeSingle();
-
-      const codeLine = access?.keypad_code
-        ? ` Jouw deurcode: ${access.keypad_code} (voordeur + studio).`
-        : " Open de deur via de app zodra je toegang actief is.";
       const title = "Bijna tijd! 🚀";
-      const message = `Je ${studioName} sessie start om ${b.start_time}.${codeLine}`;
+      const message = `Je ${studioName} sessie start om ${b.start_time}. Vanaf 15 min vooraf open je de voordeur met de knop in de app.`;
 
       await supabase.from("notifications").insert({
         user_id: b.user_id, title, message, type: "info", link: "/account?tab=bookings",
@@ -325,18 +316,6 @@ Deno.serve(async (req) => {
   } catch (e) {
     console.error("[SCHEDULER] pending expiry failed:", e);
     results.pending_error = String(e);
-  }
-
-  try {
-    results.nuki_auths_cleaned = await cleanupExpiredAuths();
-    await supabase
-      .from("booking_access")
-      .update({ auths_cleaned: true, updated_at: new Date().toISOString() })
-      .eq("auths_cleaned", false)
-      .lt("access_end", new Date(Date.now() - 3600 * 1000).toISOString());
-  } catch (e) {
-    console.error("[SCHEDULER] nuki cleanup failed:", e);
-    results.nuki_error = String(e);
   }
 
   try {

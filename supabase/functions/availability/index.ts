@@ -1,13 +1,14 @@
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 import { assertApiKey, corsHeaders, json, isValidDate, ALLOWED_STUDIOS } from "../_shared/cockpit-auth.ts";
 
-const OPEN_HOUR = 9;
-const CLOSE_HOUR = 23; // last slot start
+// 24/7 self-service: every hour is bookable
+const OPEN_HOUR = 0;
+const CLOSE_HOUR = 24; // exclusive upper bound for slot starts
 
 const PART_OF_DAY: Record<string, [number, number]> = {
-  morning: [9, 12],
+  morning: [6, 12],
   afternoon: [12, 18],
-  evening: [18, 23],
+  evening: [18, 24],
 };
 
 Deno.serve(async (req) => {

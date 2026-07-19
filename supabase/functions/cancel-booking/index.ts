@@ -7,7 +7,6 @@ import {
   WALLET_CREDIT_VALID_DAYS,
   computeRefundPlan,
 } from "../_shared/cancellation-policy.ts";
-import { deleteBookingAuths } from "../_shared/nuki.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -212,11 +211,10 @@ serve(async (req) => {
       }
     }
 
-    // Revoke door access for this booking and kill its keypad code
+    // Revoke door access for this booking (the app unlock stops working)
     await supabaseAdmin.from("booking_access")
-      .update({ access_status: "revoked", auths_cleaned: true, updated_at: new Date().toISOString() })
+      .update({ access_status: "revoked", updated_at: new Date().toISOString() })
       .eq("booking_id", booking.id);
-    await deleteBookingAuths(booking.id);
 
     // Waitlist auto-offer: the freed slot goes out to everyone waiting for
     // this studio+date via push + in-app notification (first come first served)

@@ -10,7 +10,7 @@ const SYSTEM_PROMPT = `Je bent de AI Studio Assistent van Uprising Studio in Ame
 
 LOCATIE:
 - Adres: Spaceshuttle 6e, Amersfoort
-- Openingstijden: 7 dagen per week (Ma-Zo)
+- Openingstijden: 24/7 self-service — je boekt in de app en opent de voordeur met de app (Nuki smart lock, de deur opent automatisch na ontgrendelen). Toegang werkt vanaf 15 minuten voor je sessie tot het einde van je sessie.
 
 STUDIO'S:
 - Studio 1 (50m², max 6 personen): Professionele opnamestudio (€50/uur) - Neumann TLM103, Focusrite Scarlett, Adams A77X, Arturia Piano, Meerdere gitaren. Ideaal voor professionele vocale opnames, producties en mixing.

@@ -226,12 +226,10 @@ export type Database = {
           access_end: string
           access_start: string
           access_status: string
-          auths_cleaned: boolean
           booking_id: string | null
           checked_in_at: string | null
           created_at: string
           id: string
-          keypad_code: string | null
           last_unlock_attempt: string | null
           last_unlock_result: string | null
           nuki_authorization_id: string | null
@@ -244,12 +242,10 @@ export type Database = {
           access_end: string
           access_start: string
           access_status?: string
-          auths_cleaned?: boolean
           booking_id?: string | null
           checked_in_at?: string | null
           created_at?: string
           id?: string
-          keypad_code?: string | null
           last_unlock_attempt?: string | null
           last_unlock_result?: string | null
           nuki_authorization_id?: string | null
@@ -262,12 +258,10 @@ export type Database = {
           access_end?: string
           access_start?: string
           access_status?: string
-          auths_cleaned?: boolean
           booking_id?: string | null
           checked_in_at?: string | null
           created_at?: string
           id?: string
-          keypad_code?: string | null
           last_unlock_attempt?: string | null
           last_unlock_result?: string | null
           nuki_authorization_id?: string | null
