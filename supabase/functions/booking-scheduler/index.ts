@@ -335,6 +335,47 @@ async function processWinback(supabase: ReturnType<typeof getSupabaseAdmin>): Pr
   return sent;
 }
 
+// Invoice reminders: sent-but-unpaid label invoices get a reminder every
+// ~7 days (max 3 times), so labels are nudged without being spammed.
+const INVOICE_REMINDER_DAYS = 7;
+const INVOICE_MAX_REMINDERS = 3;
+
+async function processInvoiceReminders(supabase: ReturnType<typeof getSupabaseAdmin>): Promise<number> {
+  const now = Date.now();
+  const { data: invoices } = await supabase
+    .from("label_invoices")
+    .select("id, label_id, invoice_number, total, sent_at, last_reminder_at, reminder_count, term")
+    .eq("status", "sent");
+
+  let sent = 0;
+  for (const inv of invoices || []) {
+    if ((inv.reminder_count || 0) >= INVOICE_MAX_REMINDERS) continue;
+    const anchor = inv.last_reminder_at || inv.sent_at;
+    if (!anchor) continue;
+    if (now - new Date(anchor).getTime() < INVOICE_REMINDER_DAYS * 86_400_000) continue;
+
+    const { data: label } = await supabase.from("labels").select("name, contact_email, contact_name").eq("id", inv.label_id).single();
+    if (!label?.contact_email) continue;
+
+    await supabase.rpc("enqueue_email", {
+      queue_name: "transactional_emails",
+      payload: {
+        to: label.contact_email,
+        subject: `Herinnering: factuur ${inv.invoice_number} — Uprising Studio`,
+        html: `<p>Beste ${label.contact_name || label.name},</p><p>Een vriendelijke herinnering: factuur <strong>${inv.invoice_number}</strong>${inv.term ? ` (${inv.term})` : ""} van <strong>EUR ${Number(inv.total).toFixed(2)}</strong> staat nog open.</p><p>Na ontvangst hogen we het uren-tegoed direct op. Al betaald? Dan mag je deze mail negeren.</p><p>Met vriendelijke groet,<br/>Uprising Studio</p>`,
+        message_id: `invoice-reminder-${inv.id}-${(inv.reminder_count || 0) + 1}`,
+        purpose: "transactional",
+      },
+    });
+    await supabase.from("label_invoices").update({
+      last_reminder_at: new Date().toISOString(),
+      reminder_count: (inv.reminder_count || 0) + 1,
+    }).eq("id", inv.id);
+    sent++;
+  }
+  return sent;
+}
+
 Deno.serve(async (req) => {
   // pg_cron calls this with the project's anon key; manual runs may use the
   // service role key. All work is idempotent, but reject anonymous internet
@@ -394,6 +435,12 @@ Deno.serve(async (req) => {
       .lt("booking_date", new Date().toISOString().split("T")[0]);
   } catch (e) {
     console.error("[SCHEDULER] waitlist expiry failed:", e);
+  }
+
+  try {
+    results.invoice_reminders = await processInvoiceReminders(supabase);
+  } catch (e) {
+    console.error("[SCHEDULER] invoice reminders failed:", e);
   }
 
   return new Response(JSON.stringify({ ok: true, ...results }), {

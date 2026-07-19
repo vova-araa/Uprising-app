@@ -2169,7 +2169,9 @@ export type Database = {
           id: string
           invoice_number: string
           label_id: string
+          last_reminder_at: string | null
           paid_at: string | null
+          reminder_count: number
           pdf_path: string | null
           rate: number
           sent_at: string | null
@@ -2187,7 +2189,9 @@ export type Database = {
           id?: string
           invoice_number: string
           label_id: string
+          last_reminder_at?: string | null
           paid_at?: string | null
+          reminder_count?: number
           pdf_path?: string | null
           rate: number
           sent_at?: string | null
@@ -2205,7 +2209,9 @@ export type Database = {
           id?: string
           invoice_number?: string
           label_id?: string
+          last_reminder_at?: string | null
           paid_at?: string | null
+          reminder_count?: number
           pdf_path?: string | null
           rate?: number
           sent_at?: string | null
