@@ -25,8 +25,7 @@ const DesktopNav = () => {
     location.pathname === path || (path !== "/" && location.pathname.startsWith(path));
 
   return (
-    <header className="hidden lg:flex fixed top-0 left-0 right-0 z-50 h-16 items-center border-b border-border backdrop-blur-xl"
-      style={{ backgroundColor: "hsl(var(--card) / 0.95)" }}>
+    <header className="glass hairline-top hidden lg:flex fixed top-0 left-0 right-0 z-50 h-16 items-center border-b border-border">
       <div className="w-full flex items-center justify-between px-8">
         {/* Logo / Brand */}
         <button onClick={() => navigate("/")} className="flex items-center gap-2.5 group">

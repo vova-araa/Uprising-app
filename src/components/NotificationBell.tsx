@@ -99,9 +99,15 @@ const NotificationBell = () => {
 
   const clearAllNotifications = async () => {
     if (notifications.length === 0) return;
+    if (!window.confirm(lang === "nl" ? "Alle meldingen wissen? Dit kan niet ongedaan worden gemaakt." : "Clear all notifications? This can't be undone.")) return;
     const ids = notifications.map((n) => n.id);
-    await (supabase as any).from("notifications").delete().in("id", ids);
+    const prev = notifications;
     setNotifications([]);
+    const { error } = await (supabase as any).from("notifications").delete().in("id", ids);
+    if (error) {
+      // Restore so the user doesn't think everything vanished on a failure.
+      setNotifications(prev);
+    }
   };
 
   const typeColors: Record<string, string> = {
@@ -166,6 +172,7 @@ const NotificationBell = () => {
                     }}
                     className="p-1 rounded-lg hover:bg-destructive/20 transition-colors"
                     title={t("clearAll")}
+                    aria-label={t("clearAll")}
                   >
                     <X size={16} className="text-destructive" />
                   </button>

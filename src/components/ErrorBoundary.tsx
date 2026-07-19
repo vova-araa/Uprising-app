@@ -69,7 +69,7 @@ export class ErrorBoundary extends Component<Props, State> {
               window.location.reload();
             }}
             style={{
-              background: "#7c3aed",
+              background: "#a94ff8",
               color: "#fff",
               border: "none",
               padding: "0.75rem 2rem",

@@ -5,6 +5,10 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { useLabelAccess } from "@/hooks/useLabelAccess";
+import { useAppConfig } from "@/contexts/AppConfigContext";
+import SEO from "@/components/SEO";
+
+const WEBSITE_URL = "https://uprisingstudio.nl";
 
 const MorePage = () => {
   const { t, lang, setLang } = useI18n();
@@ -12,6 +16,15 @@ const MorePage = () => {
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdminRole();
   const { isLabelManager } = useLabelAccess();
+  const { supportInfo } = useAppConfig();
+
+  const openHelp = () => {
+    if (supportInfo?.email) {
+      window.location.href = `mailto:${supportInfo.email}`;
+    } else {
+      window.open(WEBSITE_URL, "_blank", "noopener");
+    }
+  };
 
   const menuItems = [
     {
@@ -20,15 +33,16 @@ const MorePage = () => {
       value: lang === "nl" ? "Nederlands" : "English",
       action: () => setLang(lang === "nl" ? "en" : "nl"),
     },
-    { icon: Bell, label: t("notifications"), action: () => {} },
-    { icon: HelpCircle, label: t("help"), action: () => {} },
-    { icon: Info, label: t("about"), action: () => {} },
+    { icon: Bell, label: t("notifications"), action: () => navigate("/account?tab=settings") },
+    { icon: HelpCircle, label: t("help"), action: openHelp },
+    { icon: Info, label: t("about"), action: () => window.open(WEBSITE_URL, "_blank", "noopener") },
     { icon: Shield, label: t("privacy"), action: () => navigate("/privacy") },
     { icon: FileText, label: t("terms"), action: () => navigate("/terms") },
   ];
 
   return (
-    <div className="min-h-full px-5 pt-6">
+    <div className="min-h-full px-5 pt-6 lg:max-w-2xl lg:mx-auto lg:px-8">
+      <SEO title={`${t("settings")} — Uprising Studio`} description="Instellingen, taal, help en meer bij Uprising Studio." path="/more" />
       <h1 className="text-2xl font-bold font-display mb-6">{t("settings")}</h1>
 
       {isLabelManager && (

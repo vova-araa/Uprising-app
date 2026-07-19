@@ -50,8 +50,8 @@ function showToast(message: string, type: ToastType = "error") {
 // ── Styles ──
 const typeStyles: Record<ToastType, string> = {
   error: "bg-destructive/10 border-destructive/20 text-destructive",
-  success: "bg-[hsl(142_76%_36%/0.1)] border-[hsl(142_76%_36%/0.2)] text-[hsl(142,76%,36%)]",
-  warning: "bg-[hsl(38_92%_50%/0.1)] border-[hsl(38_92%_50%/0.2)] text-[hsl(38,92%,50%)]",
+  success: "bg-success/10 border-success/20 text-success",
+  warning: "bg-warning/10 border-warning/20 text-warning",
   info: "bg-primary/10 border-primary/20 text-primary",
 };
 
