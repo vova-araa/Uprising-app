@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLabelAccess } from "@/hooks/useLabelAccess";
 import { inlineToast as toast } from "@/components/InlineToast";
-import PageLoader from "@/components/PageLoader";
+import { PageSkeleton } from "@/components/PageSkeleton";
 import SEO from "@/components/SEO";
 
 interface Label {
@@ -124,7 +124,7 @@ const LabelDashboardPage = () => {
     };
   }, [bookings]);
 
-  if (accessLoading || loading) return <PageLoader />;
+  if (accessLoading || loading) return <PageSkeleton />;
 
   if (!labelId || !label) {
     return (

@@ -6,7 +6,7 @@ import { nl } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { inlineToast as toast } from "@/components/InlineToast";
-import PageLoader from "@/components/PageLoader";
+import { PageSkeleton } from "@/components/PageSkeleton";
 import SEO from "@/components/SEO";
 
 interface Post {
@@ -69,7 +69,7 @@ const CollabBoardPage = () => {
     load();
   };
 
-  if (loading) return <PageLoader />;
+  if (loading) return <PageSkeleton />;
 
   return (
     <div className="min-h-full pb-28">

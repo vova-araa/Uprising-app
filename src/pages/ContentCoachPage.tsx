@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { inlineToast as toast } from "@/components/InlineToast";
-import PageLoader from "@/components/PageLoader";
+import { PageSkeleton } from "@/components/PageSkeleton";
 import SEO from "@/components/SEO";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -239,7 +239,7 @@ const ContentCoachPage = () => {
     }
   };
 
-  if (loading) return <PageLoader />;
+  if (loading) return <PageSkeleton />;
 
   // ── Intake wizard ──
   if (showIntake) {
