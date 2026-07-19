@@ -2036,14 +2036,22 @@ const AccountPage = () => {
                             </div>
                             <span className="text-xs text-muted-foreground">{b.status}</span>
                           </div>
-                          {isRecent && b.status === "confirmed" && (
+                          <div className="flex gap-2 mt-2">
                             <button
-                              onClick={() => setSubmissionDialog({ booking: b, kind: "session_video" })}
-                              className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary/10 border border-primary/20 py-2 text-[11px] font-semibold text-primary"
+                              onClick={() => navigate(`/book?studio=${b.studio_id}`)}
+                              className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-secondary py-2 text-[11px] font-semibold text-foreground"
                             >
-                              <Video size={12} /> Sessievideo insturen +50pt
+                              <Calendar size={12} /> Boek opnieuw
                             </button>
-                          )}
+                            {isRecent && b.status === "confirmed" && (
+                              <button
+                                onClick={() => setSubmissionDialog({ booking: b, kind: "session_video" })}
+                                className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-primary/10 border border-primary/20 py-2 text-[11px] font-semibold text-primary"
+                              >
+                                <Video size={12} /> Video +50pt
+                              </button>
+                            )}
+                          </div>
                         </motion.div>
                       );
                     })}

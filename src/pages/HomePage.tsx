@@ -42,6 +42,7 @@ const HomePage = () => {
   const config = useAppConfig();
   const [todaySlots, setTodaySlots] = useState<TimeSlotAvailability[]>([]);
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [summary, setSummary] = useState<{ next: any | null; points: number; wallet: number; lastStudio: string | null } | null>(null);
 
   const studios = config.studios;
   const studioNameMap = config.studioDisplayNames;
@@ -83,6 +84,29 @@ const HomePage = () => {
   }, [studios, featureFlags.booking_enabled]);
 
   useEffect(() => { fetchAvailability(); }, [fetchAvailability]);
+
+  // Personalized summary for logged-in users
+  useEffect(() => {
+    if (!user) { setSummary(null); return; }
+    const load = async () => {
+      const today = format(new Date(), "yyyy-MM-dd");
+      const [nextRes, lastRes, profRes] = await Promise.all([
+        supabase.from("bookings").select("id, studio_id, booking_date, start_time, duration_hours")
+          .eq("user_id", user.id).eq("status", "confirmed").gte("booking_date", today)
+          .order("booking_date", { ascending: true }).limit(1),
+        supabase.from("bookings").select("studio_id").eq("user_id", user.id).eq("status", "confirmed")
+          .order("booking_date", { ascending: false }).limit(1),
+        supabase.from("profiles").select("points_balance, credit_balance").eq("id", user.id).maybeSingle(),
+      ]);
+      setSummary({
+        next: nextRes.data?.[0] || null,
+        points: (profRes.data as any)?.points_balance || 0,
+        wallet: Number((profRes.data as any)?.credit_balance || 0),
+        lastStudio: lastRes.data?.[0]?.studio_id || null,
+      });
+    };
+    load();
+  }, [user]);
 
   const { containerRef, pullDistance, isRefreshing, progress } = usePullToRefresh({
     onRefresh: fetchAvailability,
@@ -205,6 +229,48 @@ const HomePage = () => {
       )}
 
       <div className="px-5 lg:px-8 space-y-7 mt-6">
+        {/* Personalized summary (logged-in) */}
+        {user && summary && (
+        <motion.section variants={item}>
+          <div className="card-premium rounded-2xl border border-border p-4">
+            {summary.next ? (
+              <button onClick={() => navigate("/account?tab=bookings")} className="w-full flex items-center justify-between text-left mb-3">
+                <div>
+                  <p className="text-[10px] font-semibold text-primary uppercase tracking-wider">{lang === "nl" ? "Volgende sessie" : "Next session"}</p>
+                  <p className="text-sm font-bold font-display mt-0.5">{studioNameMap[summary.next.studio_id] || summary.next.studio_id}</p>
+                  <p className="text-xs text-muted-foreground">{format(new Date(summary.next.booking_date), "EEE d MMM")} • {summary.next.start_time} • {summary.next.duration_hours}u</p>
+                </div>
+                <ChevronRight size={18} className="text-muted-foreground" />
+              </button>
+            ) : (
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm text-muted-foreground">{lang === "nl" ? "Geen komende sessie" : "No upcoming session"}</p>
+                {summary.lastStudio && (
+                  <button onClick={() => navigate(`/book?studio=${summary.lastStudio}`)}
+                    className="rounded-lg bg-primary/15 px-3 py-1.5 text-xs font-semibold text-primary flex items-center gap-1">
+                    <ArrowRight size={13} /> {lang === "nl" ? "Boek opnieuw" : "Book again"}
+                  </button>
+                )}
+              </div>
+            )}
+            <div className="grid grid-cols-3 gap-2 border-t border-border pt-3">
+              <button onClick={() => navigate("/account")} className="text-center">
+                <p className="text-lg font-bold font-display text-primary">€{summary.wallet}</p>
+                <p className="text-[10px] text-muted-foreground">{lang === "nl" ? "Tegoed" : "Credit"}</p>
+              </button>
+              <button onClick={() => navigate("/account?tab=settings")} className="text-center border-x border-border">
+                <p className="text-lg font-bold font-display text-primary">{summary.points}</p>
+                <p className="text-[10px] text-muted-foreground">Points</p>
+              </button>
+              <button onClick={() => navigate("/coach")} className="text-center">
+                <p className="text-lg font-bold font-display text-primary">🎯</p>
+                <p className="text-[10px] text-muted-foreground">Coach</p>
+              </button>
+            </div>
+          </div>
+        </motion.section>
+        )}
+
         {/* Quick Actions */}
         {visibleSections.some(s => s.id === "quick_actions") && (
         <motion.section variants={item}>
