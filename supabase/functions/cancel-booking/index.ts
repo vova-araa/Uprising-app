@@ -117,7 +117,12 @@ serve(async (req) => {
       });
     }
 
-    const plan = computeRefundPlan(booking, hoursUntilStart);
+    // Label bookings refund hours to the shared pool instead of wallet/cash.
+    const isLabelBooking = booking.session_type === "label" && booking.label_id;
+
+    const plan = isLabelBooking
+      ? { kind: "label_hours" as const, cashAmount: 0, walletAmount: 0, restoreHours: 0, reason: "label_pool", poolHours: booking.duration_hours }
+      : computeRefundPlan(booking, hoursUntilStart);
 
     if (preview === true) {
       return new Response(JSON.stringify({
@@ -151,6 +156,28 @@ serve(async (req) => {
     }
 
     const results: Record<string, unknown> = {};
+
+    // Label booking: return the hours to the pool, then skip wallet/cash logic
+    if (isLabelBooking) {
+      const { error: poolErr } = await supabaseAdmin.rpc("label_hours_apply", {
+        p_label_id: booking.label_id,
+        p_hours: booking.duration_hours,
+        p_type: "refund",
+        p_artist_id: booking.label_artist_id || null,
+        p_booking_id: booking.id,
+        p_note: `Annulering ${booking.studio_id} ${booking.booking_date} ${booking.start_time}`,
+      });
+      if (poolErr) console.error("[CANCEL-BOOKING] label pool refund failed:", poolErr);
+      else results.pool_hours_refunded = booking.duration_hours;
+
+      await supabaseAdmin.from("booking_access")
+        .update({ access_status: "revoked", updated_at: new Date().toISOString() })
+        .eq("booking_id", booking.id);
+
+      return new Response(JSON.stringify({ success: true, policy: plan, ...results }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Cash refund via Stripe
     if (plan.cashAmount > 0 && booking.stripe_session_id) {

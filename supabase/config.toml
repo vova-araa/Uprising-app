@@ -32,3 +32,9 @@ verify_jwt = false
 
 [functions.coach-generate]
 verify_jwt = false
+
+[functions.label-book]
+verify_jwt = false
+
+[functions.label-invoice]
+verify_jwt = false

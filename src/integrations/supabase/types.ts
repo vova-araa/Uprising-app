@@ -324,6 +324,8 @@ export type Database = {
           duration_hours: number
           extras: string[] | null
           id: string
+          label_artist_id: string | null
+          label_id: string | null
           notes: string | null
           notifications_sent: Json | null
           session_type: string
@@ -344,6 +346,8 @@ export type Database = {
           duration_hours?: number
           extras?: string[] | null
           id?: string
+          label_artist_id?: string | null
+          label_id?: string | null
           notes?: string | null
           notifications_sent?: Json | null
           session_type?: string
@@ -364,6 +368,8 @@ export type Database = {
           duration_hours?: number
           extras?: string[] | null
           id?: string
+          label_artist_id?: string | null
+          label_id?: string | null
           notes?: string | null
           notifications_sent?: Json | null
           session_type?: string
@@ -1932,6 +1938,179 @@ export type Database = {
         }
         Relationships: []
       }
+      labels: {
+        Row: {
+          active: boolean
+          billing_address: string | null
+          contact_email: string | null
+          contact_name: string | null
+          created_at: string
+          default_rate: number
+          hours_balance: number
+          id: string
+          manager_user_id: string | null
+          name: string
+          notes: string | null
+          updated_at: string
+          vat_number: string | null
+        }
+        Insert: {
+          active?: boolean
+          billing_address?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          created_at?: string
+          default_rate?: number
+          hours_balance?: number
+          id?: string
+          manager_user_id?: string | null
+          name: string
+          notes?: string | null
+          updated_at?: string
+          vat_number?: string | null
+        }
+        Update: {
+          active?: boolean
+          billing_address?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          created_at?: string
+          default_rate?: number
+          hours_balance?: number
+          id?: string
+          manager_user_id?: string | null
+          name?: string
+          notes?: string | null
+          updated_at?: string
+          vat_number?: string | null
+        }
+        Relationships: []
+      }
+      label_artists: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          label_id: string
+          name: string
+          user_id: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          label_id: string
+          name: string
+          user_id?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          label_id?: string
+          name?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "label_artists_label_id_fkey"
+            columns: ["label_id"]
+            isOneToOne: false
+            referencedRelation: "labels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      label_hour_transactions: {
+        Row: {
+          artist_id: string | null
+          booking_id: string | null
+          created_at: string
+          hours: number
+          id: string
+          label_id: string
+          note: string | null
+          type: string
+        }
+        Insert: {
+          artist_id?: string | null
+          booking_id?: string | null
+          created_at?: string
+          hours: number
+          id?: string
+          label_id: string
+          note?: string | null
+          type: string
+        }
+        Update: {
+          artist_id?: string | null
+          booking_id?: string | null
+          created_at?: string
+          hours?: number
+          id?: string
+          label_id?: string
+          note?: string | null
+          type?: string
+        }
+        Relationships: []
+      }
+      label_invoices: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          hours: number
+          id: string
+          invoice_number: string
+          label_id: string
+          paid_at: string | null
+          pdf_path: string | null
+          rate: number
+          sent_at: string | null
+          status: string
+          subtotal: number
+          term: string | null
+          total: number
+          vat_amount: number
+          vat_rate: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          hours: number
+          id?: string
+          invoice_number: string
+          label_id: string
+          paid_at?: string | null
+          pdf_path?: string | null
+          rate: number
+          sent_at?: string | null
+          status?: string
+          subtotal: number
+          term?: string | null
+          total: number
+          vat_amount: number
+          vat_rate?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          hours?: number
+          id?: string
+          invoice_number?: string
+          label_id?: string
+          paid_at?: string | null
+          pdf_path?: string | null
+          rate?: number
+          sent_at?: string | null
+          status?: string
+          subtotal?: number
+          term?: string | null
+          total?: number
+          vat_amount?: number
+          vat_rate?: number
+        }
+        Relationships: []
+      }
       media_submissions: {
         Row: {
           booking_id: string | null
@@ -2276,6 +2455,21 @@ export type Database = {
           p_note?: string
         }
         Returns: number
+      }
+      label_hours_apply: {
+        Args: {
+          p_label_id: string
+          p_hours: number
+          p_type: string
+          p_artist_id?: string
+          p_booking_id?: string
+          p_note?: string
+        }
+        Returns: number
+      }
+      is_label_manager: {
+        Args: { _user_id: string; _label_id: string }
+        Returns: boolean
       }
       wallet_apply: {
         Args: {
