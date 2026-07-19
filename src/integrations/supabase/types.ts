@@ -1602,6 +1602,7 @@ export type Database = {
           membership_override: string | null
           notification_prefs: Json
           phone: string | null
+          points_balance: number
           postal_code: string | null
           referral_code: string | null
           studio1_hours: number
@@ -1625,6 +1626,7 @@ export type Database = {
           membership_override?: string | null
           notification_prefs?: Json
           phone?: string | null
+          points_balance?: number
           postal_code?: string | null
           referral_code?: string | null
           studio1_hours?: number
@@ -1648,6 +1650,7 @@ export type Database = {
           membership_override?: string | null
           notification_prefs?: Json
           phone?: string | null
+          points_balance?: number
           postal_code?: string | null
           referral_code?: string | null
           studio1_hours?: number
@@ -1766,6 +1769,89 @@ export type Database = {
           notified_at?: string | null
           status?: string
           studio_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      media_submissions: {
+        Row: {
+          booking_id: string | null
+          consent: boolean
+          created_at: string
+          id: string
+          kind: string
+          points_awarded: number
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          storage_path: string
+          user_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          consent?: boolean
+          created_at?: string
+          id?: string
+          kind: string
+          points_awarded?: number
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          storage_path: string
+          user_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          consent?: boolean
+          created_at?: string
+          id?: string
+          kind?: string
+          points_awarded?: number
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          storage_path?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_submissions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      points_transactions: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          points: number
+          reference_id: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          points: number
+          reference_id?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          points?: number
+          reference_id?: string | null
+          type?: string
           user_id?: string
         }
         Relationships: []
@@ -2021,6 +2107,16 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      points_apply: {
+        Args: {
+          p_user_id: string
+          p_points: number
+          p_type: string
+          p_reference_id?: string
+          p_note?: string
+        }
+        Returns: number
       }
       wallet_apply: {
         Args: {

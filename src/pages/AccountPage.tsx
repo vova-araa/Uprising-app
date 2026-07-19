@@ -8,12 +8,13 @@ import {
   Calendar, Clock, User, Navigation, Timer, LogOut, Globe, ChevronRight,
   Layers, Music, Mic, TrendingUp, FileAudio, Loader2, LayoutDashboard,
   Gift, Copy, Users, Check, Crown, CreditCard, XCircle, ExternalLink, Camera, BookOpen, AlertTriangle, Upload, Bell,
-  Trash2, Pencil, Info
+  Trash2, Pencil, Info, Star, Video, Sparkles
 } from "lucide-react";
 import NukiAccessButton from "@/components/NukiAccessButton";
 import AccountAccessSection from "@/components/AccountAccessSection";
 import BookingCancelDialog from "@/components/BookingCancelDialog";
 import FaultReportDialog from "@/components/FaultReportDialog";
+import SubmissionUploadDialog from "@/components/SubmissionUploadDialog";
 import BookingModifyDialog from "@/components/BookingModifyDialog";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { format, differenceInDays, startOfMonth, endOfMonth, isBefore } from "date-fns";
@@ -123,6 +124,10 @@ const AccountPage = () => {
   const [weeklyDaysConfig, setWeeklyDaysConfig] = useState<any>(null);
   const [cancelDialogBooking, setCancelDialogBooking] = useState<any>(null);
   const [faultDialogBooking, setFaultDialogBooking] = useState<any>(null);
+  const [submissionDialog, setSubmissionDialog] = useState<{ booking: any; kind: "session_video" | "clean_room_photo" } | null>(null);
+  const [pointsBalance, setPointsBalance] = useState(0);
+  const [rewardsCatalog, setRewardsCatalog] = useState<{ id: string; points: number; label: string }[]>([]);
+  const [redeemingReward, setRedeemingReward] = useState<string | null>(null);
   const [modifyDialogBooking, setModifyDialogBooking] = useState<any>(null);
   const defaultNotifPrefs = { push: true, email: true, bookingReminders: true, promotions: false };
   const [notifPrefs, setNotifPrefs] = useState(defaultNotifPrefs);
@@ -248,6 +253,13 @@ const AccountPage = () => {
       .order("created_at", { ascending: false })
       .limit(5);
     setWalletTxns(txns || []);
+    const { data: pointsProfile } = await supabase
+      .from("profiles").select("points_balance").eq("id", user.id).single();
+    setPointsBalance((pointsProfile as any)?.points_balance || 0);
+    supabase.functions.invoke("redeem-points", { body: {} }).then(({ data: shop }) => {
+      if (shop?.catalog) setRewardsCatalog(shop.catalog);
+      if (typeof shop?.points_balance === "number") setPointsBalance(shop.points_balance);
+    });
     if (data) {
       setCreditBalance(data.credit_balance || 0);
       setFreeHours({
@@ -1656,6 +1668,57 @@ const AccountPage = () => {
               </div>
             </motion.div>
 
+            {/* Uprising Points */}
+            <motion.div variants={item} className="rounded-xl bg-card border border-border p-5" data-toast-section>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Star size={16} className="text-primary" />
+                  <h3 className="font-semibold font-display text-sm">Uprising Points</h3>
+                </div>
+                <span className="text-xl font-bold text-primary font-display">{pointsBalance} pt</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground mb-3">
+                Verdien punten: sessievideo insturen (+50), ruimte schoon achterlaten met foto (+20),
+                feedback na je sessie (+10), vriend aanbrengen (+25).
+              </p>
+              {rewardsCatalog.length > 0 && (
+                <div className="space-y-1.5">
+                  {rewardsCatalog.map((reward) => {
+                    const affordable = pointsBalance >= reward.points;
+                    return (
+                      <div key={reward.id} className="flex items-center justify-between rounded-lg bg-secondary/40 border border-border px-3 py-2">
+                        <div>
+                          <p className="text-xs font-semibold">{reward.label}</p>
+                          <p className="text-[10px] text-muted-foreground">{reward.points} punten</p>
+                        </div>
+                        <button
+                          disabled={!affordable || redeemingReward === reward.id}
+                          onClick={async () => {
+                            setRedeemingReward(reward.id);
+                            try {
+                              const { data, error } = await supabase.functions.invoke("redeem-points", {
+                                body: { reward_id: reward.id },
+                              });
+                              if (error || data?.error) toast.error(data?.error || "Er ging iets mis");
+                              else {
+                                toast.success(`${reward.label} toegevoegd! 🎉`);
+                                loadCreditBalance();
+                              }
+                            } finally {
+                              setRedeemingReward(null);
+                            }
+                          }}
+                          className="rounded-lg bg-primary/20 px-3 py-1.5 text-[11px] font-semibold text-primary disabled:opacity-40"
+                        >
+                          {redeemingReward === reward.id ? <Loader2 size={12} className="animate-spin" /> : "Inwisselen"}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </motion.div>
+
             {/* Settings */}
             <motion.div variants={item} className="rounded-xl bg-card border border-border p-5 space-y-3">
               <h3 className="font-semibold font-display text-sm mb-2">
@@ -1903,6 +1966,24 @@ const AccountPage = () => {
                             durationHours={b.duration_hours}
                             status={b.status}
                           />
+
+                          {/* Earn points: session video + clean-room photo (on session day) */}
+                          {b.booking_date === format(new Date(), "yyyy-MM-dd") && (
+                            <div className="flex gap-2 mt-2">
+                              <button
+                                onClick={() => setSubmissionDialog({ booking: b, kind: "session_video" })}
+                                className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-primary/10 border border-primary/20 py-2 text-[11px] font-semibold text-primary"
+                              >
+                                <Video size={12} /> Sessievideo +50pt
+                              </button>
+                              <button
+                                onClick={() => setSubmissionDialog({ booking: b, kind: "clean_room_photo" })}
+                                className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-success/10 border border-success/20 py-2 text-[11px] font-semibold text-success"
+                              >
+                                <Sparkles size={12} /> Schoon +20pt
+                              </button>
+                            </div>
+                          )}
                         </motion.div>
                       );
                     })}
@@ -1915,20 +1996,31 @@ const AccountPage = () => {
                     {t("history")}
                   </h3>
                   <div className="space-y-2">
-                    {pastBookings.slice(0, 10).map((b) => (
-                      <motion.div key={b.id} variants={item}
-                        className="rounded-xl bg-card border border-border p-4 opacity-70">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="text-sm">{getStudioName(b.studio_id)}</h4>
-                            <p className="text-xs text-muted-foreground">
-                              {format(new Date(b.booking_date), "d MMMM", { locale })} • {b.start_time} • {b.duration_hours}h
-                            </p>
+                    {pastBookings.slice(0, 10).map((b) => {
+                      const isRecent = (Date.now() - new Date(b.booking_date).getTime()) < 2 * 86_400_000;
+                      return (
+                        <motion.div key={b.id} variants={item}
+                          className="rounded-xl bg-card border border-border p-4 opacity-70">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="text-sm">{getStudioName(b.studio_id)}</h4>
+                              <p className="text-xs text-muted-foreground">
+                                {format(new Date(b.booking_date), "d MMMM", { locale })} • {b.start_time} • {b.duration_hours}h
+                              </p>
+                            </div>
+                            <span className="text-xs text-muted-foreground">{b.status}</span>
                           </div>
-                          <span className="text-xs text-muted-foreground">{b.status}</span>
-                        </div>
-                      </motion.div>
-                    ))}
+                          {isRecent && b.status === "confirmed" && (
+                            <button
+                              onClick={() => setSubmissionDialog({ booking: b, kind: "session_video" })}
+                              className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary/10 border border-primary/20 py-2 text-[11px] font-semibold text-primary"
+                            >
+                              <Video size={12} /> Sessievideo insturen +50pt
+                            </button>
+                          )}
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -1937,6 +2029,15 @@ const AccountPage = () => {
         )}
 
         {/* Booking management dialogs */}
+        <SubmissionUploadDialog
+          open={!!submissionDialog}
+          onOpenChange={(open) => { if (!open) setSubmissionDialog(null); }}
+          booking={submissionDialog?.booking}
+          kind={submissionDialog?.kind || "session_video"}
+          onSubmitted={() => {
+            toast.success("Ingestuurd! Je punten volgen na goedkeuring door het team.");
+          }}
+        />
         <FaultReportDialog
           open={!!faultDialogBooking}
           onOpenChange={(open) => { if (!open) setFaultDialogBooking(null); }}

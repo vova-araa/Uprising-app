@@ -20,6 +20,7 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 
 type CleaningLog = { id: string; cleaned_by: string; cleaned_at: string; areas: string[]; notes: string | null };
 type FaultReport = { id: string; user_id: string; studio_id: string; category: string; description: string; photo_path: string | null; status: string; compensation: number; created_at: string };
+type MediaSubmission = { id: string; user_id: string; booking_id: string | null; kind: string; storage_path: string; consent: boolean; status: string; created_at: string };
 type RoomBlock = { id: string; studio_id: string; reason: string; fault_report_id: string | null; active: boolean; created_at: string };
 type InventoryItem = { id: string; item_name: string; quantity: number; min_quantity: number; category: string };
 type VendingItem = { id: string; item_name: string; quantity: number; max_quantity: number; next_purchase_date: string | null; is_full: boolean };
@@ -48,7 +49,10 @@ const AdminFacilitiesPage = () => {
   const [reporterNames, setReporterNames] = useState<Map<string, string>>(new Map());
   const [resolvingFault, setResolvingFault] = useState<string | null>(null);
 
-  const [sections, setSections] = useState({ faults: true, cleaning: true, inventory: true, vending: true });
+  const [submissions, setSubmissions] = useState<MediaSubmission[]>([]);
+  const [reviewingSubmission, setReviewingSubmission] = useState<string | null>(null);
+
+  const [sections, setSections] = useState({ faults: true, submissions: true, cleaning: true, inventory: true, vending: true });
   const toggleSection = (key: keyof typeof sections) => setSections((s) => ({ ...s, [key]: !s[key] }));
 
   const [cleanAreas, setCleanAreas] = useState<string[]>([]);
@@ -89,14 +93,17 @@ const AdminFacilitiesPage = () => {
     setVending((vendRes.data as any[] || []) as VendingItem[]);
     setAdmins(adminsRes as any[]);
 
-    const [faultsRes, blocksRes] = await Promise.all([
+    const [faultsRes, blocksRes, subsRes] = await Promise.all([
       supabase.from("fault_reports").select("*").neq("status", "resolved").order("created_at", { ascending: false }),
       supabase.from("room_blocks").select("*").eq("active", true).order("created_at", { ascending: false }),
+      supabase.from("media_submissions").select("*").eq("status", "pending").order("created_at", { ascending: true }),
     ]);
     const faults = (faultsRes.data as any[] || []) as FaultReport[];
     setFaultReports(faults);
     setRoomBlocks((blocksRes.data as any[] || []) as RoomBlock[]);
-    const reporterIds = [...new Set(faults.map((f) => f.user_id))];
+    const subs = (subsRes.data as any[] || []) as MediaSubmission[];
+    setSubmissions(subs);
+    const reporterIds = [...new Set([...faults.map((f) => f.user_id), ...subs.map((s) => s.user_id)])];
     if (reporterIds.length > 0) {
       const { data: reporters } = await supabase.from("profiles").select("id, full_name, email").in("id", reporterIds);
       setReporterNames(new Map((reporters || []).map((p: any) => [p.id, p.full_name || p.email || "Onbekend"])));
@@ -128,6 +135,20 @@ const AdminFacilitiesPage = () => {
   const openPhoto = async (path: string) => {
     const url = await getSignedUrl("uploads", path);
     window.open(url, "_blank");
+  };
+
+  const reviewSubmission = async (submission: MediaSubmission, action: "approve" | "reject") => {
+    setReviewingSubmission(submission.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("review-submission", {
+        body: { submission_id: submission.id, action },
+      });
+      if (error || data?.error) toast.error(data?.error || "Er ging iets mis");
+      else toast.success(action === "approve" ? `Goedgekeurd (+${data.points_awarded} pt)` : "Afgekeurd");
+      loadAll();
+    } finally {
+      setReviewingSubmission(null);
+    }
   };
 
   useEffect(() => { loadAll(); }, []);
@@ -279,6 +300,62 @@ const AdminFacilitiesPage = () => {
                   </div>
                 ))}
               </div>
+            )}
+          </CardContent>
+        )}
+      </Card>
+
+      {/* ── MEDIA SUBMISSIONS (points queue) ───────────────────── */}
+      <Card className={submissions.length > 0 ? "border-primary/40" : ""}>
+        <CardHeader className="pb-1 pt-3 px-3 sm:px-4">
+          <SectionHeader icon={ImageIcon} title={`Content-inzendingen${submissions.length > 0 ? ` (${submissions.length})` : ""}`} sectionKey="submissions" color="text-primary" />
+        </CardHeader>
+        {sections.submissions && (
+          <CardContent className="px-3 sm:px-4 pb-4 pt-1 space-y-2">
+            {submissions.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Geen inzendingen in de wachtrij</p>
+            ) : (
+              submissions.map((sub) => (
+                <div key={sub.id} className="p-3 rounded-lg bg-primary/5 border border-primary/20 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Badge variant="secondary" className="text-[10px] shrink-0">
+                        {sub.kind === "session_video" ? "🎥 Sessievideo (+50pt)" : "🧹 Schone ruimte (+20pt)"}
+                      </Badge>
+                      {sub.consent && <Badge className="text-[10px] bg-success/20 text-success shrink-0">toestemming ✓</Badge>}
+                    </div>
+                    <span className="text-[10px] text-muted-foreground shrink-0">
+                      {format(new Date(sub.created_at), "d MMM HH:mm", { locale: nl })}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Van: {reporterNames.get(sub.user_id) || "Onbekend"}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => openPhoto(sub.storage_path)} className="min-h-[44px]">
+                      <ImageIcon size={14} /> Bekijk
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => reviewSubmission(sub, "approve")}
+                      disabled={reviewingSubmission === sub.id}
+                      className="flex-1 min-h-[44px]"
+                    >
+                      {reviewingSubmission === sub.id ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
+                      Goedkeuren
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => reviewSubmission(sub, "reject")}
+                      disabled={reviewingSubmission === sub.id}
+                      className="min-h-[44px] text-destructive"
+                    >
+                      <X size={14} />
+                    </Button>
+                  </div>
+                </div>
+              ))
             )}
           </CardContent>
         )}

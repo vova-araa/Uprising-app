@@ -116,6 +116,13 @@ serve(async (req) => {
       p_note: "Referral beloning: vriend aangemeld",
       p_expires_at: expiresAt,
     });
+    // Referrer also earns 25 loyalty points
+    await supabaseAdmin.rpc("points_apply", {
+      p_user_id: referrer.id,
+      p_points: 25,
+      p_type: "referral",
+      p_note: "Vriend aangebracht",
+    });
 
     await supabaseAdmin.from("notifications").insert([
       {
