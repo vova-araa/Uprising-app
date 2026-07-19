@@ -1,0 +1,1 @@
+ALTER TABLE public.org_tasks ADD COLUMN org_workshop_id UUID REFERENCES public.org_workshops(id);

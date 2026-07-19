@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS notification_prefs jsonb NOT NULL DEFAULT '{"push": true, "email": true, "bookingReminders": true, "promotions": false}'::jsonb;

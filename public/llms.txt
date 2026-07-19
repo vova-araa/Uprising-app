@@ -1,0 +1,22 @@
+# Uprising Studio
+
+> Muziekstudio's, contentruimtes en creatieve diensten in Amersfoort. Boek studio-sessies, producer-sessies, content shoots en lidmaatschappen.
+
+## Pages
+
+- [Home](/): Overzicht van Uprising Studio in Amersfoort.
+- [Spaces](/#/spaces): Onze studio's en contentruimtes met afmetingen en capaciteit.
+- [Boeken](/#/book): Direct een ruimte of sessie reserveren.
+- [Diensten](/#/diensten): Alle creatieve diensten op een rij.
+- [Memberships](/#/diensten/memberships): Lidmaatschappen voor frequente gebruikers.
+- [Broedplaats](/#/diensten/broedplaats): Onze creatieve community en broedplaats.
+- [Studio sessie](/#/diensten/studio-session): Boek een muziekstudio met of zonder engineer.
+- [Producer sessie](/#/diensten/producer-session): Werk met een producer aan je track.
+- [Content ruimte](/#/diensten/content): Ruimtes voor foto, video en content creatie.
+- [Drukkerij](/#/diensten/drukkerij): Print- en drukkerijdiensten.
+- [Mix & Master](/#/mix-master): Mix- en mastering service voor je tracks.
+
+## Optional
+
+- [Privacy](/#/privacy): Privacybeleid.
+- [Voorwaarden](/#/terms): Algemene voorwaarden.

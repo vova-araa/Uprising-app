@@ -1,0 +1,1 @@
+ALTER TABLE public.org_tasks ADD COLUMN scheduled_date DATE;

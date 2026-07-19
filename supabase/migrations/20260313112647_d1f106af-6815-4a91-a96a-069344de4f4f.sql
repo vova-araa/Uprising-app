@@ -1,0 +1,1 @@
+ALTER TABLE public.producer_bookings ADD COLUMN IF NOT EXISTS stripe_session_id text DEFAULT NULL;

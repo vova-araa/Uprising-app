@@ -1,0 +1,1 @@
+ALTER TABLE public.org_schools ADD COLUMN default_traject_duration TEXT DEFAULT NULL;

@@ -1,0 +1,337 @@
+/* Fonts loaded via index.html link tags for non-blocking render */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    touch-action: pan-x pan-y;
+    overflow: hidden;
+    height: 100dvh;
+    min-height: 100dvh;
+    position: fixed;
+    width: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior: none;
+    overscroll-behavior-y: none;
+  }
+
+  body {
+    overflow: hidden;
+    height: 100dvh;
+    min-height: 100dvh;
+    width: 100%;
+    position: fixed;
+    overscroll-behavior: none;
+    overscroll-behavior-y: none;
+  }
+
+  #root {
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* Ensure all inputs are 16px+ to prevent iOS auto-zoom */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  :root {
+    --background: 240 10% 6%;
+    --background-hex: #0f0f14;
+    --foreground: 0 0% 96%;
+
+    --card: 240 8% 10%;
+    --card-foreground: 0 0% 96%;
+
+    --popover: 240 8% 10%;
+    --popover-foreground: 0 0% 96%;
+
+    --primary: 272 92% 62%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 6% 16%;
+    --secondary-foreground: 0 0% 90%;
+
+
+    --muted: 240 6% 14%;
+    --muted-foreground: 240 5% 80%;
+
+    --accent: 272 92% 62%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 6% 18%;
+    --input: 240 6% 18%;
+    --ring: 272 92% 62%;
+
+    --radius: 0.75rem;
+
+    --nav-active: 272 95% 75%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 10%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(272 95% 65%), hsl(282 92% 58%));
+    --gradient-card: linear-gradient(145deg, hsl(240 8% 12%), hsl(240 8% 8%));
+    --gradient-hero: linear-gradient(180deg, hsl(272 95% 65% / 0.22), transparent);
+
+    --shadow-glow: 0 0 48px hsl(272 95% 65% / 0.28);
+
+    --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.3);
+
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+
+    --sidebar-background: 240 8% 10%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-primary: 272 92% 62%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 6% 16%;
+    --sidebar-accent-foreground: 0 0% 96%;
+    --sidebar-border: 240 6% 18%;
+    --sidebar-ring: 272 92% 62%;
+
+    /* Global safe-area system (native iOS + Android fallback) */
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-left: env(safe-area-inset-left, 0px);
+    --safe-area-right: env(safe-area-inset-right, 0px);
+
+    --safe-top-offset: calc(var(--safe-area-top) + 8px);
+    --bottom-nav-height: 58px;
+    --bottom-nav-safe-padding: max(env(safe-area-inset-bottom, 0px) - 12px, 2px);
+    --bottom-nav-total-offset: calc(var(--bottom-nav-height) + var(--bottom-nav-safe-padding));
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+  html,
+  body,
+  #root {
+    background-color: hsl(var(--background));
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer utilities {
+  /* Native-like touch feedback */
+  .touch-action-pan-y {
+    touch-action: pan-y;
+  }
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Native-like active states */
+  button, a, [role="button"] {
+    transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+    -webkit-touch-callout: none;
+  }
+  /* GPU-accelerate images for smoother scrolling */
+  img {
+    content-visibility: auto;
+    will-change: auto;
+  }
+  /* Smooth scrollable containers */
+  .scrollbar-none {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  .gradient-card {
+    background: var(--gradient-card);
+  }
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+  .font-display {
+    font-family: var(--font-display);
+  }
+  .font-body {
+    font-family: var(--font-body);
+  }
+  .text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .safe-bottom {
+    padding-bottom: var(--safe-area-bottom);
+  }
+  .safe-top {
+    padding-top: var(--safe-area-top);
+  }
+  .safe-x {
+    padding-left: var(--safe-area-left);
+    padding-right: var(--safe-area-right);
+  }
+  .pb-nav-offset {
+    padding-bottom: var(--bottom-nav-total-offset);
+  }
+  .bottom-nav-offset {
+    bottom: var(--bottom-nav-total-offset);
+  }
+  .safe-top-offset {
+    top: var(--safe-top-offset);
+  }
+  /* Sticky headers must account for safe area when inside padded main */
+  .sticky-safe-top {
+    top: var(--safe-area-top);
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  /* Center Sonner toasts at top center */
+  [data-sonner-toaster] {
+    top: calc(var(--safe-area-top) + 16px) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    bottom: auto !important;
+    right: auto !important;
+    position: fixed !important;
+  }
+  [data-sonner-toaster] [data-sonner-toast] {
+    text-align: center;
+  }
+
+  @keyframes toast-in {
+    0% {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.97);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes toast-shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-4px); }
+    40% { transform: translateX(4px); }
+    60% { transform: translateX(-2px); }
+    80% { transform: translateX(2px); }
+  }
+
+  @keyframes nav-indicator-in {
+    from {
+      opacity: 0;
+      transform: scaleX(0.5);
+    }
+    to {
+      opacity: 1;
+      transform: scaleX(1);
+    }
+  }
+
+  .animate-toast-in {
+    animation: toast-in 0.2s ease-out;
+  }
+
+  .animate-toast-shake {
+    animation: toast-shake 0.4s ease-in-out;
+  }
+
+  .animate-nav-indicator {
+    animation: nav-indicator-in 0.25s ease-out;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   DESKTOP-FIRST OVERRIDES (lg: 1024px+)
+   Mobile layout remains UNTOUCHED below 1024px.
+   ═══════════════════════════════════════════════ */
+@media (min-width: 1024px) {
+  /* Allow normal page scrolling on desktop — undo mobile app lock */
+  html, body, #root {
+    position: static !important;
+    overflow: auto !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    overscroll-behavior: auto !important;
+  }
+
+  /* Override inline padding for desktop header nav */
+  .desktop-main {
+    padding-top: 64px !important; /* h-16 = 4rem = 64px */
+    padding-bottom: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* Remove bottom-nav padding on desktop */
+  :root {
+    --bottom-nav-total-offset: 0px !important;
+    --safe-area-top: 0px !important;
+    --safe-area-bottom: 0px !important;
+  }
+
+  /* Input font-size override for desktop (allow normal sizing) */
+  input, select, textarea {
+    font-size: 14px !important;
+  }
+
+  /* Desktop hover effects */
+  button:hover, a:hover, [role="button"]:hover {
+    transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.2s ease;
+  }
+
+  /* Card hover lift */
+  .rounded-xl:hover, .rounded-2xl:hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  /* Refined scrollbars */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.4);
+  }
+}

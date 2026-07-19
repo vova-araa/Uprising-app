@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f0f14" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Uprising Studio" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+
+    <!-- CSP: allow local file://, inline styles/scripts, Supabase, Google Fonts, images -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self' file: data: blob: gap:;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' file: blob:;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com data:;
+      img-src 'self' data: blob: file: https: http:;
+      connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.supabase.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lovable.app https://*.lovableproject.com https://*.stripe.com blob: data: file:;
+      media-src 'self' blob: data: file:;
+      frame-src 'self' https://*.stripe.com;
+    " />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://rwjpgwgeosrldramrgvq.supabase.co" />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    <link rel="dns-prefetch" href="https://rwjpgwgeosrldramrgvq.supabase.co" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" /></noscript>
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/uprising-logo.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <title>Uprising Studio — Studio's & Ruimtes Amersfoort</title>
+    <meta name="description" content="Boek muziekstudio's, contentruimtes en creatieve diensten bij Uprising Studio in Amersfoort.">
+    <!-- Per-route canonical is set via react-helmet-async (src/components/SEO.tsx) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Uprising Studio" />
+    <meta property="og:title" content="Uprising Studio — Studio's & Ruimtes Amersfoort">
+    <meta property="og:description" content="Boek muziekstudio's, contentruimtes en creatieve diensten bij Uprising Studio in Amersfoort.">
+    <meta property="og:image" content="https://uprisingstudio.nl/og-uprising.png">
+    <meta property="og:url" content="https://uprisingstudio.nl/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Uprising Studio — Studio's & Ruimtes Amersfoort">
+    <meta name="twitter:description" content="Boek muziekstudio's, contentruimtes en creatieve diensten bij Uprising Studio in Amersfoort.">
+    <meta name="twitter:image" content="https://uprisingstudio.nl/og-uprising.png">
+    <script type="application/ld+json">
+      {"@context":"https://schema.org","@type":"WebSite","name":"Uprising Studio","url":"https://uprisingstudio.nl/"}
+    </script>
+    <script type="application/ld+json">
+      {"@context":"https://schema.org","@type":"LocalBusiness","name":"Uprising Studio","url":"https://uprisingstudio.nl/","image":"https://uprisingstudio.nl/og-uprising.png","email":"info@uprisingstudio.nl","address":{"@type":"PostalAddress","streetAddress":"Spaceshuttle 6e","addressLocality":"Amersfoort","addressCountry":"NL"},"areaServed":"Amersfoort","priceRange":"€€"}
+    </script>
+  </head>
+  <body>
+    <style>
+      /* Critical inline CSS – painted before JS loads to improve FCP */
+      body{margin:0;background:#0f0f14;color:#f5f5f5;font-family:'DM Sans','Space Grotesk',system-ui,sans-serif}
+      #root-skeleton{display:flex;align-items:center;justify-content:center;min-height:100dvh;opacity:1;transition:opacity .2s}
+      #root-skeleton img{width:64px;height:64px;border-radius:16px;animation:sk-pulse 1.5s ease-in-out infinite}
+      @keyframes sk-pulse{0%,100%{opacity:1}50%{opacity:.5}}
+      #root:not(:empty)+#root-skeleton{display:none}
+      /* Fail-safe error display for native debugging */
+      #native-error-overlay{display:none;position:fixed;inset:0;z-index:99999;background:#0f0f14;color:#ff4444;padding:2rem;font:14px/1.5 monospace;overflow:auto;word-break:break-word}
+    </style>
+
+    <!-- Global error boundary: catches fatal JS errors before React mounts -->
+    <script>
+      (function(){
+        var errDiv;
+        var reloadedKey = 'us_chunk_reload_at';
+        function isChunkError(msg) {
+          if (!msg) return false;
+          msg = String(msg);
+          return /Importing a module script failed|Failed to fetch dynamically imported module|Loading chunk \d+ failed|ChunkLoadError/i.test(msg);
+        }
+        function maybeReloadOnce() {
+          try {
+            var last = +sessionStorage.getItem(reloadedKey) || 0;
+            if (Date.now() - last < 30000) return false; // already tried recently
+            sessionStorage.setItem(reloadedKey, String(Date.now()));
+            location.reload();
+            return true;
+          } catch (_) { return false; }
+        }
+        function showError(msg, extra) {
+          console.error('[NativeBoot]', msg, extra || '');
+          // Ignore benign cross-origin "Script error." with no filename/line
+          if (/^Uncaught: Script error\.?$/i.test(msg) && (!extra || extra === ':0' || extra === ':')) return;
+          // Stale chunk after deploy → reload once instead of showing red screen
+          if (isChunkError(msg) && maybeReloadOnce()) return;
+          if (!errDiv) errDiv = document.getElementById('native-error-overlay');
+          if (errDiv) {
+            errDiv.style.display = 'block';
+            errDiv.innerHTML += '<p>' + msg + '</p>' + (extra ? '<pre>' + extra + '</pre>' : '');
+          }
+        }
+        window.addEventListener('error', function(e) {
+          showError('Uncaught: ' + e.message, e.filename + ':' + e.lineno);
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+          var reason = e.reason && (e.reason.message || e.reason.toString && e.reason.toString()) || e.reason;
+          showError('Unhandled promise: ' + reason);
+        });
+      })();
+    </script>
+
+    <div id="root"></div>
+    <div id="root-skeleton" aria-hidden="true">
+      <img src="/uprising-logo.png" alt="" width="64" height="64" />
+    </div>
+    <div id="native-error-overlay"></div>
+    <script type="module" src="./src/main.tsx"></script>
+  </body>
+</html>

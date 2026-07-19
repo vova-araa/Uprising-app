@@ -1,0 +1,25 @@
+project_id = "rwjpgwgeosrldramrgvq"
+
+[functions.process-email-queue]
+verify_jwt = false
+
+[functions.nuki-integration]
+verify_jwt = false
+
+[functions.update-subscription]
+verify_jwt = false
+
+[functions.check-subscription]
+verify_jwt = false
+
+[functions.bookings-list]
+verify_jwt = false
+
+[functions.availability]
+verify_jwt = false
+
+[functions.booking-create]
+verify_jwt = false
+
+[functions.customer-history]
+verify_jwt = false

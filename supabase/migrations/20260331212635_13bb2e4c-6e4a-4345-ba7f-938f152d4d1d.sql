@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN membership_override text DEFAULT NULL;
