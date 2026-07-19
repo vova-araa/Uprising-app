@@ -359,6 +359,13 @@ serve(async (req) => {
       .single();
 
     if (insertError) {
+      // 23P01 = exclusion constraint (bookings_no_overlap): someone grabbed the
+      // slot between our availability pre-check and this insert.
+      if (insertError.code === "23P01") {
+        return new Response(JSON.stringify({ error: "Dit tijdslot is niet meer beschikbaar. Kies een ander tijdstip." }), {
+          status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       console.error("[CREATE-BOOKING] Insert error:", insertError);
       return new Response(JSON.stringify({ error: "Failed to create booking" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },

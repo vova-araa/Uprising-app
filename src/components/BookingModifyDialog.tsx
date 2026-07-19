@@ -98,7 +98,25 @@ const BookingModifyDialog = ({ open, onOpenChange, booking, onModified }: Props)
         total_price: 0,
         notes: booking.notes,
       });
-      if (insErr) throw new Error(insErr.message);
+      if (insErr) {
+        // Slot was taken between our check and the insert — put the original
+        // booking back so the member doesn't lose their reservation.
+        await supabase.from("bookings").insert({
+          user_id: booking.user_id,
+          studio_id: booking.studio_id,
+          booking_date: booking.booking_date,
+          start_time: booking.start_time,
+          duration_hours: booking.duration_hours,
+          session_type: booking.session_type,
+          status: "confirmed",
+          total_price: 0,
+          notes: booking.notes,
+        });
+        if ((insErr as { code?: string }).code === "23P01") {
+          throw new Error("Dit tijdslot is net bezet geraakt. Je oorspronkelijke boeking blijft staan.");
+        }
+        throw new Error(insErr.message);
+      }
 
       onModified();
       onOpenChange(false);

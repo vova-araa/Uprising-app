@@ -374,8 +374,12 @@ const AdminCalendarPage = () => {
         notes: formNotes || null,
       }).select("id").single();
 
-      if (error) throw error;
-
+      if (error) {
+        if ((error as { code?: string }).code === "23P01") {
+          throw new Error(lang === "nl" ? "Dit tijdslot overlapt met een bestaande boeking." : "This slot overlaps an existing booking.");
+        }
+        throw error;
+      }
 
       toast.success(lang === "nl" ? "Sessie ingepland!" : "Session scheduled!");
       setShowForm(false);

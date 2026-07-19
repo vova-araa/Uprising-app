@@ -103,7 +103,11 @@ Deno.serve(async (req) => {
       notes: "Aangemaakt via cockpit-assistent",
     }).select("id").single();
 
-    if (insErr) return json({ error: insErr.message }, 500);
+    if (insErr) {
+      // 23P01 = bookings_no_overlap exclusion constraint: slot taken concurrently
+      if ((insErr as { code?: string }).code === "23P01") return json({ error: "slot_unavailable" }, 409);
+      return json({ error: insErr.message }, 500);
+    }
 
     // Notify user
     await supabase.from("notifications").insert({
