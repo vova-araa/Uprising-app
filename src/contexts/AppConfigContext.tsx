@@ -165,6 +165,9 @@ const defaultBookingRules: BookingRules = {
   extras: [
     { id: "mix-master", labelKey: "mixMasterService", price: 150 },
     { id: "photographer", labelKey: "photographer", price: 0 },
+    { id: "session-recap", labelKey: "sessionRecapAddon", price: 49 },
+    { id: "bts-pack", labelKey: "btsPackAddon", price: 35 },
+    { id: "session-photos", labelKey: "sessionPhotosAddon", price: 40 },
   ],
 };
 

@@ -11,6 +11,7 @@ import {
   GraduationCap, Flame, Rocket
 } from "lucide-react";
 import { generateTimeSlots } from "@/lib/data";
+import { computeStudioPricing, DEFAULT_OFFPEAK, type OffPeakConfig } from "../../supabase/functions/_shared/pricing";
 import { format, addMonths, subMonths, isSameDay, isBefore, startOfDay } from "date-fns";
 import { nl, enUS } from "date-fns/locale";
 import studioAImg from "@/assets/studio-a.webp";
@@ -323,12 +324,24 @@ const BookingPage = () => {
   const locale = lang === "nl" ? nl : enUS;
   const studio = studios.find((s) => s.id === selectedStudio);
   const paidHours = isMember ? 0 : (creditHours > 0 ? Math.max(0, selectedDuration - creditHours) : selectedDuration);
-  const studioPrice = studio ? paidHours * studio.pricePerHour : 0;
+  const offPeakCfg: OffPeakConfig = { ...DEFAULT_OFFPEAK, ...(config.getConfigRaw("offpeak_pricing") || {}) };
+  const studioPricing = studio && selectedDate && selectedTime
+    ? computeStudioPricing(
+        studio.pricePerHour,
+        format(selectedDate, "yyyy-MM-dd"),
+        selectedTime,
+        selectedDuration,
+        selectedDuration - paidHours,
+        offPeakCfg,
+      )
+    : { total: studio ? paidHours * studio.pricePerHour : 0, fullPrice: studio ? paidHours * studio.pricePerHour : 0, discount: 0, paidHours, offPeakHours: 0 };
+  const studioPrice = studioPricing.total;
+  const offPeakDiscount = studioPricing.discount;
   const extrasPrice = selectedExtras.reduce((sum, eId) => {
     const ex = extras.find((e) => e.id === eId);
     return sum + (ex?.price || 0);
   }, 0);
-  const totalPrice = studioPrice + extrasPrice;
+  const totalPrice = Math.round((studioPrice + extrasPrice) * 100) / 100;
   const walletApplied = useWallet && totalPrice > 0 ? Math.min(walletBalance, totalPrice) : 0;
   const dueNow = totalPrice - walletApplied;
 
@@ -1362,6 +1375,12 @@ const BookingPage = () => {
                         </div>
                       );
                     })}
+                    {offPeakDiscount > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-success">{t("offPeakDiscount")} ({studioPricing.offPeakHours}u)</span>
+                        <span className="text-success">-€{offPeakDiscount}</span>
+                      </div>
+                    )}
                     {walletBalance > 0 && totalPrice > 0 && (
                       <button
                         onClick={() => setUseWallet(!useWallet)}

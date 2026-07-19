@@ -3,6 +3,7 @@ import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 import { notifyZapierBooking, STUDIO_LABELS } from "../_shared/zapier.ts";
 import { provisionBookingAccess } from "../_shared/nuki.ts";
+import { computeStudioPricing, DEFAULT_OFFPEAK, type OffPeakConfig } from "../_shared/pricing.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -38,13 +39,16 @@ function buildLocalDate(dateStr: string, hours: number, minutes: number): Date {
   return new Date(naive.getTime() - offsetMs);
 }
 
+// Defaults; overridable per extra via the booking_rules app_config row
 const EXTRAS_PRICES: Record<string, number> = {
   "mix-master": 150,
   "photographer": 0,
+  "session-recap": 49,
+  "bts-pack": 35,
+  "session-photos": 40,
 };
 
 const VALID_STUDIOS = new Set(Object.keys(STUDIO_PRICES));
-const VALID_EXTRAS = new Set(Object.keys(EXTRAS_PRICES));
 const VALID_DURATIONS = new Set([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
 
 const TIER_CONFIG: Record<string, { maxHoursPerMonth: number; maxUpcomingBookings: number }> = {
@@ -261,17 +265,38 @@ serve(async (req) => {
       });
     }
 
-    const safeExtras: string[] = [];
-    if (Array.isArray(extras)) {
-      for (const e of extras) {
-        if (typeof e === "string" && VALID_EXTRAS.has(e)) safeExtras.push(e);
-      }
-    }
-
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
+
+    // Config-driven pricing: booking_rules extras + off-peak settings can be
+    // overridden via app_config without a deploy.
+    const { data: configRows } = await supabaseAdmin
+      .from("app_config")
+      .select("config_key, config_value")
+      .in("config_key", ["booking_rules", "offpeak_pricing"])
+      .eq("is_active", true);
+    const configMap = new Map((configRows || []).map((r: any) => [r.config_key, r.config_value]));
+
+    const extrasPrices: Record<string, number> = { ...EXTRAS_PRICES };
+    const configExtras = (configMap.get("booking_rules") as any)?.extras;
+    if (Array.isArray(configExtras)) {
+      for (const ex of configExtras) {
+        if (ex && typeof ex.id === "string" && typeof ex.price === "number") {
+          extrasPrices[ex.id] = ex.price;
+        }
+      }
+    }
+
+    const offPeakCfg: OffPeakConfig = { ...DEFAULT_OFFPEAK, ...((configMap.get("offpeak_pricing") as object) || {}) };
+
+    const safeExtras: string[] = [];
+    if (Array.isArray(extras)) {
+      for (const e of extras) {
+        if (typeof e === "string" && e in extrasPrices) safeExtras.push(e);
+      }
+    }
 
     // --- Check availability ---
     if (await isRoomBlocked(supabaseAdmin, studio_id, booking_date, start_time)) {
@@ -355,9 +380,16 @@ serve(async (req) => {
       paidHours = duration_hours - freeHours;
     }
 
-    const studioPrice = paidHours * STUDIO_PRICES[studio_id];
-    const extrasPrice = safeExtras.reduce((sum, eId) => sum + (EXTRAS_PRICES[eId] || 0), 0);
-    const totalPrice = studioPrice + extrasPrice;
+    const studioPricing = computeStudioPricing(
+      STUDIO_PRICES[studio_id],
+      booking_date,
+      start_time,
+      duration_hours,
+      duration_hours - paidHours,
+      offPeakCfg,
+    );
+    const extrasPrice = safeExtras.reduce((sum, eId) => sum + (extrasPrices[eId] || 0), 0);
+    const totalPrice = Math.round((studioPricing.total + extrasPrice) * 100) / 100;
 
     const bookingNotes = safeExtras.includes("photographer") && typeof photographer_notes === "string" && photographer_notes.trim()
       ? `Fotograaf/Content Creator aanvraag: ${photographer_notes.trim().slice(0, 500)}`
