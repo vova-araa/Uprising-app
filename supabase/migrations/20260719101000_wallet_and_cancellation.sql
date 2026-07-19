@@ -77,6 +77,7 @@ $$;
 
 -- Only service role may call wallet_apply
 REVOKE EXECUTE ON FUNCTION public.wallet_apply FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.wallet_apply TO service_role;
 
 -- Cancellation metadata on bookings
 ALTER TABLE public.bookings
