@@ -331,7 +331,7 @@ const AdminTasksPage = () => {
             <>
               <motion.div
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/50 z-40"
+                className="fixed inset-0 bg-background/70 backdrop-blur-sm z-40"
                 onClick={() => setSidebarOpen(false)}
               />
               <motion.aside

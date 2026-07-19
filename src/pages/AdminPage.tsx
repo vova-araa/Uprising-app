@@ -641,7 +641,7 @@ const AdminPage = () => {
 
   return (
     <div className="min-h-full bg-background">
-      <div className="sticky top-0 z-40 border-b border-border bg-background/95 px-5 py-4 backdrop-blur-xl" style={{ paddingTop: "calc(var(--safe-area-top) + 12px)" }}>
+      <div className="glass hairline-top sticky top-0 z-40 border-b border-border px-5 py-4" style={{ paddingTop: "calc(var(--safe-area-top) + 12px)" }}>
         <h1 className="text-lg font-bold font-display">Admin Dashboard</h1>
         <p className="text-xs text-muted-foreground">
           {lang === "nl" ? "Centraal beheer voor alles" : "Central management hub"}
