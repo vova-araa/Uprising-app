@@ -1776,17 +1776,28 @@ export type Database = {
       creator_profiles: {
         Row: {
           artist_name: string | null
+          brand_description: string | null
+          camera_comfort: string | null
+          coach_notes: string | null
           created_at: string
           followers_total: number | null
           genre: string | null
           goals: string | null
+          intake_by: string
+          intake_completed_at: string | null
           last_weekly_reminder_at: string | null
           milestones: Json
+          money_budget: string | null
+          posting_platforms: string[] | null
           process_stage: string
           reference_artists: string | null
           release_plan: Json
           releases: string | null
           socials: Json
+          strengths: string | null
+          struggles: string | null
+          target_audience: string | null
+          time_budget: string | null
           updated_at: string
           user_id: string
           weekly_content_goal: number | null
@@ -1794,17 +1805,28 @@ export type Database = {
         }
         Insert: {
           artist_name?: string | null
+          brand_description?: string | null
+          camera_comfort?: string | null
+          coach_notes?: string | null
           created_at?: string
           followers_total?: number | null
           genre?: string | null
           goals?: string | null
+          intake_by?: string
+          intake_completed_at?: string | null
           last_weekly_reminder_at?: string | null
           milestones?: Json
+          money_budget?: string | null
+          posting_platforms?: string[] | null
           process_stage?: string
           reference_artists?: string | null
           release_plan?: Json
           releases?: string | null
           socials?: Json
+          strengths?: string | null
+          struggles?: string | null
+          target_audience?: string | null
+          time_budget?: string | null
           updated_at?: string
           user_id: string
           weekly_content_goal?: number | null
@@ -1812,21 +1834,101 @@ export type Database = {
         }
         Update: {
           artist_name?: string | null
+          brand_description?: string | null
+          camera_comfort?: string | null
+          coach_notes?: string | null
           created_at?: string
           followers_total?: number | null
           genre?: string | null
           goals?: string | null
+          intake_by?: string
+          intake_completed_at?: string | null
           last_weekly_reminder_at?: string | null
           milestones?: Json
+          money_budget?: string | null
+          posting_platforms?: string[] | null
           process_stage?: string
           reference_artists?: string | null
           release_plan?: Json
           releases?: string | null
           socials?: Json
+          strengths?: string | null
+          struggles?: string | null
+          target_audience?: string | null
+          time_budget?: string | null
           updated_at?: string
           user_id?: string
           weekly_content_goal?: number | null
           weekly_reminder?: boolean
+        }
+        Relationships: []
+      }
+      content_plans: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          generated_by: string
+          id: string
+          items: Json
+          source: string
+          title: string
+          updated_at: string
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          generated_by?: string
+          id?: string
+          items?: Json
+          source?: string
+          title: string
+          updated_at?: string
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          generated_by?: string
+          id?: string
+          items?: Json
+          source?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          week_start?: string
+        }
+        Relationships: []
+      }
+      coach_checkins: {
+        Row: {
+          content_plan_id: string | null
+          created_at: string
+          id: string
+          posted: boolean | null
+          reach_note: string | null
+          reflection: string | null
+          user_id: string
+        }
+        Insert: {
+          content_plan_id?: string | null
+          created_at?: string
+          id?: string
+          posted?: boolean | null
+          reach_note?: string | null
+          reflection?: string | null
+          user_id: string
+        }
+        Update: {
+          content_plan_id?: string | null
+          created_at?: string
+          id?: string
+          posted?: boolean | null
+          reach_note?: string | null
+          reflection?: string | null
+          user_id?: string
         }
         Relationships: []
       }

@@ -225,8 +225,23 @@ async function processWeeklyContentReminders(supabase: ReturnType<typeof getSupa
   let sent = 0;
   for (const c of creators || []) {
     if (c.last_weekly_reminder_at && c.last_weekly_reminder_at > cutoff) continue;
-    const title = "Nieuwe week, nieuwe content 🎯";
-    const message = `Je doel: ${c.weekly_content_goal} post${Number(c.weekly_content_goal) === 1 ? "" : "s"} deze week. Open de Content Coach voor ideeën die bij je passen.`;
+
+    // Generate this week's plan so it's ready when they open the coach
+    try {
+      await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/coach-generate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+        },
+        body: JSON.stringify({ mode: "weekly", user_id: c.user_id, force: true }),
+      });
+    } catch (e) {
+      console.error("[SCHEDULER] weekly plan generation failed:", e);
+    }
+
+    const title = "Je weekplan staat klaar 🎯";
+    const message = `${c.weekly_content_goal} post${Number(c.weekly_content_goal) === 1 ? "" : "s"} deze week — de coach heeft concrete ideeën en captions voor je klaargezet.`;
     await supabase.from("notifications").insert({
       user_id: c.user_id, title, message, type: "info", link: "/coach",
     });

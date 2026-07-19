@@ -4,6 +4,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 import { notifyZapierBooking, STUDIO_LABELS } from "../_shared/zapier.ts";
 import { provisionBookingAccess } from "../_shared/nuki.ts";
 import { computeStudioPricing, DEFAULT_OFFPEAK, type OffPeakConfig } from "../_shared/pricing.ts";
+import { maybeGenerateSessionPlan } from "../_shared/coach.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -501,6 +502,9 @@ serve(async (req) => {
       if (!provision.ok) {
         console.error("[CREATE-BOOKING] Nuki provisioning failed:", provision.reason);
       }
+
+      // Coach users: auto-generate a session shot list + post plan
+      await maybeGenerateSessionPlan(supabaseAdmin, booking.id, user.id);
 
       await notifyZapierBooking({
         naam: userName,

@@ -87,24 +87,41 @@ serve(async (req) => {
       .order("booking_date", { ascending: false })
       .limit(3);
 
+    // Recent check-ins so advice adapts to what actually worked
+    const { data: checkins } = await supabaseAdmin
+      .from("coach_checkins")
+      .select("posted, reflection, reach_note, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(5);
+
     const profileBlock = profile ? `
 PROFIEL VAN DEZE GEBRUIKER:
 - Artiestennaam: ${profile.artist_name || "onbekend"}
 - Genre: ${profile.genre || "onbekend"}
+- Merk/verhaal: ${profile.brand_description || "-"}
+- Doelgroep: ${profile.target_audience || "-"}
 - Doelen: ${profile.goals || "nog niet ingevuld"}
 - Fase in het proces: ${profile.process_stage}
 - Socials: ${JSON.stringify(profile.socials)} (totaal ±${profile.followers_total ?? "?"} volgers)
+- Post vooral op: ${(profile.posting_platforms || []).join(", ") || "onbekend"}
+- Tijdsbudget content: ${profile.time_budget || "-"} | Geldbudget promo: ${profile.money_budget || "-"}
+- Comfort op camera: ${profile.camera_comfort || "-"}
+- Sterke kanten: ${profile.strengths || "-"} | Worstelt met: ${profile.struggles || "-"}
 - Releases tot nu toe: ${profile.releases || "nog niets uitgebracht"}
 - Referentie-artiesten: ${profile.reference_artists || "-"}
 - Releaseplanning: ${JSON.stringify(profile.release_plan)}
 - Content-doel: ${profile.weekly_content_goal ?? "?"} posts per week
 - Behaalde mijlpalen: ${JSON.stringify(profile.milestones)}
-` : "\nPROFIEL: nog geen intake ingevuld — stel bij het eerste antwoord kort 2-3 intakevragen (genre, doel, waar ze staan) en geef daarna alvast één concreet idee.";
+
+Pas je advies aan op hun tijdsbudget, camera-comfort en sterke kanten. Camera-shy? Zet in op B-roll en tekst-over-beeld.` : "\nPROFIEL: nog geen intake ingevuld — stel bij het eerste antwoord kort 2-3 intakevragen (genre, doel, waar ze staan) en geef daarna alvast één concreet idee.";
 
     const sessionsBlock = `
 SESSIES:
 - Komende sessies: ${JSON.stringify(upcoming || [])}
-- Recente sessies: ${JSON.stringify(recent || [])}`;
+- Recente sessies: ${JSON.stringify(recent || [])}
+RECENTE CHECK-INS (wat werkte/niet — leer hiervan):
+${JSON.stringify(checkins || [])}`;
 
     const systemPrompt = BASE_PROMPT + profileBlock + sessionsBlock
       + (lang === "en" ? "\n\nThe user prefers English. Respond in English." : "");

@@ -3,6 +3,7 @@ import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 import { notifyZapierBooking, STUDIO_LABELS } from "../_shared/zapier.ts";
 import { provisionBookingAccess } from "../_shared/nuki.ts";
+import { maybeGenerateSessionPlan } from "../_shared/coach.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -265,6 +266,9 @@ serve(async (req) => {
         if (!provision.ok) {
           logStep("Nuki provisioning failed", { bookingId: b.id, reason: provision.reason });
         }
+
+        // Coach users: auto-generate a session shot list + post plan
+        await maybeGenerateSessionPlan(supabaseAdmin, b.id, user.id);
 
         logStep("Studio booking confirmed", { bookingId: b.id });
       }
