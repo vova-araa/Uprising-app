@@ -26,13 +26,14 @@ const AdminPerfTab = lazy(() => import("@/components/admin/AdminPerfTab"));
 const AdminInsightsTab = lazy(() => import("@/components/admin/AdminInsightsTab"));
 const AdminIntakesTab = lazy(() => import("@/components/admin/AdminIntakesTab"));
 const AdminLabelsTab = lazy(() => import("@/components/admin/AdminLabelsTab"));
+const AdminFinanceTab = lazy(() => import("@/components/admin/AdminFinanceTab"));
 import { nl, enUS } from "date-fns/locale";
 import { inlineToast as toast } from "@/components/InlineToast";
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
 const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
 
-type Tab = "overview" | "insights" | "diensten" | "bookings" | "producer" | "requests" | "projects" | "users" | "intakes" | "labels" | "notifications" | "referrals" | "errors" | "database" | "products" | "config" | "configsettings" | "nuki" | "access" | "blast" | "subscriptions" | "perf";
+type Tab = "overview" | "insights" | "finance" | "diensten" | "bookings" | "producer" | "requests" | "projects" | "users" | "intakes" | "labels" | "notifications" | "referrals" | "errors" | "database" | "products" | "config" | "configsettings" | "nuki" | "access" | "blast" | "subscriptions" | "perf";
 
 const AdminPage = () => {
   const { lang } = useI18n();
@@ -609,6 +610,7 @@ const AdminPage = () => {
   ];
 
   const configSubTabs: { id: Tab; label: string; icon: any }[] = [
+    { id: "finance", label: "Financieel", icon: CreditCard },
     { id: "database", label: "Database", icon: Database },
     { id: "products", label: "Producten", icon: CreditCard },
     { id: "configsettings", label: "Configuratie", icon: Settings },
@@ -1884,6 +1886,13 @@ const AdminPage = () => {
               </motion.div>
             )}
 
+            {/* ===== FINANCE ===== */}
+            {activeTab === "finance" && (
+              <motion.div variants={item}>
+                <Suspense fallback={<PageLoader />}><AdminFinanceTab /></Suspense>
+              </motion.div>
+            )}
+
             {/* ===== PERFORMANCE ===== */}
             {activeTab === "perf" && (
               <motion.div variants={item}>
@@ -1894,7 +1903,7 @@ const AdminPage = () => {
               </motion.div>
             )}
 
-            {activeTab !== "overview" && activeTab !== "insights" && activeTab !== "intakes" && activeTab !== "labels" && activeTab !== "errors" && activeTab !== "database" && activeTab !== "products" && activeTab !== "config" && activeTab !== "nuki" && activeTab !== "access" && activeTab !== "blast" && activeTab !== "subscriptions" && activeTab !== "perf" && (
+            {activeTab !== "overview" && activeTab !== "insights" && activeTab !== "finance" && activeTab !== "intakes" && activeTab !== "labels" && activeTab !== "errors" && activeTab !== "database" && activeTab !== "products" && activeTab !== "config" && activeTab !== "nuki" && activeTab !== "access" && activeTab !== "blast" && activeTab !== "subscriptions" && activeTab !== "perf" && (
               (activeTab === "bookings" && bookings.length === 0) ||
               (activeTab === "producer" && producerBookings.length === 0) ||
               (activeTab === "requests" && contentRequests.length === 0) ||
