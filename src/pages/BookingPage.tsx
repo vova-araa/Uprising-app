@@ -174,7 +174,12 @@ const BookingPage = () => {
   useEffect(() => {
     if (!user) return;
     const fetchCredits = async () => {
-      const { data: profile } = await supabase.from("profiles").select("studio1_hours, studio2_hours, content_hours, credit_balance").eq("id", user.id).single();
+      const { data: profile, error } = await supabase.from("profiles").select("studio1_hours, studio2_hours, content_hours, credit_balance").eq("id", user.id).single();
+      if (error) {
+        // Don't silently show €0 credit (which would quote full price) without a trace.
+        console.error("[fetchCredits]", error);
+        return;
+      }
       if (profile) {
         setCreditStudio1Hours((profile as any).studio1_hours || 0);
         setCreditStudio2Hours((profile as any).studio2_hours || 0);
@@ -256,7 +261,13 @@ const BookingPage = () => {
     const results = await Promise.all(
       dateStrs.map((ds) =>
         supabase.rpc("get_booking_availability", { target_date: ds, target_studio_id: selectedStudio })
-          .then((r) => ({ ds, rows: r.data || [] }))
+          .then((r) => {
+            // A failed per-date fetch is shown as empty (available); the
+            // exclusion constraint at checkout is the real safety net, but
+            // log so the degraded calendar state is observable.
+            if (r.error) console.error("[fetchMonthBookings]", ds, r.error);
+            return { ds, rows: r.data || [] };
+          })
       )
     );
     const map: Record<string, Set<number>> = {};

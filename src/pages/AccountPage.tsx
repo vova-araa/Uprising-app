@@ -408,19 +408,21 @@ const AccountPage = () => {
     setWorkshopConfirmed(wsConfirmed);
   };
 
-  const saveBroedplaatsRsvp = async (slotType: string, activity: string | null, confirmed: boolean) => {
-    if (!user) return;
+  const saveBroedplaatsRsvp = async (slotType: string, activity: string | null, confirmed: boolean): Promise<boolean> => {
+    if (!user) return false;
     const { data: existing } = await supabase.from("broedplaats_rsvp").select("id").eq("user_id", user.id).eq("slot_type", slotType).maybeSingle();
-    if (existing) {
-      await supabase.from("broedplaats_rsvp").update({ activity, confirmed, updated_at: new Date().toISOString() }).eq("id", existing.id);
-    } else {
-      await supabase.from("broedplaats_rsvp").insert({ user_id: user.id, slot_type: slotType, activity, confirmed });
-    }
+    const { error } = existing
+      ? await supabase.from("broedplaats_rsvp").update({ activity, confirmed, updated_at: new Date().toISOString() }).eq("id", existing.id)
+      : await supabase.from("broedplaats_rsvp").insert({ user_id: user.id, slot_type: slotType, activity, confirmed });
+    if (error) { console.error("[saveBroedplaatsRsvp]", error); return false; }
+    return true;
   };
 
-  const deleteBroedplaatsRsvp = async (slotType: string) => {
-    if (!user) return;
-    await supabase.from("broedplaats_rsvp").delete().eq("user_id", user.id).eq("slot_type", slotType);
+  const deleteBroedplaatsRsvp = async (slotType: string): Promise<boolean> => {
+    if (!user) return false;
+    const { error } = await supabase.from("broedplaats_rsvp").delete().eq("user_id", user.id).eq("slot_type", slotType);
+    if (error) { console.error("[deleteBroedplaatsRsvp]", error); return false; }
+    return true;
   };
 
   const loadWorkshopConfig = async () => {
@@ -1283,7 +1285,12 @@ const AccountPage = () => {
                             <button
                               onClick={async () => {
                                 setConfirmedDays((prev) => ({ ...prev, [day.id]: true }));
-                                await saveBroedplaatsRsvp(day.id, broedplaatsRsvp[day.id]?.activity, true);
+                                const ok = await saveBroedplaatsRsvp(day.id, broedplaatsRsvp[day.id]?.activity, true);
+                                if (!ok) {
+                                  setConfirmedDays((prev) => ({ ...prev, [day.id]: false }));
+                                  toast.error("Bevestigen mislukt — probeer opnieuw.");
+                                  return;
+                                }
                                 toast.success(`Aanmelding voor ${dayConf?.label || day.id} bevestigd ✓`);
                               }}
                               className="w-full flex items-center justify-center gap-1.5 rounded-lg py-2.5 text-xs font-semibold gradient-primary text-primary-foreground shadow-glow"
@@ -1335,11 +1342,21 @@ const AccountPage = () => {
                         setWorkshopRsvp(!wasRsvp);
                         if (!wasRsvp) {
                           setWorkshopConfirmed(true);
-                          await saveBroedplaatsRsvp("workshop", null, true);
+                          const ok = await saveBroedplaatsRsvp("workshop", null, true);
+                          if (!ok) {
+                            setWorkshopRsvp(false); setWorkshopConfirmed(false);
+                            toast.error("Aanmelden mislukt — probeer opnieuw.");
+                            return;
+                          }
                           toast.success("Aanmelding voor de maandelijkse workshop bevestigd ✓");
                         } else {
                           setWorkshopConfirmed(false);
-                          await deleteBroedplaatsRsvp("workshop");
+                          const ok = await deleteBroedplaatsRsvp("workshop");
+                          if (!ok) {
+                            setWorkshopRsvp(true); setWorkshopConfirmed(true);
+                            toast.error("Afmelden mislukt — probeer opnieuw.");
+                            return;
+                          }
                           toast.info("Afgemeld voor de maandelijkse workshop");
                         }
                       }}
@@ -2266,13 +2283,21 @@ const AccountPage = () => {
               <button
                 onClick={async () => {
                   const dayId = showUnregisterDialog;
+                  const prevConfirmed = confirmedDays[dayId];
+                  const prevRsvp = broedplaatsRsvp[dayId];
                   setConfirmedDays((prev) => ({ ...prev, [dayId]: false }));
                   setBroedplaatsRsvp((prev) => ({
                     ...prev,
                     [dayId]: { attending: false, activity: null },
                   }));
-                  await deleteBroedplaatsRsvp(dayId);
                   setShowUnregisterDialog(null);
+                  const ok = await deleteBroedplaatsRsvp(dayId);
+                  if (!ok) {
+                    setConfirmedDays((prev) => ({ ...prev, [dayId]: prevConfirmed }));
+                    setBroedplaatsRsvp((prev) => ({ ...prev, [dayId]: prevRsvp }));
+                    toast.error("Afmelden mislukt — probeer opnieuw.");
+                    return;
+                  }
                   toast.info("Je bent afgemeld");
                 }}
                 className="flex-1 rounded-xl bg-destructive px-4 py-2.5 text-sm font-medium text-destructive-foreground"
