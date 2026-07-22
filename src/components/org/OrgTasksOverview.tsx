@@ -70,8 +70,12 @@ const OrgTasksOverview = () => {
 
   const toggleTask = async (id: string, currentStatus: string) => {
     const newStatus = currentStatus === "done" ? "open" : "done";
-    await (supabase.from("org_tasks" as any) as any).update({ status: newStatus, updated_at: new Date().toISOString() }).eq("id", id);
     setTasks(prev => prev.map(t => t.id === id ? { ...t, status: newStatus } : t));
+    const { error } = await (supabase.from("org_tasks" as any) as any).update({ status: newStatus, updated_at: new Date().toISOString() }).eq("id", id);
+    if (error) {
+      setTasks(prev => prev.map(t => t.id === id ? { ...t, status: currentStatus } : t));
+      toast.error("Bijwerken mislukt");
+    }
   };
 
   const resetForm = () => {

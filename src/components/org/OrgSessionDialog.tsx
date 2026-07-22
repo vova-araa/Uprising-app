@@ -164,12 +164,15 @@ const OrgSessionDialog = ({ open, onOpenChange, session, defaultDate, locations,
             .select("id").eq("booking_date", form.session_date).eq("studio_id", sid)
             .eq("start_time", form.start_time).eq("session_type", "broedplaats").maybeSingle();
           if (!existing) {
-            await (supabase.from("bookings") as any).insert({
+            const { error: blockErr } = await (supabase.from("bookings") as any).insert({
               booking_date: form.session_date, studio_id: sid, start_time: form.start_time,
               duration_hours: duration, session_type: "broedplaats", status: "confirmed",
               user_id: user.id, total_price: 0,
               notes: `🔒 Broedplaats — Alle ruimtes geblokkeerd`,
             });
+            // A failed block (e.g. overlaps a real booking) leaves that studio
+            // publicly bookable — warn so it can be checked, don't fail silently.
+            if (blockErr) toast.error(`Let op: ${sid} kon niet geblokkeerd worden (mogelijk al bezet).`);
           }
         }
       }

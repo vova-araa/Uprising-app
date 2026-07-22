@@ -167,13 +167,15 @@ const AdminTasksPage = () => {
     setAddingTask(true);
     const isTeam = activeList === "team";
     const isImportant = activeList === "belangrijk";
-    await (supabase.from("admin_tasks" as any) as any).insert({
+    const { error } = await (supabase.from("admin_tasks" as any) as any).insert({
       title: newTitle.trim(), created_by: user.id,
       assigned_to: isTeam ? null : user.id, is_team_task: isTeam,
       priority: isImportant ? "high" : "normal",
       deadline: activeList === "mijn_dag" ? format(new Date(), "yyyy-MM-dd") : null,
     });
-    setNewTitle(""); setAddingTask(false); loadData();
+    setAddingTask(false);
+    if (error) { toast.error("Toevoegen mislukt"); return; }
+    setNewTitle(""); loadData();
     toast.success("Taak toegevoegd");
   };
 
@@ -182,30 +184,41 @@ const AdminTasksPage = () => {
   const toggleTask = async (task: AdminTask) => {
     const newStatus = task.status === "done" ? "open" : "done";
     const table = getTable(task);
-    await (supabase.from(table as any) as any).update({
+    // Optimistic update, reverted if the write fails.
+    setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, status: newStatus, completed_at: newStatus === "done" ? new Date().toISOString() : null } : t));
+    if (selectedTask?.id === task.id) setSelectedTask({ ...selectedTask, status: newStatus });
+    const { error } = await (supabase.from(table as any) as any).update({
       status: newStatus,
       ...(table === "admin_tasks" ? { completed_at: newStatus === "done" ? new Date().toISOString() : null } : {}),
       updated_at: new Date().toISOString(),
     }).eq("id", task.id);
-    setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, status: newStatus, completed_at: newStatus === "done" ? new Date().toISOString() : null } : t));
-    if (selectedTask?.id === task.id) setSelectedTask({ ...selectedTask, status: newStatus });
+    if (error) {
+      setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, status: task.status, completed_at: task.completed_at } : t));
+      if (selectedTask?.id === task.id) setSelectedTask({ ...selectedTask, status: task.status });
+      toast.error("Bijwerken mislukt");
+    }
   };
 
   const toggleImportant = async (task: AdminTask) => {
     const newPriority = task.priority === "high" ? "normal" : "high";
     const table = getTable(task);
-    await (supabase.from(table as any) as any).update({ priority: newPriority, updated_at: new Date().toISOString() }).eq("id", task.id);
     setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, priority: newPriority } : t));
     if (selectedTask?.id === task.id) {
       setSelectedTask({ ...selectedTask, priority: newPriority });
       setDetailForm((f) => ({ ...f, priority: newPriority }));
+    }
+    const { error } = await (supabase.from(table as any) as any).update({ priority: newPriority, updated_at: new Date().toISOString() }).eq("id", task.id);
+    if (error) {
+      setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, priority: task.priority } : t));
+      toast.error("Bijwerken mislukt");
     }
   };
 
   const deleteTask = async (id: string) => {
     const task = tasks.find((t) => t.id === id);
     const table = task?._source === "org" ? "org_tasks" : "admin_tasks";
-    await (supabase.from(table as any) as any).delete().eq("id", id);
+    const { error } = await (supabase.from(table as any) as any).delete().eq("id", id);
+    if (error) { toast.error("Verwijderen mislukt"); return; }
     if (selectedTask?.id === id) setSelectedTask(null);
     loadData(); toast.success("Taak verwijderd");
   };
@@ -219,7 +232,8 @@ const AdminTasksPage = () => {
       deadline: detailForm.deadline || null, updated_at: new Date().toISOString(),
     };
     if (table === "admin_tasks") updateData.is_team_task = detailForm.is_team_task;
-    await (supabase.from(table as any) as any).update(updateData).eq("id", selectedTask.id);
+    const { error } = await (supabase.from(table as any) as any).update(updateData).eq("id", selectedTask.id);
+    if (error) { toast.error("Opslaan mislukt"); return; }
     setSelectedTask(null); loadData(); toast.success("Opgeslagen");
   };
 

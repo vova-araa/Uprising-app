@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { inlineToast as toast } from "@/components/InlineToast";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 import {
@@ -68,22 +69,29 @@ const OrgMilestoneTasks = ({ trajectId, workshopId, milestones, progress, onMile
       };
       if (trajectId) payload.traject_id = trajectId;
       if (workshopId) payload.workshop_id = workshopId;
-      await (supabase.from("org_tasks" as any) as any).insert(payload);
+      const { error } = await (supabase.from("org_tasks" as any) as any).insert(payload);
+      if (error) { toast.error("Toevoegen mislukt"); return; }
       setNewTask({ title: "", priority: "normal", deadline: "", assigned_to: "" });
       setAdding(false);
       load();
-    } catch { } finally { setSaving(false); }
+    } catch { toast.error("Toevoegen mislukt"); } finally { setSaving(false); }
   };
 
   const toggleTask = async (id: string, currentStatus: string) => {
     const newStatus = currentStatus === "done" ? "open" : "done";
-    await (supabase.from("org_tasks" as any) as any).update({ status: newStatus, updated_at: new Date().toISOString() }).eq("id", id);
     setTasks(prev => prev.map(t => t.id === id ? { ...t, status: newStatus } : t));
+    const { error } = await (supabase.from("org_tasks" as any) as any).update({ status: newStatus, updated_at: new Date().toISOString() }).eq("id", id);
+    if (error) {
+      setTasks(prev => prev.map(t => t.id === id ? { ...t, status: currentStatus } : t));
+      toast.error("Bijwerken mislukt");
+    }
   };
 
   const removeTask = async (id: string) => {
-    await (supabase.from("org_tasks" as any) as any).delete().eq("id", id);
-    setTasks(prev => prev.filter(t => t.id !== id));
+    const prev = tasks;
+    setTasks(cur => cur.filter(t => t.id !== id));
+    const { error } = await (supabase.from("org_tasks" as any) as any).delete().eq("id", id);
+    if (error) { setTasks(prev); toast.error("Verwijderen mislukt"); }
   };
 
   const getTeamName = (id: string) => teamMembers.find(m => m.id === id)?.name || null;
