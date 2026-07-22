@@ -45,11 +45,18 @@ export default defineConfig(({ mode }) => ({
       output: {
         // Keep a single shared vendor chunk to avoid cross-chunk React runtime ordering issues
         // that can cause `__SECRET_INTERNALS...` errors in production.
-        // recharts (+ d3) is safe to split out: it has no React-internal coupling and is
-        // only imported by lazy-loaded admin/org pages, so regular visitors skip ~400kB.
+        // The libraries split out below have NO React-internal coupling and are each imported
+        // ONLY by lazy-loaded pages, so regular visitors never download them on first paint:
+        //   - recharts (+ d3): admin/org dashboards         (~400kB)
+        //   - react-markdown + unified/micromark ecosystem: AI assistant & content coach chat
+        //   - embla-carousel: only the drukkerij detail page
+        //   - react-day-picker: only the producer-booking calendar
         manualChunks(id) {
           if (!id.includes("node_modules")) return undefined;
           if (/node_modules\/(recharts|d3-[^/]+|victory-vendor)\//.test(id)) return "vendor-charts";
+          if (/node_modules\/(react-markdown|remark-[^/]+|rehype-[^/]+|micromark[^/]*|mdast-util-[^/]+|unist-util-[^/]+|hast-util-[^/]+|unified|vfile[^/]*)\//.test(id)) return "vendor-markdown";
+          if (/node_modules\/embla-carousel[^/]*\//.test(id)) return "vendor-carousel";
+          if (/node_modules\/react-day-picker\//.test(id)) return "vendor-datepicker";
           return "vendor";
         },
       },
