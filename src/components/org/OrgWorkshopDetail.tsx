@@ -123,11 +123,13 @@ const OrgWorkshopDetail = ({ workshopId, onBack }: Props) => {
       if (uploadError) throw uploadError;
       if (report) {
         const urls = [...(report.file_urls || []), path];
-        await (supabase.from("org_workshop_reports" as any) as any).update({ file_urls: urls }).eq("id", report.id);
+        const { error } = await (supabase.from("org_workshop_reports" as any) as any).update({ file_urls: urls }).eq("id", report.id);
+        if (error) throw error;
       } else if (user) {
-        await (supabase.from("org_workshop_reports" as any) as any).insert({
+        const { error } = await (supabase.from("org_workshop_reports" as any) as any).insert({
           workshop_id: workshopId, reported_by: user.id, file_urls: [path],
         });
+        if (error) throw error;
       }
       toast.success("Foto geüpload");
       load();

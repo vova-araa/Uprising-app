@@ -93,10 +93,11 @@ const OrgBroedplaats = () => {
       configDays.forEach((d, i) => {
         configValue[`day${i + 1}`] = { label: d.label, weekday: d.weekday, start_time: d.start_time, end_time: d.end_time };
       });
-      await (supabase.from as any)("broedplaats_config").update({
+      const { error } = await (supabase.from as any)("broedplaats_config").update({
         config_value: configValue,
         updated_at: new Date().toISOString(),
       }).eq("config_key", "weekly_days");
+      if (error) throw error;
       toast.success("Instellingen opgeslagen");
       setEditingConfig(false);
       loadData();
@@ -105,15 +106,20 @@ const OrgBroedplaats = () => {
     }
   };
 
+  const [savingWorkshop, setSavingWorkshop] = useState(false);
   const saveWorkshop = async () => {
+    if (savingWorkshop) return;
+    setSavingWorkshop(true);
     try {
       if (editingWorkshop) {
-        await (supabase.from as any)("broedplaats_workshops").update({
+        const { error } = await (supabase.from as any)("broedplaats_workshops").update({
           ...workshopForm, updated_at: new Date().toISOString(),
         }).eq("id", editingWorkshop);
+        if (error) throw error;
         toast.success("Workshop bijgewerkt");
       } else {
-        await (supabase.from as any)("broedplaats_workshops").insert(workshopForm);
+        const { error } = await (supabase.from as any)("broedplaats_workshops").insert(workshopForm);
+        if (error) throw error;
         toast.success("Workshop toegevoegd");
       }
       setAddingWorkshop(false);
@@ -128,13 +134,16 @@ const OrgBroedplaats = () => {
       loadData();
     } catch {
       toast.error("Opslaan mislukt");
+    } finally {
+      setSavingWorkshop(false);
     }
   };
 
   const deleteWorkshop = async (id: string) => {
     if (!(await confirm({ title: "Workshop verwijderen?", destructive: true }))) return;
     try {
-      await (supabase.from as any)("broedplaats_workshops").delete().eq("id", id);
+      const { error } = await (supabase.from as any)("broedplaats_workshops").delete().eq("id", id);
+      if (error) throw error;
       toast.success("Workshop verwijderd");
       loadData();
     } catch {
@@ -387,7 +396,7 @@ const OrgBroedplaats = () => {
               <Button variant="outline" className="flex-1" onClick={() => { setAddingWorkshop(false); setEditingWorkshop(null); }}>
                 Annuleer
               </Button>
-              <Button className="flex-1" onClick={saveWorkshop}>
+              <Button className="flex-1" disabled={savingWorkshop} onClick={saveWorkshop}>
                 <Save size={14} className="mr-1" /> {editingWorkshop ? "Bijwerken" : "Toevoegen"}
               </Button>
             </div>

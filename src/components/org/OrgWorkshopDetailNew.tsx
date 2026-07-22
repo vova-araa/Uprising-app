@@ -117,11 +117,13 @@ const OrgWorkshopDetailNew = ({ workshopId, onBack }: Props) => {
       const existing = reports.find(r => r.session_id === sessionId);
       if (existing) {
         const urls = [...(existing.file_urls || []), path];
-        await (supabase.from("org_workshop_session_reports" as any) as any).update({ file_urls: urls }).eq("id", existing.id);
+        const { error } = await (supabase.from("org_workshop_session_reports" as any) as any).update({ file_urls: urls }).eq("id", existing.id);
+        if (error) throw error;
       } else if (user) {
-        await (supabase.from("org_workshop_session_reports" as any) as any).insert({
+        const { error } = await (supabase.from("org_workshop_session_reports" as any) as any).insert({
           session_id: sessionId, org_workshop_id: workshopId, reported_by: user.id, file_urls: [path],
         });
+        if (error) throw error;
       }
       toast.success("Bestand geüpload");
       load();
