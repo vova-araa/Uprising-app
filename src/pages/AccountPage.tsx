@@ -8,8 +8,9 @@ import {
   Calendar, Clock, User, Navigation, Timer, LogOut, Globe, ChevronRight,
   Layers, Music, Mic, TrendingUp, FileAudio, Loader2, LayoutDashboard,
   Gift, Copy, Users, Check, Crown, CreditCard, XCircle, ExternalLink, Camera, BookOpen, AlertTriangle, Upload, Bell,
-  Trash2, Pencil, Info, Star, Video, Sparkles
+  Trash2, Pencil, Info, Star, Video, Sparkles, CalendarPlus
 } from "lucide-react";
+import { downloadBookingICS } from "@/lib/calendar";
 import NukiAccessButton from "@/components/NukiAccessButton";
 import AccountAccessSection from "@/components/AccountAccessSection";
 import BookingCancelDialog from "@/components/BookingCancelDialog";
@@ -2028,6 +2029,12 @@ const AccountPage = () => {
                               <AlertTriangle size={13} /> Storing
                             </button>
                           </div>
+                          <button
+                            onClick={() => downloadBookingICS(b, `${getStudioName(b.studio_id)} — Uprising Studio`, "Je sessie bij Uprising Studio. Adres: Spaceshuttle 6e, Amersfoort.")}
+                            className="mt-2 w-full flex items-center justify-center gap-1.5 rounded-lg bg-primary/5 border border-primary/15 py-2 text-xs font-semibold text-primary transition-all hover:bg-primary/10"
+                          >
+                            <CalendarPlus size={13} /> Zet in agenda
+                          </button>
 
                           <NukiAccessButton
                             bookingId={b.id}

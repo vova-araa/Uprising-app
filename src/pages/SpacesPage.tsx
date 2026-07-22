@@ -4,10 +4,12 @@ import { useAppConfig } from "@/contexts/AppConfigContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronRight, Headphones, Mic, Monitor, Radio, Disc, Speaker, Wifi,
-  MapPin, Users, Clock, Expand, X, Crown, Loader2 } from
+  MapPin, Users, Clock, Expand, X, Crown, Loader2, Share2 } from
 "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { shareOrCopy } from "@/lib/share";
+import { inlineToast as toast } from "@/components/InlineToast";
 import studioAImg from "@/assets/studio-a.webp";
 import studioBImg from "@/assets/studio-b.webp";
 import contentRoomImg from "@/assets/content-room-2.webp";
@@ -229,19 +231,35 @@ const SpacesPage = () => {
         })}
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-        className="rounded-2xl bg-card border border-border p-5">
+        className="rounded-2xl card-premium border border-border p-5">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
               <MapPin size={18} className="text-primary" />
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <h3 className="font-bold font-display text-sm">Uprising Studio</h3>
               <p className="text-xs text-muted-foreground mt-0.5">Spaceshuttle 6e, Amersfoort</p>
-              <a href="https://maps.google.com/?q=Spaceshuttle+6e+Amersfoort" target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs font-semibold text-primary mt-2 hover:underline">
-                {t("viewOnMap")}
-                <ChevronRight size={12} />
-              </a>
+              <div className="flex items-center gap-4 mt-2">
+                <a href="https://maps.google.com/?q=Spaceshuttle+6e+Amersfoort" target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
+                  {t("viewOnMap")}
+                  <ChevronRight size={12} />
+                </a>
+                <button
+                  onClick={async () => {
+                    const res = await shareOrCopy({
+                      title: "Uprising Studio",
+                      text: "Boek studio's & creatieve ruimtes bij Uprising Studio in Amersfoort.",
+                      url: "https://uprisingstudio.nl",
+                    });
+                    if (res === "copied") toast.success(lang === "nl" ? "Link gekopieerd" : "Link copied");
+                    else if (res === "failed") toast.error(lang === "nl" ? "Delen mislukt" : "Share failed");
+                  }}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                >
+                  <Share2 size={12} /> {lang === "nl" ? "Deel" : "Share"}
+                </button>
+              </div>
             </div>
           </div>
         </motion.div>
