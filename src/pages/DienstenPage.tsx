@@ -31,7 +31,7 @@ const categories: ServiceCategory[] = [
       es: "Membresías para Productores",
       tr: "Prodüktör Üyelikleri",
       ar: "عضويات المنتجين",
-      hy: "Պdelays",
+      hy: "Producer Memberships",
     },
     icon: Sparkles,
     description: {
@@ -42,7 +42,7 @@ const categories: ServiceCategory[] = [
       es: "Planes de 3 meses y anuales con horas de estudio para productores",
       tr: "Prodüktörler için 3 aylık ve yıllık stüdyo planları",
       ar: "خطط 3 أشهر وسنوية مع ساعات استوديو للمنتجين",
-      hy: "3-delays",
+      hy: "3-month and yearly plans with studio hours for producers",
     },
   },
   {
