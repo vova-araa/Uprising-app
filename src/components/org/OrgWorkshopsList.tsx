@@ -169,7 +169,8 @@ const OrgWorkshopsList = () => {
               status: "planned",
             };
           });
-          await (supabase.from("org_sessions" as any) as any).insert(sessionInserts);
+          const { error: sessErr } = await (supabase.from("org_sessions" as any) as any).insert(sessionInserts);
+          if (sessErr) throw new Error(`Workshop aangemaakt, maar lessen plannen mislukt: ${sessErr.message}`);
 
           // If last lesson at studio, book all 3 studios
           if (form.last_lesson_at_studio && dates.length > 0) {
@@ -186,7 +187,8 @@ const OrgWorkshopsList = () => {
               notes: `Workshop: ${form.title.trim()} - Eindpresentatie`,
               total_price: 0,
             }));
-            await (supabase.from("bookings" as any) as any).insert(bookingInserts);
+            const { error: bookErr } = await (supabase.from("bookings" as any) as any).insert(bookingInserts);
+            if (bookErr) throw new Error(`Workshop en lessen aangemaakt, maar studio's boeken mislukt (mogelijk al bezet): ${bookErr.message}`);
           }
         }
         toast.success("Workshop aangemaakt");
@@ -200,7 +202,8 @@ const OrgWorkshopsList = () => {
     if (!(await confirm({ title: "Workshop verwijderen?", message: "Alle sessies worden ook verwijderd.", destructive: true }))) return;
     // Delete sessions first
     await (supabase.from("org_sessions" as any) as any).delete().eq("org_workshop_id", id);
-    await (supabase.from("org_workshops" as any) as any).delete().eq("id", id);
+    const { error } = await (supabase.from("org_workshops" as any) as any).delete().eq("id", id);
+    if (error) { toast.error("Verwijderen mislukt"); return; }
     toast.success("Workshop verwijderd");
     load();
   };

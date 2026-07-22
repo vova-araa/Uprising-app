@@ -80,20 +80,22 @@ const AdminBlastTab = () => {
         .eq("config_key", "email_blasts")
         .maybeSingle();
 
-      if (existing) {
-        await (supabase.from as any)("app_config")
-          .update({ config_value: updated, updated_at: new Date().toISOString() })
-          .eq("config_key", "email_blasts");
-      } else {
-        await (supabase.from as any)("app_config")
-          .insert({
-            config_key: "email_blasts",
-            config_value: updated,
-            category: "general",
-            description: "Opgeslagen e-mail blasts en geplande deals",
-            sort_order: 99,
-          });
-      }
+      // supabase-js resolves on a DB error, so capture and throw it explicitly
+      // — otherwise a failed save would optimistically update state and the
+      // scheduled blast would silently vanish on the next reload.
+      const { error } = existing
+        ? await (supabase.from as any)("app_config")
+            .update({ config_value: updated, updated_at: new Date().toISOString() })
+            .eq("config_key", "email_blasts")
+        : await (supabase.from as any)("app_config")
+            .insert({
+              config_key: "email_blasts",
+              config_value: updated,
+              category: "general",
+              description: "Opgeslagen e-mail blasts en geplande deals",
+              sort_order: 99,
+            });
+      if (error) throw error;
       setDrafts(updated);
     } catch {
       toast.error("Opslaan mislukt");
@@ -451,9 +453,11 @@ const AdminBlastTab = () => {
                                   setSending(true);
                                   try {
                                     const recipients = profiles.filter(p => p.email).map(p => ({ email: p.email, name: p.full_name }));
-                                    await supabase.functions.invoke("send-blast-email", {
+                                    const { data: sendData, error: sendErr } = await supabase.functions.invoke("send-blast-email", {
                                       body: { subject: d.subject, body: d.body, recipients },
                                     });
+                                    // Don't mark the blast as sent (or claim success) if the send failed.
+                                    if (sendErr || sendData?.error) { toast.error("Versturen mislukt — niet verstuurd."); return; }
                                     const updated = drafts.map(dr =>
                                       dr.id === d.id ? { ...dr, status: "sent", sent_at: new Date().toISOString() } : dr
                                     );
