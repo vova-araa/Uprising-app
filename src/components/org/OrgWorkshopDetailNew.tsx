@@ -135,8 +135,10 @@ const OrgWorkshopDetailNew = ({ workshopId, onBack }: Props) => {
   };
 
   // Book all studios for last lesson
+  const [bookingStudios, setBookingStudios] = useState(false);
   const bookStudiosForLastLesson = async () => {
-    if (!user || sessions.length === 0) return;
+    if (!user || sessions.length === 0 || bookingStudios) return;
+    setBookingStudios(true);
     const lastSession = sessions[sessions.length - 1];
     const studioIds = ["studio-1", "studio-2", "content"];
     try {
@@ -154,9 +156,13 @@ const OrgWorkshopDetailNew = ({ workshopId, onBack }: Props) => {
         notes: `Workshop: ${workshop.title} - Eindpresentatie`,
         total_price: 0,
       }));
-      await (supabase.from("bookings" as any) as any).insert(bookingInserts);
+      // Check the result — supabase-js resolves on an overlap/RLS error, so a
+      // bare await would report success even when nothing got booked.
+      const { error } = await (supabase.from("bookings" as any) as any).insert(bookingInserts);
+      if (error) { toast.error("Boeken mislukt — mogelijk is een ruimte al bezet."); return; }
       toast.success("Alle studio's geboekt voor eindpresentatie");
     } catch { toast.error("Boeken mislukt"); }
+    finally { setBookingStudios(false); }
   };
 
   if (loading) return <div className="flex justify-center py-16"><Loader2 className="animate-spin text-primary" size={28} /></div>;
@@ -224,7 +230,7 @@ const OrgWorkshopDetailNew = ({ workshopId, onBack }: Props) => {
         {/* Last lesson at studio button */}
         {workshop.last_lesson_at_studio && sessions.length > 0 && (
           <div className="mt-3 pt-3 border-t border-border">
-            <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5" onClick={bookStudiosForLastLesson}>
+            <Button size="sm" variant="outline" disabled={bookingStudios} className="h-8 text-xs gap-1.5" onClick={bookStudiosForLastLesson}>
               📍 Studio's boeken voor eindpresentatie ({sessions.length > 0 ? format(new Date(sessions[sessions.length - 1].session_date), "d MMM", { locale: nl }) : ""})
             </Button>
           </div>

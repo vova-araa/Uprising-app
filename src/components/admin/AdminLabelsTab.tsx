@@ -141,9 +141,13 @@ const LabelDetail = ({ label, profiles, onBack, onChanged }: { label: Label; pro
     load(); onChanged();
   };
 
+  const [addingArtist, setAddingArtist] = useState(false);
   const addArtist = async () => {
-    if (!newArtist.trim()) return;
-    await supabase.from("label_artists").insert({ label_id: label.id, name: newArtist.trim() });
+    if (!newArtist.trim() || addingArtist) return;
+    setAddingArtist(true);
+    const { error } = await supabase.from("label_artists").insert({ label_id: label.id, name: newArtist.trim() });
+    setAddingArtist(false);
+    if (error) { toast.error("Toevoegen mislukt"); return; }
     setNewArtist(""); load();
   };
 
@@ -282,8 +286,12 @@ const NewInvoice = ({ label, onClose, onCreated }: { label: Label; onClose: () =
     const { data, error } = await supabase.functions.invoke("label-invoice", { body: { action: "create", label_id: label.id, hours: Number(hours), rate: Number(rate), term: term.trim() || null } });
     if (error || data?.error) { setSaving(false); toast.error(data?.error || "Aanmaken mislukt"); return; }
     if (sendNow && data?.invoice?.id) {
-      await supabase.functions.invoke("label-invoice", { body: { action: "send", invoice_id: data.invoice.id } });
-      toast.success("Factuur aangemaakt en gemaild");
+      const { data: sendData, error: sendErr } = await supabase.functions.invoke("label-invoice", { body: { action: "send", invoice_id: data.invoice.id } });
+      if (sendErr || sendData?.error) {
+        toast.error("Factuur aangemaakt, maar mailen mislukt — verstuur 'm handmatig opnieuw.");
+      } else {
+        toast.success("Factuur aangemaakt en gemaild");
+      }
     } else {
       toast.success("Factuur aangemaakt");
     }

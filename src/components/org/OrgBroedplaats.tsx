@@ -194,6 +194,7 @@ const OrgBroedplaats = () => {
 
     let created = 0;
     let skipped = 0;
+    let failed = 0;
     const today = new Date();
     const weekStart = startOfWeek(today, { weekStartsOn: 1 });
 
@@ -224,7 +225,7 @@ const OrgBroedplaats = () => {
               .maybeSingle();
 
             if (!existing) {
-              await (supabase.from("bookings") as any).insert({
+              const { error: insErr } = await (supabase.from("bookings") as any).insert({
                 booking_date: dateStr,
                 studio_id: studioId,
                 start_time: day.start_time,
@@ -235,18 +236,27 @@ const OrgBroedplaats = () => {
                 total_price: 0,
                 notes: `🔒 Broedplaats ${day.label} — Alle ruimtes geblokkeerd`,
               });
-              created++;
+              // supabase-js resolves (doesn't throw) on a DB error, so count
+              // only genuine successes — otherwise a slot that failed to block
+              // (e.g. overlaps a real booking) would be reported as blocked.
+              if (insErr) { failed++; console.error(`Failed to block ${studioId} on ${dateStr}`, insErr); }
+              else created++;
             } else {
               skipped++;
             }
           } catch (err) {
+            failed++;
             console.error(`Failed to block ${studioId} on ${dateStr}`, err);
           }
         }
       }
     }
 
-    toast.success(`${created} blokkeringen aangemaakt, ${skipped} overgeslagen (al geblokkeerd of verlopen)`);
+    if (failed > 0) {
+      toast.error(`${created} geblokkeerd, ${skipped} overgeslagen, ${failed} mislukt (mogelijk een bestaande boeking) — controleer de agenda.`);
+    } else {
+      toast.success(`${created} blokkeringen aangemaakt, ${skipped} overgeslagen (al geblokkeerd of verlopen)`);
+    }
     setBlocking(false);
   };
 

@@ -45,6 +45,7 @@ const AdminPage = () => {
 
   const { isAdmin: isAdminCached } = useAdminRole();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [producerActionId, setProducerActionId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [bookings, setBookings] = useState<any[]>([]);
   const [producerBookings, setProducerBookings] = useState<any[]>([]);
@@ -425,12 +426,23 @@ const AdminPage = () => {
 
 
   const updateProducerStatus = async (id: string, status: string, userId: string) => {
+    // Guard against a double-tap crediting the €350 refund twice.
+    if (producerActionId) return;
+    setProducerActionId(id);
     try {
-      await supabase.from("producer_bookings").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
-      
+      const { error: statusErr } = await supabase.from("producer_bookings").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
+      if (statusErr) throw statusErr;
+
       // Check if payment was actually made before adding credit
       const { data: booking } = await (supabase as any).from("producer_bookings").select("stripe_session_id").eq("id", id).single();
       const wasPaid = !!booking?.stripe_session_id;
+
+      if (status === "declined" && wasPaid) {
+        const { data: profile, error: profErr } = await supabase.from("profiles").select("credit_balance").eq("id", userId).single();
+        if (profErr) throw profErr;
+        const { error: creditErr } = await supabase.from("profiles").update({ credit_balance: (profile?.credit_balance || 0) + 350 }).eq("id", userId);
+        if (creditErr) throw creditErr;
+      }
 
       const title = status === "accepted" ? "Producer sessie geaccepteerd!" : "Producer sessie afgewezen";
       const message = status === "accepted"
@@ -439,14 +451,11 @@ const AdminPage = () => {
           ? "Je producer sessie is afgewezen. Je tegoed van €350 is bijgeschreven."
           : "Je producer sessie is afgewezen.";
       await supabase.from("notifications").insert({ user_id: userId, title, message, type: status === "accepted" ? "success" : "warning", link: "/account" });
-      
-      if (status === "declined" && wasPaid) {
-        const { data: profile } = await supabase.from("profiles").select("credit_balance").eq("id", userId).single();
-        await supabase.from("profiles").update({ credit_balance: (profile?.credit_balance || 0) + 350 }).eq("id", userId);
-      }
+
       toast.success(status === "accepted" ? "Geaccepteerd!" : "Afgewezen");
       loadOverview();
     } catch { toast.error("Er ging iets mis"); }
+    finally { setProducerActionId(null); }
   };
 
   const updateBookingStatus = async (id: string, status: string, userId: string) => {
@@ -504,7 +513,7 @@ const AdminPage = () => {
       // Get current profile to compare changes
       const { data: oldProfile } = await supabase.from("profiles").select("credit_balance, studio1_hours, studio2_hours, content_hours").eq("id", userId).single();
 
-      await supabase.from("profiles").update({
+      const { error: updErr } = await supabase.from("profiles").update({
         full_name: editForm.full_name,
         phone: editForm.phone,
         city: editForm.city,
@@ -519,6 +528,9 @@ const AdminPage = () => {
         studio2_hours: editForm.studio2_hours || 0,
         content_hours: editForm.content_hours || 0,
       }).eq("id", userId);
+      // Don't tell the admin (or the user, via notification) that credit/hours
+      // were applied if the write was rejected.
+      if (updErr) throw updErr;
 
       // Send notifications for credit/hours changes
       const notifications: { user_id: string; title: string; message: string; type: string; link: string }[] = [];
@@ -985,12 +997,12 @@ const AdminPage = () => {
                 </div>
                 {pb.status === "pending" && (
                   <div className="flex gap-2 mt-3">
-                    <button onClick={() => updateProducerStatus(pb.id, "accepted", pb.user_id)}
-                      className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-success/20 py-2 text-xs font-semibold text-success">
+                    <button onClick={() => updateProducerStatus(pb.id, "accepted", pb.user_id)} disabled={!!producerActionId}
+                      className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-success/20 py-2 text-xs font-semibold text-success disabled:opacity-50">
                       <Check size={14} /> {lang === "nl" ? "Accepteren" : "Accept"}
                     </button>
-                    <button onClick={() => updateProducerStatus(pb.id, "declined", pb.user_id)}
-                      className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-destructive/20 py-2 text-xs font-semibold text-destructive">
+                    <button onClick={() => updateProducerStatus(pb.id, "declined", pb.user_id)} disabled={!!producerActionId}
+                      className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-destructive/20 py-2 text-xs font-semibold text-destructive disabled:opacity-50">
                       <X size={14} /> {lang === "nl" ? "Afwijzen" : "Decline"}
                     </button>
                   </div>
