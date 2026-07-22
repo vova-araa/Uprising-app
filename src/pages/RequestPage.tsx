@@ -86,7 +86,7 @@ const RequestPage = () => {
     return (
       <div className="min-h-full px-5 pt-6">
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-          className="rounded-xl bg-card border border-border p-8 text-center mt-10">
+          className="rounded-xl card-premium border border-border p-8 text-center mt-10">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full gradient-primary mb-4">
             <Check size={28} className="text-primary-foreground" />
           </div>
@@ -109,7 +109,7 @@ const RequestPage = () => {
         onAuthenticated={() => { setShowAuthGate(false); }}
         context="service"
       />
-      <div className="sticky top-0 z-40 border-b border-border bg-background/95 px-5 py-4 backdrop-blur-xl" style={{ paddingTop: "calc(var(--safe-area-top) + 12px)" }}>
+      <div className="glass hairline-top sticky top-0 z-40 border-b border-border px-5 py-4" style={{ paddingTop: "calc(var(--safe-area-top) + 12px)" }}>
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="p-1 -ml-1">
             <ChevronLeft size={22} />
