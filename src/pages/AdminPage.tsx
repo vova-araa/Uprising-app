@@ -223,7 +223,8 @@ const AdminPage = () => {
     setDeletingUser(userId);
     try {
       // Delete profile (cascading will handle related data)
-      await supabase.from("profiles").delete().eq("id", userId);
+      const { error: profErr } = await supabase.from("profiles").delete().eq("id", userId);
+      if (profErr) throw profErr;
       // Remove from user_roles
       await supabase.from("user_roles").delete().eq("user_id", userId);
       toast.success(lang === "nl" ? "Gebruiker verwijderd" : "User deleted");
@@ -460,7 +461,8 @@ const AdminPage = () => {
 
   const updateBookingStatus = async (id: string, status: string, userId: string) => {
     try {
-      await supabase.from("bookings").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
+      const { error } = await supabase.from("bookings").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
+      if (error) throw error;
       await supabase.from("notifications").insert({
         user_id: userId,
         title: status === "confirmed" ? "Boeking bevestigd!" : "Boeking geannuleerd",
@@ -475,7 +477,8 @@ const AdminPage = () => {
 
   const updateRequestStatus = async (id: string, status: string) => {
     try {
-      await supabase.from("content_requests").update({ status }).eq("id", id);
+      const { error } = await supabase.from("content_requests").update({ status }).eq("id", id);
+      if (error) throw error;
       toast.success("Status bijgewerkt");
       loadOverview();
     } catch { toast.error("Er ging iets mis"); }
@@ -483,7 +486,8 @@ const AdminPage = () => {
 
   const updateProjectStatus = async (id: string, status: string) => {
     try {
-      await supabase.from("projects").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
+      const { error } = await supabase.from("projects").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
+      if (error) throw error;
       toast.success("Status bijgewerkt");
       loadOverview();
     } catch { toast.error("Er ging iets mis"); }
@@ -824,7 +828,8 @@ const AdminPage = () => {
                             onClick={async (e) => {
                               e.stopPropagation();
                               if (!(await confirm({ title: lang === "nl" ? "Boeking verwijderen?" : "Delete booking?", destructive: true }))) return;
-                              await supabase.from("bookings").delete().eq("id", b.id);
+                              const { error: delErr } = await supabase.from("bookings").delete().eq("id", b.id);
+                              if (delErr) { toast.error(lang === "nl" ? "Verwijderen mislukt" : "Delete failed"); return; }
                               toast.success(lang === "nl" ? "Boeking verwijderd" : "Booking deleted");
                               loadOverview();
                             }}
@@ -948,7 +953,8 @@ const AdminPage = () => {
                       onClick={async (e) => {
                         e.stopPropagation();
                         if (!(await confirm({ title: lang === "nl" ? "Boeking verwijderen?" : "Delete booking?", destructive: true }))) return;
-                        await supabase.from("bookings").delete().eq("id", b.id);
+                        const { error: delErr } = await supabase.from("bookings").delete().eq("id", b.id);
+                        if (delErr) { toast.error(lang === "nl" ? "Verwijderen mislukt" : "Delete failed"); return; }
                         toast.success(lang === "nl" ? "Boeking verwijderd" : "Booking deleted");
                         loadOverview();
                       }}

@@ -711,9 +711,10 @@ const AdminConfigTab = () => {
     if (!featureConfig) return;
     const updated = { ...featureConfig.config_value, [flagKey]: !currentValue };
     try {
-      await (supabase.from as any)("app_config")
+      const { error } = await (supabase.from as any)("app_config")
         .update({ config_value: updated, updated_at: new Date().toISOString() })
         .eq("config_key", "feature_flags");
+      if (error) throw error;
       toast.success(`${featureFlagLabels[flagKey]?.label || flagKey} ${!currentValue ? "ingeschakeld ✅" : "uitgeschakeld ❌"}`);
       loadConfigs();
     } catch {
