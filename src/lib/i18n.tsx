@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { nl } from "./translations/nl";
+import { en } from "./translations/en";
 import { loadLang, getCachedLang, type TranslationKey, type LangCode } from "./translations";
 
 type Lang = LangCode;
@@ -46,7 +47,13 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const t = useCallback((key: TranslationKey) => {
     const dict = getCachedLang(lang) || nl;
-    return (dict as Record<string, string>)[key] || (nl as Record<string, string>)[key] || key;
+    // Fallback chain: current language → English (a complete translation and
+    // the best universal fallback) → Dutch (source) → the key itself. This
+    // keeps every language fully usable and never surfaces a raw key.
+    return (dict as Record<string, string>)[key]
+      || (en as Record<string, string>)[key]
+      || (nl as Record<string, string>)[key]
+      || key;
   }, [lang]);
 
   return (
