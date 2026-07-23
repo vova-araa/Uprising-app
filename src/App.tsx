@@ -45,6 +45,7 @@ const FeedbackPage = lazy(() => import("./pages/FeedbackPage"));
 const AdminCalendarPage = lazy(() => import("./pages/AdminCalendarPage"));
 const OrgDashboardPage = lazy(() => import("./pages/OrgDashboardPage"));
 const AdminTasksPage = lazy(() => import("./pages/AdminTasksPage"));
+const TodayFloorPage = lazy(() => import("./pages/TodayFloorPage"));
 const AdminFacilitiesPage = lazy(() => import("./pages/AdminFacilitiesPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -166,6 +167,13 @@ const AppRoutes = () => {
               <RequireAuth>
                 <Suspense fallback={<PageLoader />}>
                   <RequireAdmin><AdminFacilitiesPage /></RequireAdmin>
+                </Suspense>
+              </RequireAuth>
+            } />
+            <Route path="/vandaag" element={
+              <RequireAuth>
+                <Suspense fallback={<PageLoader />}>
+                  <RequireAdmin><TodayFloorPage /></RequireAdmin>
                 </Suspense>
               </RequireAuth>
             } />
