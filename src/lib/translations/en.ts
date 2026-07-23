@@ -530,6 +530,22 @@ export const en = {
   useMemberships: "Use memberships",
   findInvoices: "Find your invoices",
 
+  // Landing page — what can you do here?
+  capsTitle: "Everything for your music & content — in one place",
+  capsSubtitle: "Here's what you can do at Uprising Studio, straight from your phone",
+  cap1Label: "Book studios",
+  cap1Desc: "Record & produce, 24/7 self-service",
+  cap2Label: "Content room",
+  cap2Desc: "Shoot photo, video & podcasts",
+  cap3Label: "Mix & Master",
+  cap3Desc: "Radio-ready by a real engineer",
+  cap4Label: "Producer sessions",
+  cap4Desc: "Work on your track together",
+  cap5Label: "Content Coach",
+  cap5Desc: "Grow your reach with smart post ideas",
+  cap6Label: "Memberships",
+  cap6Desc: "Better value when you come often",
+
   // Onboarding / tour
   onbSkip: "Skip",
   onbNext: "Next",

@@ -551,6 +551,22 @@ export const nl = {
   useMemberships: "Memberships gebruiken",
   findInvoices: "Facturen terugvinden",
 
+  // Landingspagina — wat kun je hier?
+  capsTitle: "Alles voor je muziek & content — op één plek",
+  capsSubtitle: "Dit is wat je bij Uprising Studio kunt doen, direct vanaf je telefoon",
+  cap1Label: "Studio's boeken",
+  cap1Desc: "Opnemen & produceren, 24/7 self-service",
+  cap2Label: "Contentruimte",
+  cap2Desc: "Foto, video & podcast opnemen",
+  cap3Label: "Mix & Master",
+  cap3Desc: "Radio-ready door een echte engineer",
+  cap4Label: "Producer-sessies",
+  cap4Desc: "Samen aan je track werken",
+  cap5Label: "Content Coach",
+  cap5Desc: "Meer bereik met slimme post-ideeën",
+  cap6Label: "Memberships",
+  cap6Desc: "Voordeliger als je vaker komt",
+
   // Onboarding / rondleiding
   onbSkip: "Overslaan",
   onbNext: "Volgende",

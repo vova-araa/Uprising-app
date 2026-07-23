@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAppConfig } from "@/contexts/AppConfigContext";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mic, Sliders, ChevronRight, Clock, ArrowRight, Layers, DoorOpen, Users, AlertTriangle, X, Info, Crown, Sparkles, Bell, Loader2, Instagram } from "lucide-react";
+import { Mic, Sliders, ChevronRight, Clock, ArrowRight, Layers, DoorOpen, Users, AlertTriangle, X, Info, Crown, Sparkles, Bell, Loader2, Instagram, Camera, Music } from "lucide-react";
 import { useAIOverlay } from "@/components/AppShell";
 import heroImg from "@/assets/hero-studio.webp";
 import studioAImg from "@/assets/studio-a.webp";
@@ -229,6 +229,33 @@ const HomePage = () => {
       )}
 
       <div className="px-5 lg:px-8 space-y-7 mt-6">
+        {/* What can you do here? — clear capability overview for every visitor */}
+        <motion.section variants={item}>
+          <h2 className="text-lg font-bold font-display leading-tight">{t("capsTitle")}</h2>
+          <p className="text-xs text-muted-foreground mt-1 mb-3">{t("capsSubtitle")}</p>
+          <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-3">
+            {[
+              { icon: Mic, label: t("cap1Label"), desc: t("cap1Desc"), path: "/book?type=studio" },
+              { icon: Camera, label: t("cap2Label"), desc: t("cap2Desc"), path: "/diensten/content" },
+              { icon: Sliders, label: t("cap3Label"), desc: t("cap3Desc"), path: "/mix-master" },
+              { icon: Music, label: t("cap4Label"), desc: t("cap4Desc"), path: "/diensten/producer-session" },
+              { icon: Sparkles, label: t("cap5Label"), desc: t("cap5Desc"), path: user ? "/coach" : "/auth" },
+              { icon: Crown, label: t("cap6Label"), desc: t("cap6Desc"), path: "/diensten/memberships" },
+            ].map((c) => (
+              <button key={c.label} onClick={() => navigate(c.path)}
+                className="group flex flex-col gap-2 rounded-2xl card-premium border border-border p-3.5 text-left transition-all hover:border-primary/40 active:scale-[0.98]">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15">
+                  <c.icon size={17} className="text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold font-display leading-tight">{c.label}</p>
+                  <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">{c.desc}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </motion.section>
+
         {/* Personalized summary (logged-in) */}
         {user && summary && (
         <motion.section variants={item}>
