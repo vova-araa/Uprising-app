@@ -810,7 +810,7 @@ const BookingPage = () => {
                     <button onClick={() => { setYearly(!yearly); setContractAccepted(false); }}
                       className="flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold transition-all">
                       <span className={yearly ? "text-muted-foreground" : "text-foreground"}>
-                        {t("monthly")}
+                        {t("threeMonths")}
                       </span>
                       {yearly ? <ToggleRight size={20} className="text-primary" /> : <ToggleLeft size={20} className="text-muted-foreground" />}
                       <span className={yearly ? "text-foreground" : "text-muted-foreground"}>
@@ -1303,46 +1303,73 @@ const BookingPage = () => {
                   })}
                 </div>
 
-                {/* Waitlist: day fully booked → get a push the moment a slot frees up */}
-                {user && selectedDate && timeSlots.length > 0 && timeSlots.every((s) => !s.available) && (
-                  <button
-                    disabled={waitlistJoined || waitlistJoining}
-                    onClick={async () => {
-                      if (!selectedStudio || waitlistJoined || waitlistJoining) return;
-                      setWaitlistJoining(true);
-                      const { error } = await supabase.from("booking_waitlist").insert({
-                        user_id: user.id,
-                        studio_id: selectedStudio,
-                        booking_date: format(selectedDate, "yyyy-MM-dd"),
-                      });
-                      setWaitlistJoining(false);
-                      if (error && !error.message.includes("duplicate")) {
-                        toast.error(lang === "nl" ? "Er ging iets mis" : "Something went wrong");
-                      } else {
-                        setWaitlistJoined(true);
-                        toast.success(lang === "nl"
-                          ? "Je staat op de wachtlijst — je krijgt direct bericht als er een plek vrijkomt!"
-                          : "You're on the waitlist — we'll notify you the moment a slot frees up!");
-                      }
-                    }}
-                    className={`mt-3 w-full rounded-xl border py-3 text-sm font-semibold transition-all disabled:opacity-70 ${waitlistJoined ? "bg-success/10 border-success/30 text-success" : "bg-primary/10 border-primary/30 text-primary active:scale-[0.98]"}`}
-                  >
-                    {waitlistJoining
-                      ? (lang === "nl" ? "Bezig…" : "Joining…")
-                      : waitlistJoined
-                      ? (lang === "nl" ? "✓ Op de wachtlijst" : "✓ On the waitlist")
-                      : (lang === "nl" ? "🔔 Zet me op de wachtlijst voor deze dag" : "🔔 Join the waitlist for this day")}
-                  </button>
-                )}
-                {/* Logged-out visitors hit a dead-end on a full day — offer login + waitlist */}
-                {!user && selectedDate && timeSlots.length > 0 && timeSlots.every((s) => !s.available) && (
-                  <button
-                    onClick={() => { setAuthGateContext("booking"); setShowAuthGate(true); }}
-                    className="mt-3 w-full rounded-xl border border-primary/30 bg-primary/10 py-3 text-sm font-semibold text-primary active:scale-[0.98] transition-all"
-                  >
-                    {lang === "nl" ? "🔔 Log in om je op de wachtlijst te zetten" : "🔔 Log in to join the waitlist"}
-                  </button>
-                )}
+                {/* All start times unavailable — but WHY matters: */}
+                {selectedDate && timeSlots.length > 0 && timeSlots.every((s) => !s.available) && (() => {
+                  const anyBooked = timeSlots.some((s) => s.booked);
+                  const isTodaySel = new Date().toDateString() === selectedDate.toDateString();
+                  // Nothing booked + it's today → the day's start times have simply passed.
+                  if (!anyBooked && isTodaySel) {
+                    return (
+                      <div className="mt-3 rounded-xl border border-border bg-card p-3 text-center text-xs text-muted-foreground">
+                        {lang === "nl"
+                          ? "De starttijden voor vandaag zijn verstreken. Kies een andere dag."
+                          : "Today's start times have passed. Please pick another day."}
+                      </div>
+                    );
+                  }
+                  // A slot exists but the chosen duration doesn't fit anywhere.
+                  const durationHint = anyBooked && selectedDuration > 1 ? (
+                    <p className="mt-2 text-center text-[11px] text-muted-foreground">
+                      {lang === "nl"
+                        ? `Geen aaneengesloten ${selectedDuration} uur vrij — een kortere sessie past mogelijk wel.`
+                        : `No ${selectedDuration} contiguous hours free — a shorter session may still fit.`}
+                    </p>
+                  ) : null;
+                  // Genuinely booked out → waitlist (logged in) or login prompt (guest).
+                  return user ? (
+                    <>
+                      <button
+                        disabled={waitlistJoined || waitlistJoining}
+                        onClick={async () => {
+                          if (!selectedStudio || waitlistJoined || waitlistJoining) return;
+                          setWaitlistJoining(true);
+                          const { error } = await supabase.from("booking_waitlist").insert({
+                            user_id: user.id,
+                            studio_id: selectedStudio,
+                            booking_date: format(selectedDate, "yyyy-MM-dd"),
+                          });
+                          setWaitlistJoining(false);
+                          if (error && !error.message.includes("duplicate")) {
+                            toast.error(lang === "nl" ? "Er ging iets mis" : "Something went wrong");
+                          } else {
+                            setWaitlistJoined(true);
+                            toast.success(lang === "nl"
+                              ? "Je staat op de wachtlijst — je krijgt direct bericht als er een plek vrijkomt!"
+                              : "You're on the waitlist — we'll notify you the moment a slot frees up!");
+                          }
+                        }}
+                        className={`mt-3 w-full rounded-xl border py-3 text-sm font-semibold transition-all disabled:opacity-70 ${waitlistJoined ? "bg-success/10 border-success/30 text-success" : "bg-primary/10 border-primary/30 text-primary active:scale-[0.98]"}`}
+                      >
+                        {waitlistJoining
+                          ? (lang === "nl" ? "Bezig…" : "Joining…")
+                          : waitlistJoined
+                          ? (lang === "nl" ? "✓ Op de wachtlijst" : "✓ On the waitlist")
+                          : (lang === "nl" ? "🔔 Zet me op de wachtlijst voor deze dag" : "🔔 Join the waitlist for this day")}
+                      </button>
+                      {durationHint}
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => { setAuthGateContext("booking"); setShowAuthGate(true); }}
+                        className="mt-3 w-full rounded-xl border border-primary/30 bg-primary/10 py-3 text-sm font-semibold text-primary active:scale-[0.98] transition-all"
+                      >
+                        {lang === "nl" ? "🔔 Log in om je op de wachtlijst te zetten" : "🔔 Log in to join the waitlist"}
+                      </button>
+                      {durationHint}
+                    </>
+                  );
+                })()}
               </div>
 
 

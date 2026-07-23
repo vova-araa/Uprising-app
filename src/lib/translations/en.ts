@@ -540,6 +540,7 @@ export const en = {
   bookAgainBtn: "Book again",
   rateBtn: "Rate",
   ratedBtn: "Rated",
+  threeMonths: "3 months",
 
   // Landing page — what can you do here?
   capsTitle: "Everything for your music & content — in one place",
