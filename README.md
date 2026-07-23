@@ -50,4 +50,5 @@ docs/
 
 ## Documentatie
 
-Zie [`docs/MARKTONDERZOEK.md`](docs/MARKTONDERZOEK.md) voor het marktonderzoek en de geprioriteerde feature-roadmap.
+- [`docs/LAUNCH.md`](docs/LAUNCH.md) — **go-live checklist**: Supabase-migraties & edge functions, secrets, Stripe/Nuki/WhatsApp/push-config, app_config seeden, DNS en post-deploy smoke-test.
+- [`docs/MARKTONDERZOEK.md`](docs/MARKTONDERZOEK.md) — marktonderzoek en geprioriteerde feature-roadmap.
