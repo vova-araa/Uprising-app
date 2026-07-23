@@ -17,6 +17,7 @@ import BookingCancelDialog from "@/components/BookingCancelDialog";
 import FaultReportDialog from "@/components/FaultReportDialog";
 import SubmissionUploadDialog from "@/components/SubmissionUploadDialog";
 import ProjectFileUploadDialog from "@/components/ProjectFileUploadDialog";
+import ReviewDialog from "@/components/ReviewDialog";
 import GiftCardSection from "@/components/GiftCardSection";
 import BookingModifyDialog from "@/components/BookingModifyDialog";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -132,6 +133,8 @@ const AccountPage = () => {
   const [whatsappOptIn, setWhatsappOptIn] = useState(false);
   const [submissionDialog, setSubmissionDialog] = useState<{ booking: any; kind: "session_video" | "clean_room_photo" } | null>(null);
   const [projectUploadTarget, setProjectUploadTarget] = useState<any | null>(null);
+  const [reviewDialogBooking, setReviewDialogBooking] = useState<any | null>(null);
+  const [reviewedBookingIds, setReviewedBookingIds] = useState<Set<string>>(new Set());
   const [pointsBalance, setPointsBalance] = useState(0);
   const [rewardsCatalog, setRewardsCatalog] = useState<{ id: string; points: number; label: string }[]>([]);
   const [redeemingReward, setRedeemingReward] = useState<string | null>(null);
@@ -299,6 +302,9 @@ const AccountPage = () => {
       .order("booking_date", { ascending: true });
     setDbBookings(data || []);
     setBookingsLoading(false);
+    // Which of these bookings the user already reviewed (to relabel the button).
+    const { data: fb } = await supabase.from("booking_feedback").select("booking_id");
+    if (fb) setReviewedBookingIds(new Set(fb.map((f: any) => f.booking_id)));
   };
 
   const loadStats = async () => {
@@ -2105,6 +2111,20 @@ const AccountPage = () => {
                                 <Video size={12} /> Video +50pt
                               </button>
                             )}
+                            {b.status === "confirmed" && (
+                              reviewedBookingIds.has(b.id) ? (
+                                <span className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-success/10 border border-success/20 py-2 text-[11px] font-semibold text-success">
+                                  <Star size={12} className="fill-success" /> Beoordeeld
+                                </span>
+                              ) : (
+                                <button
+                                  onClick={() => setReviewDialogBooking(b)}
+                                  className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-primary/10 border border-primary/20 py-2 text-[11px] font-semibold text-primary"
+                                >
+                                  <Star size={12} /> Beoordeel
+                                </button>
+                              )
+                            )}
                           </div>
                         </motion.div>
                       );
@@ -2117,6 +2137,16 @@ const AccountPage = () => {
         )}
 
         {/* Booking management dialogs */}
+        <ReviewDialog
+          open={!!reviewDialogBooking}
+          onOpenChange={(open) => { if (!open) setReviewDialogBooking(null); }}
+          booking={reviewDialogBooking}
+          studioName={reviewDialogBooking ? getStudioName(reviewDialogBooking.studio_id) : ""}
+          onSubmitted={() => {
+            if (reviewDialogBooking) setReviewedBookingIds((prev) => new Set(prev).add(reviewDialogBooking.id));
+            toast.success("Bedankt voor je beoordeling! +10 punten.");
+          }}
+        />
         <SubmissionUploadDialog
           open={!!submissionDialog}
           onOpenChange={(open) => { if (!open) setSubmissionDialog(null); }}
