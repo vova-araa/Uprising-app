@@ -530,4 +530,27 @@ export const en = {
   useMemberships: "Use memberships",
   findInvoices: "Find your invoices",
 
+  // Onboarding / tour
+  onbSkip: "Skip",
+  onbNext: "Next",
+  onbBack: "Back",
+  onbStart: "Get started",
+  onbMenuItem: "App tour",
+  onbWelcomeTitle: "Welcome to Uprising Studio",
+  onbWelcomeBody: "Book professional music studios, content rooms and creative services — 24/7, straight from your phone. Sorted in a few taps.",
+  onbBrowseTitle: "Discover what's on offer",
+  onbBrowseBody: "Under Services and Spaces you'll find studios, a content room, mix & master, producer sessions and more. Tap a card for full details and pricing.",
+  onbBookTitle: "Book in a few taps",
+  onbBookBody: "Pick a space, date and time. See what's free at a glance, and pay securely by iDEAL or card — or use your member hours.",
+  onbAccessTitle: "Open the door from the app",
+  onbAccessBody: "When your session starts, unlock the front door with one tap in the app. The door then opens automatically — no key or code needed.",
+  onbAccountTitle: "Everything in one place",
+  onbAccountBody: "Your account shows your bookings, credit and points. Add a session to your calendar, rebook, or rate it afterwards.",
+  onbPointsTitle: "Earn points & rewards",
+  onbPointsBody: "Get points for uploading a session video, leaving the room clean or leaving a review. Redeem them for rewards.",
+  onbCoachTitle: "Your personal Content Coach",
+  onbCoachBody: "Our AI coach helps with post ideas, captions and release plans — so you grow your reach with your music and content.",
+  onbReadyTitle: "Ready to get going?",
+  onbReadyBody: "Tap Get started to plan your first session. You can reopen this tour any time from Settings.",
+
 } as const;

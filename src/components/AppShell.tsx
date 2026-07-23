@@ -9,7 +9,9 @@ import BottomNav from "./BottomNav";
 import DesktopNav from "./DesktopNav";
 import InstallPrompt from "./InstallPrompt";
 import { Loader2 } from "lucide-react";
+import { ONBOARDING_KEY } from "./OnboardingTour";
 const AIAssistantOverlay = lazy(() => import("./AIAssistantOverlay"));
+const OnboardingTour = lazy(() => import("./OnboardingTour"));
 
 // Context so HomePage can toggle AI overlay
 interface AIOverlayContextType {
@@ -19,10 +21,18 @@ interface AIOverlayContextType {
 const AIOverlayContext = createContext<AIOverlayContextType>({ showAI: false, setShowAI: () => {} });
 export const useAIOverlay = () => useContext(AIOverlayContext);
 
+// Context so any page (e.g. Settings) can (re)open the onboarding tour
+const OnboardingContext = createContext<{ openTour: () => void }>({ openTour: () => {} });
+export const useOnboarding = () => useContext(OnboardingContext);
+
 const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const { user } = useAuth();
   const [showAI, setShowAI] = useState(false);
+  // First-visit onboarding tour (once, tracked in localStorage).
+  const [showTour, setShowTour] = useState(() => {
+    try { return !localStorage.getItem(ONBOARDING_KEY); } catch { return false; }
+  });
   const mainRef = useRef<HTMLElement>(null);
 
   const routesWithOwnSafeTop = new Set([
@@ -64,6 +74,7 @@ const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }, [location.pathname]);
 
   return (
+    <OnboardingContext.Provider value={{ openTour: () => setShowTour(true) }}>
     <AIOverlayContext.Provider value={{ showAI, setShowAI }}>
       <div className="flex h-[100dvh] min-h-[100dvh] flex-col overflow-hidden" style={{ backgroundColor: "hsl(var(--background))" }}>
         {/* Desktop top nav */}
@@ -111,10 +122,12 @@ const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
         </main>
         {user && <Suspense fallback={null}><AIAssistantOverlay open={showAI} onClose={() => setShowAI(false)} /></Suspense>}
+        {showTour && <Suspense fallback={null}><OnboardingTour open={showTour} onClose={() => setShowTour(false)} /></Suspense>}
         <InstallPrompt />
         <BottomNav />
       </div>
     </AIOverlayContext.Provider>
+    </OnboardingContext.Provider>
   );
 };
 

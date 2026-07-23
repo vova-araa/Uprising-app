@@ -1,11 +1,12 @@
 import { useI18n } from "@/lib/i18n";
 import { motion } from "framer-motion";
-import { Globe, Bell, HelpCircle, Info, Shield, FileText, LogOut, ChevronRight, Settings, Megaphone, Building2, Handshake } from "lucide-react";
+import { Globe, Bell, HelpCircle, Info, Shield, FileText, LogOut, ChevronRight, Settings, Megaphone, Building2, Handshake, Compass } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { useLabelAccess } from "@/hooks/useLabelAccess";
 import { useAppConfig } from "@/contexts/AppConfigContext";
+import { useOnboarding } from "@/components/AppShell";
 import SEO from "@/components/SEO";
 
 const WEBSITE_URL = "https://uprisingstudio.nl";
@@ -17,6 +18,7 @@ const MorePage = () => {
   const { isAdmin } = useAdminRole();
   const { isLabelManager } = useLabelAccess();
   const { supportInfo } = useAppConfig();
+  const { openTour } = useOnboarding();
 
   const openHelp = () => {
     if (supportInfo?.email) {
@@ -33,6 +35,7 @@ const MorePage = () => {
       value: lang === "nl" ? "Nederlands" : "English",
       action: () => setLang(lang === "nl" ? "en" : "nl"),
     },
+    { icon: Compass, label: t("onbMenuItem"), action: () => openTour() },
     { icon: Bell, label: t("notifications"), action: () => navigate("/account?tab=settings") },
     { icon: HelpCircle, label: t("help"), action: openHelp },
     { icon: Info, label: t("about"), action: () => window.open(WEBSITE_URL, "_blank", "noopener") },

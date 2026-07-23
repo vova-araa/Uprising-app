@@ -551,4 +551,27 @@ export const nl = {
   useMemberships: "Memberships gebruiken",
   findInvoices: "Facturen terugvinden",
 
+  // Onboarding / rondleiding
+  onbSkip: "Overslaan",
+  onbNext: "Volgende",
+  onbBack: "Terug",
+  onbStart: "Aan de slag",
+  onbMenuItem: "Rondleiding",
+  onbWelcomeTitle: "Welkom bij Uprising Studio",
+  onbWelcomeBody: "Boek professionele muziekstudio's, contentruimtes en creatieve diensten — 24/7, direct vanaf je telefoon. In een paar tikken geregeld.",
+  onbBrowseTitle: "Ontdek wat er is",
+  onbBrowseBody: "Onder Diensten en Ruimtes vind je studio's, een contentruimte, mix & master, producer-sessies en meer. Tik op een kaart voor alle details en prijzen.",
+  onbBookTitle: "Boeken in een paar tikken",
+  onbBookBody: "Kies een ruimte, datum en tijd. Zie meteen wat vrij is, en betaal veilig met iDEAL of kaart — of gebruik je member-uren.",
+  onbAccessTitle: "Deur open via de app",
+  onbAccessBody: "Als je sessie start, open je de voordeur met één tik in de app. De deur gaat dan automatisch open — geen sleutel of code nodig.",
+  onbAccountTitle: "Alles op één plek",
+  onbAccountBody: "In je account zie je je boekingen, tegoed en punten. Zet een sessie in je agenda, boek opnieuw, of beoordeel 'm achteraf.",
+  onbPointsTitle: "Verdien punten & beloningen",
+  onbPointsBody: "Krijg punten voor het uploaden van een sessievideo, het netjes achterlaten van de ruimte of een beoordeling. Wissel ze in voor beloningen.",
+  onbCoachTitle: "Jouw persoonlijke Content Coach",
+  onbCoachBody: "Onze AI-coach helpt je met post-ideeën, captions en releaseplannen — zodat je meer bereik krijgt met je muziek en content.",
+  onbReadyTitle: "Klaar om te beginnen?",
+  onbReadyBody: "Tik op Aan de slag om je eerste sessie te plannen. Je kunt deze rondleiding altijd opnieuw openen via Instellingen.",
+
 } as const;
