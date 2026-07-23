@@ -57,9 +57,21 @@ const MixMasterPage = () => {
       setShowAuthGate(true);
       return;
     }
+    if (!description.trim() || !style.trim()) return;
 
     setIsLoading(true);
     try {
+      // Actually upload the chosen tracks to storage and send their paths —
+      // previously the files were collected but never transmitted.
+      const trackFiles: string[] = [];
+      for (const file of uploadedFiles) {
+        const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80);
+        const path = `${user.id}/mixmaster/${Date.now()}-${safe}`;
+        const { error: upErr } = await supabase.storage.from("uploads").upload(path, file);
+        if (upErr) throw new Error(upErr.message);
+        trackFiles.push(path);
+      }
+
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: {
           booking_data: {
@@ -69,6 +81,7 @@ const MixMasterPage = () => {
             description,
             style,
             reference: reference || null,
+            track_files: trackFiles,
           },
         },
       });
@@ -248,11 +261,11 @@ const MixMasterPage = () => {
             className="w-full rounded-xl bg-card border border-border p-4 text-sm focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-muted-foreground" />
         </div>
 
-        {description.trim() && style.trim() && (
+        {description.trim() && style.trim() ? (
           <button onClick={handleSubmit} disabled={isLoading}
             className="w-full rounded-xl gradient-primary text-primary-foreground shadow-glow p-4 text-left transition-all hover:opacity-95 active:scale-[0.99] disabled:opacity-50">
             {isLoading ? (
-              <div className="flex items-center justify-center py-2"><Loader2 size={20} className="animate-spin text-primary-foreground" /></div>
+              <div className="flex items-center justify-center py-2 gap-2"><Loader2 size={20} className="animate-spin text-primary-foreground" /><span className="text-sm font-semibold">{uploadedFiles.length ? t("uploading") : t("continueBtn")}…</span></div>
             ) : (
               <div className="flex items-center justify-between">
                 <div>
@@ -266,6 +279,11 @@ const MixMasterPage = () => {
                 </div>
               </div>
             )}
+          </button>
+        ) : (
+          <button disabled
+            className="w-full rounded-xl bg-secondary p-4 text-sm font-semibold text-muted-foreground disabled:opacity-80">
+            {t("mixMasterFillFields")}
           </button>
         )}
       </div>

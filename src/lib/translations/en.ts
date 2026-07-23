@@ -530,6 +530,17 @@ export const en = {
   useMemberships: "Use memberships",
   findInvoices: "Find your invoices",
 
+  uploading: "Uploading",
+  mixMasterFillFields: "Fill in description & style",
+  paymentPending: "Payment pending",
+  featuredStudios: "Our studios & spaces",
+  modifyBtn: "Change",
+  reportFaultBtn: "Issue",
+  addToCalendarBtn: "Add to calendar",
+  bookAgainBtn: "Book again",
+  rateBtn: "Rate",
+  ratedBtn: "Rated",
+
   // Landing page — what can you do here?
   capsTitle: "Everything for your music & content — in one place",
   capsSubtitle: "Here's what you can do at Uprising Studio, straight from your phone",

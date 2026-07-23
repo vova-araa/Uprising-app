@@ -398,7 +398,7 @@ const HomePage = () => {
         {visibleSections.some(s => s.id === "featured_studios") && studios.length > 0 && (
         <motion.section variants={item} className="pb-4">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            {t("featuredServices")}
+            {t("featuredStudios")}
           </h2>
           <div className="flex lg:grid lg:grid-cols-3 gap-3 overflow-x-auto lg:overflow-visible pb-2 -mx-1 px-1 scrollbar-none">
             {studios.map((studio, idx) => (

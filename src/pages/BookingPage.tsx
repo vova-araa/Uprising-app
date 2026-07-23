@@ -619,7 +619,11 @@ const BookingPage = () => {
         <div className="flex items-center gap-3">
           {step > 0 && (
             <button onClick={() => {
-              const prev = step - 1;
+              // The Content Room isn't offered in the step-1 studio picker, so
+              // going Back from its date step must land on step 0 (where it IS
+              // a choice) instead of the music-studio-only picker.
+              let prev = step - 1;
+              if (prev === 1 && selectedStudio === "content-room") prev = 0;
               if (prev === 0) {
                 setSelectedStudio(null);
                 setSelectedDate(null);

@@ -249,7 +249,9 @@ const SpacesPage = () => {
                   onClick={async () => {
                     const res = await shareOrCopy({
                       title: "Uprising Studio",
-                      text: "Boek studio's & creatieve ruimtes bij Uprising Studio in Amersfoort.",
+                      text: lang === "nl"
+                        ? "Boek studio's & creatieve ruimtes bij Uprising Studio in Amersfoort."
+                        : "Book studios & creative spaces at Uprising Studio in Amersfoort.",
                       url: "https://uprisingstudio.nl",
                     });
                     if (res === "copied") toast.success(lang === "nl" ? "Link gekopieerd" : "Link copied");

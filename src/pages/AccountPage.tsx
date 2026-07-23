@@ -2007,8 +2007,8 @@ const AccountPage = () => {
                                 {format(new Date(b.booking_date), "d MMMM", { locale })} • {b.start_time} • {b.duration_hours}h
                               </p>
                             </div>
-                            <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${b.status === "pending" ? "bg-warning/20 text-warning" : "bg-success/20 text-success"}`}>
-                              {b.status === "pending" ? t("pending") : t("confirmed")}
+                            <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${b.status === "confirmed" ? "bg-success/20 text-success" : "bg-warning/20 text-warning"}`}>
+                              {b.status === "confirmed" ? t("confirmed") : b.status === "pending_payment" ? t("paymentPending") : t("pending")}
                             </span>
                           </div>
 
@@ -2019,27 +2019,27 @@ const AccountPage = () => {
                                 onClick={() => setModifyDialogBooking(b)}
                                 className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-secondary py-2 text-xs font-semibold text-foreground transition-all hover:bg-secondary/80"
                               >
-                                <Pencil size={13} /> Wijzigen
+                                <Pencil size={13} /> {t("modifyBtn")}
                               </button>
                             )}
                             <button
                               onClick={() => setCancelDialogBooking(b)}
                               className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-destructive/10 border border-destructive/20 py-2 text-xs font-semibold text-destructive transition-all hover:bg-destructive/20"
                             >
-                              <Trash2 size={13} /> Annuleren
+                              <Trash2 size={13} /> {t("cancel")}
                             </button>
                             <button
                               onClick={() => setFaultDialogBooking(b)}
                               className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-warning/10 border border-warning/20 py-2 text-xs font-semibold text-warning transition-all hover:bg-warning/20"
                             >
-                              <AlertTriangle size={13} /> Storing
+                              <AlertTriangle size={13} /> {t("reportFaultBtn")}
                             </button>
                           </div>
                           <button
                             onClick={() => downloadBookingICS(b, `${getStudioName(b.studio_id)} — Uprising Studio`, "Je sessie bij Uprising Studio. Adres: Spaceshuttle 6e, Amersfoort.")}
                             className="mt-2 w-full flex items-center justify-center gap-1.5 rounded-lg bg-primary/5 border border-primary/15 py-2 text-xs font-semibold text-primary transition-all hover:bg-primary/10"
                           >
-                            <CalendarPlus size={13} /> Zet in agenda
+                            <CalendarPlus size={13} /> {t("addToCalendarBtn")}
                           </button>
 
                           <NukiAccessButton
@@ -2101,7 +2101,7 @@ const AccountPage = () => {
                               onClick={() => navigate(`/book?studio=${b.studio_id}`)}
                               className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-secondary py-2 text-[11px] font-semibold text-foreground"
                             >
-                              <Calendar size={12} /> Boek opnieuw
+                              <Calendar size={12} /> {t("bookAgainBtn")}
                             </button>
                             {isRecent && b.status === "confirmed" && (
                               <button
@@ -2114,14 +2114,14 @@ const AccountPage = () => {
                             {b.status === "confirmed" && (
                               reviewedBookingIds.has(b.id) ? (
                                 <span className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-success/10 border border-success/20 py-2 text-[11px] font-semibold text-success">
-                                  <Star size={12} className="fill-success" /> Beoordeeld
+                                  <Star size={12} className="fill-success" /> {t("ratedBtn")}
                                 </span>
                               ) : (
                                 <button
                                   onClick={() => setReviewDialogBooking(b)}
                                   className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-primary/10 border border-primary/20 py-2 text-[11px] font-semibold text-primary"
                                 >
-                                  <Star size={12} /> Beoordeel
+                                  <Star size={12} /> {t("rateBtn")}
                                 </button>
                               )
                             )}
