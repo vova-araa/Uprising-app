@@ -13,7 +13,7 @@ const iconMap: Record<string, any> = { Mic, Camera, Sliders, Music, Image, Shirt
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
 const item = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
 
-const memberships = [
+const DEFAULT_MEMBERSHIPS = [
 {
   name: "Basic",
   icon: Sparkles,
@@ -67,6 +67,25 @@ const ServicesPage = () => {
   const [contractAccepted, setContractAccepted] = useState(false);
   const [memberTier, setMemberTier] = useState<string | null>(null);
   const localizedLang = lang === "nl" ? "nl" : "en";
+
+  // Membership prices are config-driven (single source of truth with
+  // BookingPage); fall back to the built-in defaults when config is empty.
+  const tierStyle: Record<string, { icon: typeof Sparkles; color: string; borderColor: string; bgIcon: string }> = {
+    basic: { icon: Sparkles, color: "text-success", borderColor: "hover:border-success/40", bgIcon: "bg-success/20" },
+    pro: { icon: Star, color: "text-primary", borderColor: "hover:border-primary/40", bgIcon: "bg-primary/20" },
+    unlimited: { icon: Crown, color: "text-warning", borderColor: "hover:border-warning/40", bgIcon: "bg-warning/20" },
+    business: { icon: Building2, color: "text-warning", borderColor: "hover:border-warning/40", bgIcon: "bg-warning/20" },
+  };
+  const memberships = config.membershipTiers.length > 0
+    ? config.membershipTiers.map((tier) => ({
+        name: tier.name,
+        desc: tier.desc,
+        priceMonthly: tier.priceMonthly,
+        priceYearly: tier.priceYearly,
+        priceLabel: tier.priceMonthly === null ? { nl: "Op aanvraag", en: "On request" } : undefined,
+        ...(tierStyle[tier.id] || tierStyle.business),
+      }))
+    : DEFAULT_MEMBERSHIPS;
 
   // Use config-driven services, fallback to hardcoded
   const configServices = config.servicesConfig;

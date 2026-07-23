@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Crown, ChevronLeft, ChevronDown, Star, Sparkles, Building2, ChevronRight, ToggleLeft, ToggleRight, FileText, CheckSquare } from "lucide-react";
 import { useState } from "react";
+import { useAppConfig } from "@/contexts/AppConfigContext";
 import SEO from "@/components/SEO";
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } };
 const item = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
-const tiers = [
+const DEFAULT_TIERS = [
   {
     name: "Basic",
     icon: Sparkles,
@@ -61,9 +62,20 @@ const appFeatures = {
 const MembershipsDetailPage = () => {
   const { t, lang } = useI18n();
   const navigate = useNavigate();
+  const config = useAppConfig();
   const [yearly, setYearly] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
   const localizedLang = lang === "nl" ? "nl" : "en";
+
+  // Keep the rich feature lists local, but take PRICES from config so this page
+  // never shows stale prices vs the booking flow (single source of truth).
+  const priceByName = new Map(config.membershipTiers.map((tier) => [tier.name.toLowerCase(), tier]));
+  const tiers = DEFAULT_TIERS.map((tier) => {
+    const cfg = priceByName.get(tier.name.toLowerCase());
+    return cfg
+      ? { ...tier, priceMonthly: cfg.priceMonthly ?? tier.priceMonthly, priceYearly: cfg.priceYearly ?? tier.priceYearly }
+      : tier;
+  });
 
   return (
     <div className="min-h-full pb-24">
