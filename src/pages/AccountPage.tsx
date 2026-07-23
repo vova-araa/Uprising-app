@@ -130,6 +130,7 @@ const AccountPage = () => {
   const [cancelDialogBooking, setCancelDialogBooking] = useState<any>(null);
   const [faultDialogBooking, setFaultDialogBooking] = useState<any>(null);
   const [bookingsFilter, setBookingsFilter] = useState<"upcoming" | "past">("upcoming");
+  const [showAllPast, setShowAllPast] = useState(false);
   const [whatsappOptIn, setWhatsappOptIn] = useState(false);
   const [submissionDialog, setSubmissionDialog] = useState<{ booking: any; kind: "session_video" | "clean_room_photo" } | null>(null);
   const [projectUploadTarget, setProjectUploadTarget] = useState<any | null>(null);
@@ -2082,7 +2083,7 @@ const AccountPage = () => {
                     {t("history")}
                   </h3>
                   <div className="space-y-2">
-                    {pastBookings.slice(0, 10).map((b) => {
+                    {(showAllPast ? pastBookings : pastBookings.slice(0, 10)).map((b) => {
                       const isRecent = (Date.now() - new Date(b.booking_date).getTime()) < 2 * 86_400_000;
                       return (
                         <motion.div key={b.id} variants={item}
@@ -2130,6 +2131,16 @@ const AccountPage = () => {
                       );
                     })}
                   </div>
+                  {pastBookings.length > 10 && (
+                    <button
+                      onClick={() => setShowAllPast((v) => !v)}
+                      className="mt-3 w-full rounded-xl bg-card border border-border py-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground active:scale-[0.99]"
+                    >
+                      {showAllPast
+                        ? t("showLess")
+                        : `${t("showMore")} (${pastBookings.length - 10})`}
+                    </button>
+                  )}
                 </div>
               )}
             </>

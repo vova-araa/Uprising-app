@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { redirectToExternal } from "@/lib/redirect";
 import { useI18n } from "@/lib/i18n";
@@ -24,6 +24,7 @@ import { inlineToast as toast } from "@/components/InlineToast";
 import AuthGateDialog from "@/components/AuthGateDialog";
 import PageLoader from "@/components/PageLoader";
 import SEO from "@/components/SEO";
+import MembershipTermsBody from "@/components/MembershipTermsBody";
 
 const studioImages: Record<string, string> = {
   "studio-1": studioAImg,
@@ -60,6 +61,8 @@ const BookingPage = () => {
   }));
   const preselectedStudio = searchParams.get("studio");
   const preselectedType = searchParams.get("type");
+  const preselectedPlan = searchParams.get("plan");
+  const preselectedInterval = searchParams.get("interval");
   const [step, setStep] = useState(preselectedStudio ? 2 : preselectedType === "studio" ? 1 : 0);
   const [selectedStudio, setSelectedStudio] = useState<string | null>(preselectedStudio);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -67,7 +70,7 @@ const BookingPage = () => {
   const [selectedDuration, setSelectedDuration] = useState<number>(2);
   const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [yearly, setYearly] = useState(false);
+  const [yearly, setYearly] = useState(preselectedInterval === "year");
   const [contractAccepted, setContractAccepted] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
   const [rulesAccepted, setRulesAccepted] = useState(false);
@@ -94,6 +97,17 @@ const BookingPage = () => {
   const [waitlistJoined, setWaitlistJoined] = useState(false);
   const [waitlistJoining, setWaitlistJoining] = useState(false);
   useEffect(() => { setWaitlistJoined(false); }, [selectedDate, selectedStudio]);
+
+  // Scroll to the membership section when arriving with a preselected plan (from Services/Memberships marketing pages)
+  const membershipSectionRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (preselectedPlan && step === 0) {
+      const id = window.setTimeout(() => {
+        membershipSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 350);
+      return () => window.clearTimeout(id);
+    }
+  }, [preselectedPlan, step]);
 
   const creditHoursMap: Record<string, number> = {
     "studio-1": creditStudio1Hours,
@@ -800,7 +814,7 @@ const BookingPage = () => {
               </div>
 
               {/* Memberships */}
-              <div className="mt-2">
+              <div className="mt-2 scroll-mt-20" ref={membershipSectionRef}>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="h-5 w-1 rounded-full gradient-primary" />
@@ -868,50 +882,7 @@ const BookingPage = () => {
                               : "⚡ Minimum 3-month commitment, then cancel monthly"}
                           </p>
                         )}
-                        <div className="text-[10px] text-muted-foreground leading-relaxed space-y-2 max-h-48 overflow-y-auto pr-1">
-                          <p className="font-semibold text-foreground/80">
-                            {t("article1Title")}
-                          </p>
-                          <p>
-                            {lang === "nl"
-                              ? yearly
-                                ? "1.1 Door het afsluiten van een jaarabonnement gaat de klant (hierna: \"Abonnee\") een bindende overeenkomst aan met Uprising Studio, gevestigd te Amersfoort, Spaceshuttle 6e (hierna: \"Uprising Studio\"), voor een vaste periode van twaalf (12) opeenvolgende kalendermaanden, ingaande op de datum van eerste betaling."
-                                : "1.1 Door het afsluiten van een 3-maanden membership gaat de klant (hierna: \"Abonnee\") een bindende overeenkomst aan met Uprising Studio, gevestigd te Amersfoort, Spaceshuttle 6e (hierna: \"Uprising Studio\"), voor een vaste periode van drie (3) opeenvolgende kalendermaanden, ingaande op de datum van eerste betaling."
-                              : yearly
-                                ? "1.1 By subscribing to an annual plan, the customer (\"Subscriber\") enters into a binding agreement with Uprising Studio, located at Spaceshuttle 6e, Amersfoort (\"Uprising Studio\"), for a fixed period of twelve (12) consecutive calendar months, commencing on the date of first payment."
-                                : "1.1 By subscribing to a 3-month plan, the customer (\"Subscriber\") enters into a binding agreement with Uprising Studio, located at Spaceshuttle 6e, Amersfoort (\"Uprising Studio\"), for a fixed period of three (3) consecutive calendar months, commencing on the date of first payment."}
-                          </p>
-                          <p>
-                            {lang === "nl"
-                              ? "1.2 Het abonnement wordt na afloop van de initiële periode stilzwijgend verlengd met perioden van telkens één (1) maand, tenzij schriftelijk opgezegd met inachtneming van een opzegtermijn van dertig (30) dagen vóór het einde van de lopende periode."
-                              : "1.2 After the initial period, the subscription will be tacitly renewed for periods of one (1) month, unless cancelled in writing with thirty (30) days notice before the end of the current period."}
-                          </p>
-                          <p className="font-semibold text-foreground/80">
-                            {t("article2Title")}
-                          </p>
-                          <p>
-                            {lang === "nl"
-                              ? yearly
-                                ? "2.1 De Abonnee verplicht zich tot maandelijkse betaling van het overeengekomen abonnementstarief gedurende de volledige contractperiode van twaalf (12) maanden."
-                                : "2.1 De Abonnee verplicht zich tot maandelijkse betaling van het overeengekomen abonnementstarief gedurende de volledige contractperiode van drie (3) maanden."
-                              : yearly
-                                ? "2.1 The Subscriber commits to monthly payment of the agreed subscription fee for the full contract period of twelve (12) months."
-                                : "2.1 The Subscriber commits to monthly payment of the agreed subscription fee for the full contract period of three (3) months."}
-                          </p>
-                          <p>
-                            {lang === "nl"
-                              ? "2.2 Tussentijdse opzegging ontslaat de Abonnee niet van de betalingsverplichting over de resterende maanden van de contractperiode."
-                              : "2.2 Early termination does not release the Subscriber from payment obligations for the remaining months."}
-                          </p>
-                          <p className="font-semibold text-foreground/80">
-                            {lang === "nl" ? "Artikel 3 — Toepasselijk Recht" : "Article 3 — Applicable Law"}
-                          </p>
-                          <p>
-                            {lang === "nl"
-                              ? "Op deze overeenkomst is Nederlands recht van toepassing. Geschillen worden voorgelegd aan de bevoegde rechter in het arrondissement Midden-Nederland."
-                              : "This agreement is governed by Dutch law. Disputes shall be submitted to the competent court in the Central Netherlands district."}
-                          </p>
-                        </div>
+                        <MembershipTermsBody yearly={yearly} />
                         <button onClick={() => setContractAccepted(!contractAccepted)}
                           role="checkbox" aria-checked={contractAccepted} aria-label={t("agreeTerms")}
                           className="flex items-center gap-2 mt-3">
@@ -939,6 +910,7 @@ const BookingPage = () => {
                     const isDowngradeOption = isMember && memberTier && !hasCustomPrice && studioOrder[planKey] < (studioOrder[memberTier] || 0);
                     const isDisabled = !isMember && !contractAccepted && !hasCustomPrice;
                     const isButtonLoading = membershipLoading === plan.name || upgradeLoading === planKey;
+                    const isPreselected = !isMember && preselectedPlan?.toLowerCase() === planKey;
 
                     return (
                       <button key={plan.name}
@@ -955,7 +927,7 @@ const BookingPage = () => {
                         }}
                         disabled={isCurrentPlan || !!membershipLoading || !!upgradeLoading}
                         className={`w-full flex items-center gap-4 rounded-2xl bg-card border p-4 text-left transition-all active:scale-[0.99] ${
-                          isCurrentPlan ? "border-success/50 bg-success/5" : "border-border hover:border-primary/30"
+                          isCurrentPlan ? "border-success/50 bg-success/5" : isPreselected ? "border-primary/60 ring-2 ring-primary/40 bg-primary/5" : "border-border hover:border-primary/30"
                         }`}
                       >
 

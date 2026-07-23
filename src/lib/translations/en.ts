@@ -541,6 +541,8 @@ export const en = {
   rateBtn: "Rate",
   ratedBtn: "Rated",
   threeMonths: "3 months",
+  showMore: "Show more",
+  showLess: "Show less",
 
   // Landing page — what can you do here?
   capsTitle: "Everything for your music & content — in one place",

@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import SEO from "@/components/SEO";
+import MembershipTermsBody from "@/components/MembershipTermsBody";
 
 const iconMap: Record<string, any> = { Mic, Camera, Sliders, Music, Image, Shirt, Package };
 
@@ -161,7 +162,11 @@ const ServicesPage = () => {
   };
 
   const handleMembershipClick = (planName: string) => {
-    navigate("/book");
+    const params = new URLSearchParams({
+      plan: planName.toLowerCase(),
+      interval: yearly ? "year" : "quarter",
+    });
+    navigate(`/book?${params.toString()}`);
   };
 
   return (
@@ -243,24 +248,7 @@ const ServicesPage = () => {
                   <p className="text-xs font-semibold text-warning mb-2">
                     {t("annualTerms")}
                   </p>
-                  <div className="text-[10px] text-muted-foreground leading-relaxed space-y-2 max-h-48 overflow-y-auto pr-1">
-                    <p className="font-semibold text-foreground/80">{t("article1Title")}</p>
-                    <p>{lang === "nl"
-                      ? "1.1 Door het afsluiten van een jaarabonnement gaat de klant een bindende overeenkomst aan met Uprising Studio, gevestigd te Amersfoort, Spaceshuttle 6e, voor een vaste periode van twaalf (12) opeenvolgende kalendermaanden. 1.2 Het abonnement wordt na afloop stilzwijgend verlengd per maand, tenzij schriftelijk opgezegd met 30 dagen opzegtermijn."
-                      : "1.1 By subscribing, the customer enters a binding agreement with Uprising Studio, Spaceshuttle 6e, Amersfoort, for twelve (12) consecutive months. 1.2 After the initial period, the subscription renews monthly unless cancelled with 30 days written notice."}</p>
-                    <p className="font-semibold text-foreground/80">{t("article2Title")}</p>
-                    <p>{lang === "nl"
-                      ? "2.1 De klant verplicht zich tot maandelijkse betaling gedurende de volledige 12 maanden. 2.2 Tussentijdse opzegging ontslaat niet van de betalingsverplichting; het restbedrag wordt direct opeisbaar."
-                      : "2.1 The customer commits to monthly payment for the full 12 months. 2.2 Early termination does not release payment obligations; the remaining balance becomes immediately due."}</p>
-                    <p className="font-semibold text-foreground/80">{t("article3Title")}</p>
-                    <p>{lang === "nl"
-                      ? "3.1 Bij wanbetaling worden incassokosten (conform WIK), administratiekosten en wettelijke rente (art. 6:119a BW) in rekening gebracht. 3.2 Uprising Studio behoudt zich het recht voor gerechtelijke stappen te nemen; proceskosten komen voor rekening van de klant."
-                      : "3.1 Collection costs, administrative fees, and statutory interest apply upon default. 3.2 Uprising Studio reserves the right to take legal action; costs are borne by the customer."}</p>
-                    <p className="font-semibold text-foreground/80">{lang === "nl" ? "Artikel 4 — Toepasselijk Recht" : "Article 4 — Applicable Law"}</p>
-                    <p>{lang === "nl"
-                      ? "Op deze overeenkomst is Nederlands recht van toepassing. Geschillen worden voorgelegd aan de bevoegde rechter in het arrondissement Midden-Nederland."
-                      : "This agreement is governed by Dutch law. Disputes shall be submitted to the competent court in the Central Netherlands district."}</p>
-                  </div>
+                  <MembershipTermsBody yearly={yearly} />
                   <button onClick={() => setContractAccepted(!contractAccepted)}
                     className="flex items-center gap-2 mt-3">
                     <div className={`flex h-5 w-5 items-center justify-center rounded ${contractAccepted ? "bg-warning text-background" : "border-2 border-muted-foreground/30"}`}>

@@ -562,6 +562,8 @@ export const nl = {
   rateBtn: "Beoordeel",
   ratedBtn: "Beoordeeld",
   threeMonths: "3 maanden",
+  showMore: "Toon meer",
+  showLess: "Toon minder",
 
   // Landingspagina — wat kun je hier?
   capsTitle: "Alles voor je muziek & content — op één plek",

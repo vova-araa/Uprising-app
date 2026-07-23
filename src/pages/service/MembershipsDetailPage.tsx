@@ -5,6 +5,7 @@ import { Crown, ChevronLeft, ChevronDown, Star, Sparkles, Building2, ChevronRigh
 import { useState } from "react";
 import { useAppConfig } from "@/contexts/AppConfigContext";
 import SEO from "@/components/SEO";
+import MembershipTermsBody from "@/components/MembershipTermsBody";
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } };
 const item = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
@@ -186,46 +187,7 @@ const MembershipsDetailPage = () => {
                     : "⚡ Minimum 3-month commitment, then cancel monthly"}
                 </p>
               )}
-              <div className="text-[10px] text-muted-foreground leading-relaxed space-y-2 max-h-48 overflow-y-auto pr-1">
-                <p className="font-semibold text-foreground/80">{t("article1Title")}</p>
-                <p>
-                  {lang === "nl"
-                    ? yearly
-                      ? "1.1 Door het afsluiten van een jaarabonnement gaat de klant (hierna: \"Abonnee\") een bindende overeenkomst aan met Uprising Studio, gevestigd te Amersfoort, Spaceshuttle 6e (hierna: \"Uprising Studio\"), voor een vaste periode van twaalf (12) opeenvolgende kalendermaanden, ingaande op de datum van eerste betaling."
-                      : "1.1 Door het afsluiten van een 3-maanden membership gaat de klant (hierna: \"Abonnee\") een bindende overeenkomst aan met Uprising Studio, gevestigd te Amersfoort, Spaceshuttle 6e (hierna: \"Uprising Studio\"), voor een vaste periode van drie (3) opeenvolgende kalendermaanden, ingaande op de datum van eerste betaling."
-                    : yearly
-                      ? "1.1 By subscribing to an annual plan, the customer (\"Subscriber\") enters into a binding agreement with Uprising Studio, located at Spaceshuttle 6e, Amersfoort (\"Uprising Studio\"), for a fixed period of twelve (12) consecutive calendar months, commencing on the date of first payment."
-                      : "1.1 By subscribing to a 3-month plan, the customer (\"Subscriber\") enters into a binding agreement with Uprising Studio, located at Spaceshuttle 6e, Amersfoort (\"Uprising Studio\"), for a fixed period of three (3) consecutive calendar months, commencing on the date of first payment."}
-                </p>
-                <p>
-                  {lang === "nl"
-                    ? "1.2 Het abonnement wordt na afloop van de initiële periode stilzwijgend verlengd met perioden van telkens één (1) maand, tenzij schriftelijk opgezegd met inachtneming van een opzegtermijn van dertig (30) dagen vóór het einde van de lopende periode."
-                    : "1.2 After the initial period, the subscription will be tacitly renewed for periods of one (1) month, unless cancelled in writing with thirty (30) days notice before the end of the current period."}
-                </p>
-                <p className="font-semibold text-foreground/80">{t("article2Title")}</p>
-                <p>
-                  {lang === "nl"
-                    ? yearly
-                      ? "2.1 De Abonnee verplicht zich tot maandelijkse betaling van het overeengekomen abonnementstarief gedurende de volledige contractperiode van twaalf (12) maanden."
-                      : "2.1 De Abonnee verplicht zich tot maandelijkse betaling van het overeengekomen abonnementstarief gedurende de volledige contractperiode van drie (3) maanden."
-                    : yearly
-                      ? "2.1 The Subscriber commits to monthly payment of the agreed subscription fee for the full contract period of twelve (12) months."
-                      : "2.1 The Subscriber commits to monthly payment of the agreed subscription fee for the full contract period of three (3) months."}
-                </p>
-                <p>
-                  {lang === "nl"
-                    ? "2.2 Tussentijdse opzegging ontslaat de Abonnee niet van de betalingsverplichting over de resterende maanden van de contractperiode."
-                    : "2.2 Early termination does not release the Subscriber from payment obligations for the remaining months."}
-                </p>
-                <p className="font-semibold text-foreground/80">
-                  {lang === "nl" ? "Artikel 3 — Toepasselijk Recht" : "Article 3 — Applicable Law"}
-                </p>
-                <p>
-                  {lang === "nl"
-                    ? "Op deze overeenkomst is Nederlands recht van toepassing. Geschillen worden voorgelegd aan de bevoegde rechter in het arrondissement Midden-Nederland."
-                    : "This agreement is governed by Dutch law. Disputes shall be submitted to the competent court in the Central Netherlands district."}
-                </p>
-              </div>
+              <MembershipTermsBody yearly={yearly} />
             </div>
           </motion.div>
         </motion.div>
@@ -237,7 +199,11 @@ const MembershipsDetailPage = () => {
               const price = yearly ? tier.priceYearly : tier.priceMonthly;
               const savings = (tier.priceMonthly - tier.priceYearly) * 12;
               return (
-                <div key={tier.name} className="rounded-2xl card-premium border border-border p-5">
+                <button
+                  key={tier.name}
+                  onClick={() => navigate(`/book?plan=${tier.name.toLowerCase()}&interval=${yearly ? "year" : "quarter"}`)}
+                  className="w-full text-left rounded-2xl card-premium border border-border p-5 transition-all hover:border-primary/30 active:scale-[0.99]"
+                >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/20">
@@ -268,7 +234,7 @@ const MembershipsDetailPage = () => {
                       </div>
                     ))}
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -295,7 +261,7 @@ const MembershipsDetailPage = () => {
         {/* CTA */}
         <motion.div variants={item}>
           <button
-            onClick={() => navigate("/book")}
+            onClick={() => navigate(`/book?interval=${yearly ? "year" : "quarter"}`)}
             className="w-full flex items-center justify-center gap-2 rounded-2xl gradient-primary py-4 text-sm font-bold text-primary-foreground shadow-glow active:scale-[0.98] transition-transform"
           >
             {t("viewPlansBtn")}
