@@ -98,16 +98,29 @@ const BookingPage = () => {
   const [waitlistJoining, setWaitlistJoining] = useState(false);
   useEffect(() => { setWaitlistJoined(false); }, [selectedDate, selectedStudio]);
 
+  // Collapse the subscription catalogues on step 0 so a first-time booker sees the
+  // actual booking choices first. Auto-expand memberships when the user deep-links
+  // with a chosen plan, or when they already have a subscription to manage.
+  const [showMemberships, setShowMemberships] = useState(!!preselectedPlan);
+  const [showBroedplaats, setShowBroedplaats] = useState(false);
+
   // Scroll to the membership section when arriving with a preselected plan (from Services/Memberships marketing pages)
   const membershipSectionRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (preselectedPlan && step === 0) {
+      setShowMemberships(true);
       const id = window.setTimeout(() => {
         membershipSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 350);
       return () => window.clearTimeout(id);
     }
   }, [preselectedPlan, step]);
+
+  // Members already have a subscription — open the relevant catalogue so they can manage it
+  useEffect(() => {
+    if (isMember) setShowMemberships(true);
+    if (broedplaatsTier) setShowBroedplaats(true);
+  }, [isMember, broedplaatsTier]);
 
   const creditHoursMap: Record<string, number> = {
     "studio-1": creditStudio1Hours,
@@ -815,12 +828,30 @@ const BookingPage = () => {
 
               {/* Memberships */}
               <div className="mt-2 scroll-mt-20" ref={membershipSectionRef}>
-                <div className="flex items-center justify-between mb-3">
+                <button
+                  onClick={() => setShowMemberships((v) => !v)}
+                  className="w-full flex items-center justify-between mb-3 text-left"
+                >
                   <div className="flex items-center gap-2">
                     <div className="h-5 w-1 rounded-full gradient-primary" />
-                    <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Producer Memberships</h2>
+                    <div>
+                      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Producer Memberships</h2>
+                      {!showMemberships && (() => {
+                        const prices = memberships.map((m) => m.priceMonthly).filter((p): p is number => typeof p === "number");
+                        const fromPrice = prices.length > 0 ? Math.min(...prices) : 150;
+                        return (
+                          <p className="text-[11px] text-muted-foreground/80 mt-0.5">
+                            {lang === "nl" ? `Korting op studio's & meer — vanaf €${fromPrice}/mnd` : `Studio discounts & more — from €${fromPrice}/mo`}
+                          </p>
+                        );
+                      })()}
+                    </div>
                   </div>
-                  {!isMember && (
+                  <ChevronDown size={18} className={`text-muted-foreground transition-transform duration-200 ${showMemberships ? "rotate-180" : ""}`} />
+                </button>
+
+                {showMemberships && !isMember && (
+                  <div className="flex justify-end mb-3">
                     <button onClick={() => { setYearly(!yearly); setContractAccepted(false); }}
                       className="flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold transition-all">
                       <span className={yearly ? "text-muted-foreground" : "text-foreground"}>
@@ -836,10 +867,10 @@ const BookingPage = () => {
                         </span>
                       )}
                     </button>
-                  )}
-                </div>
+                  </div>
+                )}
 
-                {!isMember && (
+                {showMemberships && !isMember && (
                   <div
                     id="membership-terms-panel"
                     className="mb-3 rounded-xl bg-primary/20 border border-primary/30 overflow-hidden">
@@ -898,6 +929,7 @@ const BookingPage = () => {
                   </div>
                 )}
 
+                {showMemberships && (
                 <div className="space-y-3">
                   {memberships.map((plan) => {
                     const planKey = plan.name.toLowerCase();
@@ -978,16 +1010,31 @@ const BookingPage = () => {
                     );
                   })}
                 </div>
+                )}
               </div>
 
               {/* Broedplaats */}
               <div className="mt-2">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="h-5 w-1 rounded-full gradient-primary" />
-                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                    {t("creativeHub")}
-                  </h2>
-                </div>
+                <button
+                  onClick={() => setShowBroedplaats((v) => !v)}
+                  className="w-full flex items-center justify-between mb-3 text-left"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="h-5 w-1 rounded-full gradient-primary" />
+                    <div>
+                      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                        {t("creativeHub")}
+                      </h2>
+                      {!showBroedplaats && (
+                        <p className="text-[11px] text-muted-foreground/80 mt-0.5">
+                          {lang === "nl" ? "Community & werkplek — vanaf €45/mnd" : "Community & workspace — from €45/mo"}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <ChevronDown size={18} className={`text-muted-foreground transition-transform duration-200 ${showBroedplaats ? "rotate-180" : ""}`} />
+                </button>
+                {showBroedplaats && (
                 <div className="space-y-3">
                   {[
                     { name: { nl: "Scholieren", en: "Students" }, icon: GraduationCap, desc: { nl: "Creatieve ontwikkeling voor scholieren", en: "Creative development for students" }, price: 45, plan: "broedplaats-students" },
@@ -1042,6 +1089,7 @@ const BookingPage = () => {
                     );
                   })}
                 </div>
+                )}
               </div>
             </motion.div>
           ) : step === 1 ? (
