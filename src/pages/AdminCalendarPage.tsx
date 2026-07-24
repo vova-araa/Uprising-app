@@ -76,16 +76,17 @@ const AdminCalendarPage = () => {
     if (e) e.stopPropagation();
     setGeneratingLinkId(bookingId);
     try {
-      const { data: linkData } = await supabase.functions.invoke("create-admin-payment-link", {
+      const { data: linkData, error: invokeErr } = await supabase.functions.invoke("create-admin-payment-link", {
         body: { booking_id: bookingId },
       });
+      if (invokeErr) throw invokeErr;
       if (linkData?.url) {
         await navigator.clipboard.writeText(linkData.url);
         setCopiedLinkId(bookingId);
         toast.success(lang === "nl" ? "Betaallink gekopieerd!" : "Payment link copied!");
         setTimeout(() => setCopiedLinkId(null), 3000);
       } else {
-        toast.error(linkData?.error || "Error");
+        toast.error(linkData?.error || (lang === "nl" ? "Betaallink genereren mislukt" : "Failed to generate link"));
       }
     } catch (err: any) {
       toast.error(err.message || "Error");

@@ -35,7 +35,9 @@ const CollabBoardPage = () => {
   const [responding, setResponding] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const { data } = await supabase.from("collab_posts").select("*").eq("status", "open").order("created_at", { ascending: false }).limit(100);
+    const { data, error } = await supabase.from("collab_posts").select("*").eq("status", "open").order("created_at", { ascending: false }).limit(100);
+    // Don't render an empty "no posts yet" board on a transient read error.
+    if (error) { console.error("Collab board load failed", error); setLoading(false); return; }
     const list = (data as Post[]) || [];
     setPosts(list);
     const ids = [...new Set(list.map((p) => p.user_id))];

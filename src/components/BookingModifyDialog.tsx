@@ -91,60 +91,32 @@ const BookingModifyDialog = ({ open, onOpenChange, booking, onModified }: Props)
     if (!isChanged) { onOpenChange(false); return; }
     setLoading(true);
     setError("");
-    try {
-      // We need to delete and re-create since the protect_booking_sensitive_fields trigger
-      // blocks regular users from modifying most fields. Members delete + re-insert.
-      const { error: delErr } = await supabase.from("bookings").delete().eq("id", booking.id);
-      if (delErr) throw new Error(delErr.message);
+    // Atomic, in-place reschedule via SECURITY DEFINER RPC. This keeps the same
+    // booking id (so any provisioned Nuki door access stays valid) and can't
+    // half-write: a clash trips the bookings_no_overlap constraint (23P01) and
+    // the original booking is left exactly as it was.
+    const { error: rpcErr } = await supabase.rpc("modify_own_booking", {
+      p_booking_id: booking.id,
+      p_studio_id: studioId,
+      p_booking_date: date,
+      p_start_time: time,
+      p_duration_hours: duration,
+    });
+    setLoading(false);
 
-      const { error: insErr } = await supabase.from("bookings").insert({
-        user_id: booking.user_id,
-        studio_id: studioId,
-        booking_date: date,
-        start_time: time,
-        duration_hours: duration,
-        session_type: booking.session_type,
-        status: "confirmed",
-        // Preserve the original price rather than zeroing it — a reschedule
-        // must not silently wipe what the member already paid/owes.
-        total_price: booking.total_price ?? 0,
-        notes: booking.notes,
-      });
-      if (insErr) {
-        // Slot was taken between our check and the insert — put the original
-        // booking back so the member doesn't lose their reservation.
-        const { error: restoreErr } = await supabase.from("bookings").insert({
-          user_id: booking.user_id,
-          studio_id: booking.studio_id,
-          booking_date: booking.booking_date,
-          start_time: booking.start_time,
-          duration_hours: booking.duration_hours,
-          session_type: booking.session_type,
-          status: "confirmed",
-          total_price: booking.total_price ?? 0,
-          notes: booking.notes,
-        });
-        // If the restore also failed the original booking is genuinely gone —
-        // be explicit and tell the member to contact us, never claim it's safe.
-        if (restoreErr) {
-          console.error("Booking modify: restore of original booking failed", restoreErr);
-          throw new Error(
-            "Wijzigen is mislukt en je oorspronkelijke boeking kon niet automatisch worden hersteld. Neem direct contact met ons op — we zetten hem voor je terug.",
-          );
-        }
-        if ((insErr as { code?: string }).code === "23P01") {
-          throw new Error("Dit tijdslot is net bezet geraakt. Je oorspronkelijke boeking blijft staan.");
-        }
-        throw new Error(insErr.message);
+    if (rpcErr) {
+      const code = (rpcErr as { code?: string }).code;
+      if (code === "23P01" || /overlap|exclusion/i.test(rpcErr.message || "")) {
+        setError("Dit tijdslot is net bezet geraakt. Je oorspronkelijke boeking blijft staan.");
+      } else {
+        console.error("Booking modify failed", rpcErr);
+        setError(rpcErr.message || "Er ging iets mis. Je oorspronkelijke boeking blijft staan.");
       }
-
-      onModified();
-      onOpenChange(false);
-    } catch (err: any) {
-      setError(err.message || "Er ging iets mis");
-    } finally {
-      setLoading(false);
+      return;
     }
+
+    onModified();
+    onOpenChange(false);
   };
 
   // Generate date options (next 30 days)

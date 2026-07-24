@@ -313,22 +313,26 @@ const AdminPage = () => {
     try {
       const updateData = { ...dbEditForm };
       delete updateData.id; // don't update the id
-      await (supabase.from as any)(tableName).update(updateData).eq("id", rowId);
+      const { error } = await (supabase.from as any)(tableName).update(updateData).eq("id", rowId);
+      if (error) throw error;
       toast.success("Opgeslagen");
       setDbEditingRow(null);
       loadDbTable(tableName);
-    } catch {
+    } catch (e) {
+      console.error("saveDbRow failed", e);
       toast.error("Opslaan mislukt");
     }
   };
 
   const deleteDbRow = async (tableName: string, rowId: string) => {
     try {
-      await (supabase.from as any)(tableName).delete().eq("id", rowId);
+      const { error } = await (supabase.from as any)(tableName).delete().eq("id", rowId);
+      if (error) throw error;
       toast.success("Verwijderd");
       setDbDeletingRow(null);
       loadDbTable(tableName);
-    } catch {
+    } catch (e) {
+      console.error("deleteDbRow failed", e);
       toast.error("Verwijderen mislukt");
     }
   };
@@ -583,7 +587,8 @@ const AdminPage = () => {
 
   const resolveError = async (id: string) => {
     try {
-      await supabase.from("error_logs").update({ resolved: true }).eq("id", id);
+      const { error } = await supabase.from("error_logs").update({ resolved: true }).eq("id", id);
+      if (error) throw error;
       toast.success("Fout gemarkeerd als opgelost");
       loadData("errors");
     } catch { toast.error("Er ging iets mis"); }
@@ -991,7 +996,8 @@ const AdminPage = () => {
                       onClick={async () => {
                         if (!(await confirm({ title: lang === "nl" ? "Producer sessie verwijderen?" : "Delete producer session?", destructive: true }))) return;
                         try {
-                          await supabase.from("producer_bookings").delete().eq("id", pb.id);
+                          const { error } = await supabase.from("producer_bookings").delete().eq("id", pb.id);
+                          if (error) throw error;
                           setProducerBookings(prev => prev.filter((p: any) => p.id !== pb.id));
                         } catch { toast.error("Er ging iets mis"); }
                       }}
@@ -1069,7 +1075,8 @@ const AdminPage = () => {
                       onClick={async () => {
                         if (!(await confirm({ title: `Project "${p.title}" verwijderen?`, destructive: true }))) return;
                         try {
-                          await (supabase as any).from("projects").delete().eq("id", p.id);
+                          const { error } = await (supabase as any).from("projects").delete().eq("id", p.id);
+                          if (error) throw error;
                           toast.success("Project verwijderd");
                           loadOverview();
                         } catch { toast.error("Er ging iets mis"); }
@@ -1104,16 +1111,18 @@ const AdminPage = () => {
                         const el = document.getElementById(`staff-notes-${p.id}`) as HTMLTextAreaElement;
                         const notes = el?.value?.trim() || "";
                         try {
-                          await supabase.from("projects").update({ staff_notes: notes, updated_at: new Date().toISOString() } as any).eq("id", p.id);
+                          const { error: upErr } = await supabase.from("projects").update({ staff_notes: notes, updated_at: new Date().toISOString() } as any).eq("id", p.id);
+                          if (upErr) throw upErr;
                           // Send notification to user
                           if (notes) {
-                            await supabase.from("notifications").insert({
+                            const { error: notifErr } = await supabase.from("notifications").insert({
                               user_id: p.user_id,
                               title: "Aanvullende informatie nodig",
                               message: notes,
                               type: "info",
                               link: "/account?tab=projects",
                             });
+                            if (notifErr) throw notifErr;
                           }
                           toast.success("Bericht verstuurd naar klant");
                           loadOverview();
@@ -1127,14 +1136,16 @@ const AdminPage = () => {
                       onClick={async () => {
                         try {
                           const uploadNote = "We missen nog bestanden voor je project '" + p.title + "'. Upload ze via de projectpagina.";
-                          await supabase.from("projects").update({ staff_notes: uploadNote, updated_at: new Date().toISOString() } as any).eq("id", p.id);
-                          await supabase.from("notifications").insert({
+                          const { error: upErr } = await supabase.from("projects").update({ staff_notes: uploadNote, updated_at: new Date().toISOString() } as any).eq("id", p.id);
+                          if (upErr) throw upErr;
+                          const { error: notifErr } = await supabase.from("notifications").insert({
                             user_id: p.user_id,
                             title: "Upload je bestanden",
                             message: uploadNote,
                             type: "warning",
                             link: "/account?tab=projects",
                           });
+                          if (notifErr) throw notifErr;
                           toast.success("Upload-herinnering verstuurd");
                           loadOverview();
                         } catch { toast.error("Er ging iets mis"); }

@@ -57,17 +57,27 @@ const LabelDashboardPage = () => {
       supabase.from("label_hour_transactions").select("artist_id, hours, type").eq("label_id", labelId).eq("type", "usage"),
       supabase.from("label_invoices").select("id, invoice_number, hours, total, status, term, created_at, pdf_path").eq("label_id", labelId).order("created_at", { ascending: false }),
     ]);
-    setLabel(labelRes.data as Label);
-    setArtists((artistsRes.data as Artist[]) || []);
-    setBookings((bookingsRes.data as Booking[]) || []);
-    setInvoices((invoicesRes.data as Invoice[]) || []);
-    // Per-artist hours used (usage rows are negative)
-    const map = new Map<string, number>();
-    for (const tx of (ledgerRes.data as { artist_id: string | null; hours: number }[]) || []) {
-      const key = tx.artist_id || "none";
-      map.set(key, (map.get(key) || 0) + Math.abs(Number(tx.hours)));
+    // If the label read itself errored, keep prior state rather than telling a
+    // paying label customer they have "no label linked" on a transient blip.
+    if (labelRes.error) {
+      console.error("Label dashboard load failed", labelRes.error);
+      setLoading(false);
+      return;
     }
-    setUsage(map);
+    setLabel(labelRes.data as Label);
+    if (!artistsRes.error) setArtists((artistsRes.data as Artist[]) || []);
+    if (!bookingsRes.error) setBookings((bookingsRes.data as Booking[]) || []);
+    if (!invoicesRes.error) setInvoices((invoicesRes.data as Invoice[]) || []);
+    // Per-artist hours used (usage rows are negative). Only recompute if the
+    // ledger read succeeded, so a failed fetch doesn't wipe usage to zero.
+    if (!ledgerRes.error) {
+      const map = new Map<string, number>();
+      for (const tx of (ledgerRes.data as { artist_id: string | null; hours: number }[]) || []) {
+        const key = tx.artist_id || "none";
+        map.set(key, (map.get(key) || 0) + Math.abs(Number(tx.hours)));
+      }
+      setUsage(map);
+    }
     setLoading(false);
   }, [labelId]);
 

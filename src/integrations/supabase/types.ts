@@ -2538,6 +2538,16 @@ export type Database = {
           studio_id: string
         }[]
       }
+      modify_own_booking: {
+        Args: {
+          p_booking_id: string
+          p_studio_id: string
+          p_booking_date: string
+          p_start_time: string
+          p_duration_hours: number
+        }
+        Returns: Database["public"]["Tables"]["bookings"]["Row"]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

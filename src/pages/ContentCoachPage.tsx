@@ -94,19 +94,28 @@ const ContentCoachPage = () => {
     const monday = new Date();
     monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
     const since = new Date(monday.getTime() - 14 * 86_400_000).toISOString().split("T")[0];
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("content_plans")
       .select("*")
       .eq("user_id", user.id)
       .gte("week_start", since)
       .order("created_at", { ascending: false });
+    // Don't blank existing plans on a transient read error.
+    if (error) { console.error("loadPlans failed", error); return; }
     setPlans((data as unknown as ContentPlan[]) || []);
   }, [user]);
 
   const loadProfile = useCallback(async () => {
     if (!user) return;
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("creator_profiles").select("*").eq("user_id", user.id).maybeSingle();
+    // On a read error, don't throw an established user back into the full intake
+    // wizard (which would then upsert over their real profile). Bail and keep state.
+    if (error) {
+      console.error("loadProfile failed", error);
+      setLoading(false);
+      return;
+    }
     if (data) {
       const p = data as unknown as CreatorProfile;
       setProfile(p);
