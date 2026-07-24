@@ -69,6 +69,11 @@ serve(async (req) => {
     let customerName: string | undefined;
     let sessionName: string;
     let amount: number;
+    // For an existing booking we bind the checkout so verify-payment can
+    // auto-confirm it on the customer's return (same path as a self-service
+    // booking). Manual/pre-booking links have no booking to confirm.
+    let metadataUserId = customer_id || "";
+    let checkoutType = "admin-payment-link";
 
     if (booking_id) {
       // Existing booking flow
@@ -84,7 +89,10 @@ serve(async (req) => {
         });
       }
 
-      if (booking.total_price <= 0) {
+      // Charge exactly what's still owed (price minus any wallet credit already
+      // applied), matching verify-payment's server-side amount check.
+      const payable = Number(booking.total_price || 0) - Number(booking.wallet_applied || 0);
+      if (payable <= 0) {
         return new Response(JSON.stringify({ error: "Booking has no cost" }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -100,7 +108,9 @@ serve(async (req) => {
       customerName = profile?.full_name || undefined;
       const studioName = studioNames[booking.studio_id] || booking.studio_id;
       sessionName = `${studioName} - ${booking.booking_date} ${booking.start_time} (${booking.duration_hours}h)`;
-      amount = Math.round(booking.total_price * 100);
+      amount = Math.round(payable * 100);
+      metadataUserId = booking.user_id;
+      checkoutType = "studio-booking";
     } else {
       // Pre-booking flow: generate link before booking exists
       if (!customer_id || !studio_id || !total_price || total_price <= 0) {
@@ -142,13 +152,17 @@ serve(async (req) => {
       }],
       mode: "payment",
       payment_method_types: ["card", "ideal"],
-      success_url: `${Deno.env.get("APP_URL") || "https://app.uprisingstudio.nl"}/account?payment=success&tab=bookings`,
+      // For a bound booking, include session_id + type so the customer's return
+      // auto-confirms via verify-payment. Manual links keep the plain return.
+      success_url: booking_id
+        ? `${Deno.env.get("APP_URL") || "https://app.uprisingstudio.nl"}/account?payment=success&tab=bookings&type=studio-booking&session_id={CHECKOUT_SESSION_ID}`
+        : `${Deno.env.get("APP_URL") || "https://app.uprisingstudio.nl"}/account?payment=success&tab=bookings`,
       cancel_url: `${Deno.env.get("APP_URL") || "https://app.uprisingstudio.nl"}/book?payment=cancelled`,
 
       metadata: {
         booking_id: booking_id || "",
-        user_id: customer_id || "",
-        type: "admin-payment-link",
+        user_id: metadataUserId,
+        type: checkoutType,
       },
     });
 

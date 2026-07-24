@@ -474,13 +474,28 @@ serve(async (req) => {
       }
     }
 
-    // Deduct credit hours if used
+    // Deduct credit hours if used. The booking already exists; if this fails we
+    // can't cleanly roll it back, so surface it (log + admin notification) so
+    // staff can reconcile instead of silently handing out free hours.
     if (!isMember && freeHours > 0) {
       const newValue = creditHours - freeHours;
-      await supabaseAdmin
+      const { error: creditErr } = await supabaseAdmin
         .from("profiles")
         .update({ [creditField]: newValue, updated_at: new Date().toISOString() })
         .eq("id", user.id);
+      if (creditErr) {
+        console.error("[CREATE-BOOKING] credit-hours decrement failed:", creditErr, { bookingId: booking.id, userId: user.id, freeHours });
+        const { data: staff } = await supabaseAdmin.from("user_roles").select("user_id").in("role", ["admin", "staff"]);
+        if (staff && staff.length > 0) {
+          await supabaseAdmin.from("notifications").insert(staff.map((r: { user_id: string }) => ({
+            user_id: r.user_id,
+            title: "⚠️ Tegoeduren niet afgeschreven",
+            message: `Boeking ${booking.id}: ${freeHours} tegoeduren konden niet worden afgeschreven bij een lid. Controleer en corrigeer handmatig.`,
+            type: "warning",
+            link: "/admin?tab=calendar",
+          })));
+        }
+      }
     }
 
     // Send confirmation notification and provision Nuki access for free/member bookings

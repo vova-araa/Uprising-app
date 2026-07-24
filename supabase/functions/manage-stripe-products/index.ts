@@ -137,7 +137,9 @@ serve(async (req) => {
       status: 400,
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("[MANAGE-STRIPE-PRODUCTS] ERROR:", msg);
+    return new Response(JSON.stringify({ error: "Request failed" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

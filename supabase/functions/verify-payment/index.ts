@@ -429,9 +429,11 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
+    // Log the real error server-side; return a generic message so Stripe/DB
+    // internals never leak to the client (the frontend shows its own copy).
     const msg = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: msg });
-    return new Response(JSON.stringify({ verified: false, error: msg }), {
+    return new Response(JSON.stringify({ verified: false, error: "Payment verification failed" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }

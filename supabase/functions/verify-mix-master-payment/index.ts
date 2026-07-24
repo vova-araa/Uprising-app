@@ -85,7 +85,8 @@ serve(async (req) => {
     });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    return new Response(JSON.stringify({ error: msg }), {
+    console.error("[VERIFY-MIX-MASTER-PAYMENT] ERROR:", msg);
+    return new Response(JSON.stringify({ error: "Payment verification failed" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
