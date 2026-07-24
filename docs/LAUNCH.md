@@ -19,7 +19,7 @@ het meeste hieronder is backend-configuratie en externe diensten.
 > als je zeker wilt zijn dat oude caches wegvallen.
 
 ## 1. Supabase project
-- [ ] Migraties uitvoeren: alle bestanden in `supabase/migrations/` toepassen (Supabase CLI `db push`, of via het Lovable-cloud-project)
+- [ ] Migraties uitvoeren: alle bestanden in `supabase/migrations/` toepassen (Supabase CLI `db push`, of via het Lovable-cloud-project). Inclusief de nieuwste: `..._atomic_booking_modify` (in-place reschedule zonder Nuki-toegang te verliezen) en `..._payment_integrity` (unieke `stripe_session_id`- en `gift_cards.code`-indexen)
 - [ ] Edge functions deployen: alle mappen in `supabase/functions/` (43 functies)
 - [ ] **`pg_cron` + `pg_net`** extensies aanzetten — nodig voor `booking-scheduler` (reminders, wallet-sweep, factuur-herinneringen, weekplannen)
 - [ ] Storage-buckets aanmaken met policies: **`uploads`** (sessievideo's, schone-ruimte-foto's, projectbestanden) en **`org-reports`** (workshop-/traject-rapporten)
@@ -52,9 +52,19 @@ het meeste hieronder is backend-configuratie en externe diensten.
 
 ## 3. Stripe
 - [ ] Live-modus keys gebruiken (`STRIPE_SECRET_KEY` hierboven + `VITE`-loze publishable key indien nodig)
+- [ ] **⚠️ Prijs-ID's moeten in dezelfde modus (test/live) bestaan als je `STRIPE_SECRET_KEY`.** De membership-prijzen zijn **hardcoded** als `price_…`-ID's in `create-checkout`, `check-subscription` en `update-subscription` (9 stuks: basic/pro/unlimited × maand/jaar + 3 broedplaats-tiers). Zet je een **live** key maar verwijzen die ID's naar **test**-prijzen (of andersom), dan faalt élke membership-checkout/upgrade. Vóór launch: bevestig dat alle 9 ID's in de gekozen modus bestaan, of vervang ze door de live-ID's. *(Let op: de drie broedplaats-tiers mappen maand én jaar naar hetzelfde prijs-ID — bedoeld.)*
 - [ ] Producten/prijzen aanmaken via de `manage-stripe-products`-functie (of het admin-dashboard)
 - [ ] iDEAL geactiveerd in het Stripe-dashboard
 - [ ] Test: één echte checkout in live-modus (klein bedrag) → `verify-payment` schrijft de betaling weg
+
+> **Betaal-beveiliging (in de code afgedekt).** Betaling wordt bevestigd doordat
+> `verify-payment` de Stripe-sessie terug-checkt. De sessie is strikt gebonden aan
+> één record (`metadata.booking_id` / `producer_booking_id`), het betaalde bedrag
+> wordt server-side gevalideerd tegen wat de boeking verschuldigd was, en bevestigen
+> gebeurt via een conditionele `pending_payment → confirmed` update. Partial-unique
+> indexes op `stripe_session_id` (bookings + producer_bookings) garanderen op
+> DB-niveau dat één sessie hooguit één record kan afrekenen. Een betaalde sessie kan
+> dus niet "hergebruikt" worden om een andere, onbetaalde boeking te bevestigen.
 
 ## 4. App-config seeden (`app_config`-tabel)
 De UI is config-gedreven. Deze rijen moeten gevuld zijn, anders zijn secties leeg
@@ -82,6 +92,7 @@ De UI is config-gedreven. Deze rijen moeten gevuld zijn, anders zijn secties lee
 - [ ] (Indien WhatsApp aan) test-reminder ontvangen
 
 ## 7. Bekende aandachtspunten (geen blokkers)
+- **Admin-betaallink** (`create-admin-payment-link`): de `success_url` bevat géén `session_id` en er is geen webhook, dus zo'n boeking wordt **niet** automatisch door `verify-payment` op `confirmed` gezet. Controleer vóór launch hoe deze boekingen bevestigd worden — waarschijnlijk zet het team ze handmatig op betaald in de admin-agenda. Als je ze automatisch wilt bevestigen, voeg dan `&session_id={CHECKOUT_SESSION_ID}&type=studio-booking` toe aan de success-URL én zet `metadata.user_id` in de sessie (nu ontbreekt die, waardoor de user-check in `verify-payment` zou falen).
 - **SEO deep-links**: de app gebruikt HashRouter (`/#/…`), dus zoekmachines indexeren alleen de homepage als losse pagina. De `sitemap.xml` lijst hash-URL's — voor volledige deep-link-SEO zou je naar BrowserRouter + SPA-fallback op de host moeten (grotere wijziging, ná launch te overwegen).
 - **Armeens (hy)**: ~30% van de strings valt terug op Engels (de rest is vertaald). Prima leesbaar; laat professioneel afmaken als Armeens belangrijk is, of haal de taal uit de kiezer.
 - **Service worker**: bump de cache-versie bij elke release (zie §0).
