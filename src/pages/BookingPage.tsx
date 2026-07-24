@@ -949,6 +949,9 @@ const BookingPage = () => {
                         onClick={() => {
                           if (hasCustomPrice) {
                             navigate("/request?type=business");
+                          } else if (isDisabled) {
+                            // Must accept the contract terms first
+                            return;
                           } else if (isCurrentPlan) {
                             // Already on this plan
                           } else if (hasStripeSubscription && isMember && (isUpgradeOption || isDowngradeOption)) {
@@ -957,10 +960,10 @@ const BookingPage = () => {
                             handleMembershipCheckout(plan.name);
                           }
                         }}
-                        disabled={isCurrentPlan || !!membershipLoading || !!upgradeLoading}
+                        disabled={isCurrentPlan || isDisabled || !!membershipLoading || !!upgradeLoading}
                         className={`w-full flex items-center gap-4 rounded-2xl bg-card border p-4 text-left transition-all active:scale-[0.99] ${
                           isCurrentPlan ? "border-success/50 bg-success/5" : isPreselected ? "border-primary/60 ring-2 ring-primary/40 bg-primary/5" : "border-border hover:border-primary/30"
-                        }`}
+                        } ${isDisabled ? "opacity-60" : ""}`}
                       >
 
                         <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${isCurrentPlan ? "bg-success/20" : plan.bg}`}>

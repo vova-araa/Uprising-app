@@ -27,6 +27,7 @@ const BookingModifyDialog = ({ open, onOpenChange, booking, onModified }: Props)
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false);
   const [conflict, setConflict] = useState(false);
+  const [availCheckFailed, setAvailCheckFailed] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -46,11 +47,19 @@ const BookingModifyDialog = ({ open, onOpenChange, booking, onModified }: Props)
     const checkAvail = async () => {
       setChecking(true);
       setConflict(false);
+      setAvailCheckFailed(false);
       try {
-        const { data } = await supabase.rpc("get_booking_availability", {
+        const { data, error: availErr } = await supabase.rpc("get_booking_availability", {
           target_date: date,
           target_studio_id: studioId,
         });
+        if (availErr) {
+          // Couldn't verify the slot — don't silently pretend it's free. Surface a
+          // soft warning; the DB exclusion constraint still blocks a real clash on save.
+          console.error("Availability check failed", availErr);
+          setAvailCheckFailed(true);
+          return;
+        }
         const existing = (data || []).filter((b: any) => {
           // Exclude the current booking being modified
           if (booking && b.start_time === booking.start_time && b.duration_hours === booking.duration_hours && b.studio_id === booking.studio_id && date === booking.booking_date) {
@@ -104,7 +113,7 @@ const BookingModifyDialog = ({ open, onOpenChange, booking, onModified }: Props)
       if (insErr) {
         // Slot was taken between our check and the insert — put the original
         // booking back so the member doesn't lose their reservation.
-        await supabase.from("bookings").insert({
+        const { error: restoreErr } = await supabase.from("bookings").insert({
           user_id: booking.user_id,
           studio_id: booking.studio_id,
           booking_date: booking.booking_date,
@@ -115,6 +124,14 @@ const BookingModifyDialog = ({ open, onOpenChange, booking, onModified }: Props)
           total_price: booking.total_price ?? 0,
           notes: booking.notes,
         });
+        // If the restore also failed the original booking is genuinely gone —
+        // be explicit and tell the member to contact us, never claim it's safe.
+        if (restoreErr) {
+          console.error("Booking modify: restore of original booking failed", restoreErr);
+          throw new Error(
+            "Wijzigen is mislukt en je oorspronkelijke boeking kon niet automatisch worden hersteld. Neem direct contact met ons op — we zetten hem voor je terug.",
+          );
+        }
         if ((insErr as { code?: string }).code === "23P01") {
           throw new Error("Dit tijdslot is net bezet geraakt. Je oorspronkelijke boeking blijft staan.");
         }
@@ -204,6 +221,11 @@ const BookingModifyDialog = ({ open, onOpenChange, booking, onModified }: Props)
         {conflict && !checking && (
           <div className="rounded-lg bg-destructive/10 border border-destructive/30 p-3 text-xs text-destructive">
             Dit tijdslot is niet beschikbaar. Kies een andere tijd of datum.
+          </div>
+        )}
+        {availCheckFailed && !checking && !conflict && (
+          <div className="rounded-lg bg-warning/10 border border-warning/30 p-3 text-xs text-warning">
+            We konden de beschikbaarheid nu niet controleren. Je kunt opslaan, maar we bevestigen pas bij het opslaan of het tijdslot vrij is.
           </div>
         )}
         {error && (

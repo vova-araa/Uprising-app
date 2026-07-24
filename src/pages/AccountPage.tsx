@@ -239,16 +239,22 @@ const AccountPage = () => {
           toast.error(t("paymentNotVerified"));
         }
       } else {
-        // No session_id — check for pending member bookings (free, already confirmed by backend)
-        const { data: pendingBookings } = await supabase
+        // No session_id — a member's free booking (already confirmed by the backend).
+        // Only confirm one that was *just* created, so we never falsely mark an older,
+        // unrelated pending booking as confirmed.
+        const { data: pendingBookings, error: pendingErr } = await supabase
           .from("bookings")
-          .select("id, studio_id, status")
+          .select("id, studio_id, status, created_at")
           .eq("status", "pending")
           .order("created_at", { ascending: false })
           .limit(1);
-        if (pendingBookings && pendingBookings.length > 0) {
-          toast.success(t("bookingConfirmed"));
-          loadBookings();
+        if (!pendingErr && pendingBookings && pendingBookings.length > 0) {
+          const created = new Date(pendingBookings[0].created_at).getTime();
+          const isRecent = Number.isFinite(created) && Date.now() - created < 5 * 60_000;
+          if (isRecent) {
+            toast.success(t("bookingConfirmed"));
+            loadBookings();
+          }
         }
       }
       navigate("/account", { replace: true });
@@ -297,10 +303,19 @@ const AccountPage = () => {
   const loadBookings = async () => {
     if (!user) return;
     setBookingsLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("bookings")
       .select("*")
       .order("booking_date", { ascending: true });
+    // On a read error, keep whatever bookings we already have on screen instead of
+    // wiping the list to an empty "no bookings" state (which would hide a real
+    // booking the user still needs to cancel/modify). Realtime re-runs this on every
+    // change, so a single transient failure must not blank the UI.
+    if (error) {
+      console.error("loadBookings failed", error);
+      setBookingsLoading(false);
+      return;
+    }
     setDbBookings(data || []);
     setBookingsLoading(false);
     // Which of these bookings the user already reviewed (to relabel the button).
@@ -310,8 +325,13 @@ const AccountPage = () => {
 
   const loadStats = async () => {
     if (!user) return;
-    const { data: allBookings } = await supabase.from("bookings").select("booking_date, duration_hours, status");
-    const { data: allProjects } = await supabase.from("projects").select("status");
+    const { data: allBookings, error: bookingsErr } = await supabase.from("bookings").select("booking_date, duration_hours, status");
+    const { data: allProjects, error: projectsErr } = await supabase.from("projects").select("status");
+    // Don't zero out an active user's stat tiles on a transient read error.
+    if (bookingsErr || projectsErr) {
+      console.error("loadStats failed", bookingsErr || projectsErr);
+      return;
+    }
 
     // Exclude cancelled bookings from all aggregates so cancelled sessions
     // don't inflate the stat tiles.
