@@ -273,6 +273,27 @@ serve(async (req) => {
         metadata.style = booking_data.style || "";
         metadata.reference = booking_data.reference || "";
         metadata.turnaround = booking_data.turnaround === "fast" ? "fast" : "standard";
+      } else if (booking_data.type === "producer-session") {
+        // Bind this checkout to the specific producer booking so verify-payment
+        // marks exactly that booking paid (no blind "latest pending" match).
+        // Require it and confirm the booking belongs to this user.
+        const producerBookingId = booking_data.producer_booking_id;
+        if (!producerBookingId) {
+          return new Response(JSON.stringify({ error: "Missing producer_booking_id" }), {
+            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        const { data: pb } = await supabaseAdmin
+          .from("producer_bookings")
+          .select("id, user_id")
+          .eq("id", producerBookingId)
+          .maybeSingle();
+        if (!pb || pb.user_id !== user.id) {
+          return new Response(JSON.stringify({ error: "Invalid producer booking" }), {
+            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        metadata.producer_booking_id = producerBookingId;
       }
 
       const session = await stripe.checkout.sessions.create({

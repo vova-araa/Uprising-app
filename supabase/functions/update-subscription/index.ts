@@ -232,8 +232,19 @@ serve(async (req) => {
           customer: customerId,
           auto_advance: true,
         });
-        await stripe.invoices.pay(invoice.id);
-        logStep("Difference charged", { invoiceId: invoice.id, amount: diffCents });
+        const paid = await stripe.invoices.pay(invoice.id);
+        logStep("Difference invoice pay attempted", { invoiceId: invoice.id, amount: diffCents, status: paid.status });
+
+        // Only proceed with the upgrade if the top-up actually settled. For
+        // async methods (iDEAL) pay() can return open/processing — switching the
+        // plan then would grant the higher tier without the charge clearing.
+        if (paid.status !== "paid") {
+          logStep("Difference not settled — upgrade aborted", { invoiceId: invoice.id, status: paid.status });
+          return new Response(
+            JSON.stringify({ error: "De bijbetaling is nog niet voltooid. Probeer het later opnieuw of gebruik een andere betaalmethode." }),
+            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
       }
 
       // Switch the subscription without proration (already charged the difference)

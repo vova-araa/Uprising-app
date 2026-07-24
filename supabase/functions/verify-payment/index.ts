@@ -120,11 +120,27 @@ serve(async (req) => {
       if (giftCardId) {
         const { data: gc } = await supabaseAdmin.from("gift_cards").select("*").eq("id", giftCardId).eq("status", "pending").maybeSingle();
         if (gc) {
-          // Generate a readable, unique code
+          // Generate a readable, unique code. gift_cards.code is UNIQUE, so retry
+          // on the (astronomically rare) collision instead of leaving the card
+          // stuck in 'pending' with no code.
           const digits = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
           const seg = () => Array.from(crypto.getRandomValues(new Uint8Array(4))).map((b) => digits[b % digits.length]).join("");
-          const code = `GIFT-${seg()}-${seg()}`;
-          await supabaseAdmin.from("gift_cards").update({ code, status: "active" }).eq("id", gc.id);
+          let code = "";
+          let activated = false;
+          for (let attempt = 0; attempt < 5 && !activated; attempt++) {
+            code = `GIFT-${seg()}-${seg()}`;
+            const { error: codeErr } = await supabaseAdmin.from("gift_cards").update({ code, status: "active" }).eq("id", gc.id);
+            if (!codeErr) { activated = true; break; }
+            if (codeErr.code !== "23505") { // not a unique violation → real error, stop
+              logStep("Gift card activation failed", { giftCardId: gc.id, error: codeErr.message });
+              break;
+            }
+          }
+          if (!activated) {
+            return new Response(JSON.stringify({ verified: false, error: "Gift card activation failed" }), {
+              status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
 
           const { data: buyer } = await supabaseAdmin.from("profiles").select("full_name, email").eq("id", gc.purchaser_user_id).single();
           const buyerName = buyer?.full_name || "Iemand";
@@ -153,22 +169,51 @@ serve(async (req) => {
       return new Response(JSON.stringify({ verified: true, type: "gift-card" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Handle producer-session: mark booking as paid
+    // Handle producer-session: mark the ONE booking this session paid for.
     if (paymentType === "producer-session") {
-      const { data: pendingProducer } = await supabaseAdmin
-        .from("producer_bookings")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("status", "pending")
-        .is("stripe_session_id", null)
-        .order("created_at", { ascending: false })
-        .limit(1);
+      // Bound to a specific booking via metadata (set in create-checkout). We no
+      // longer blind-match "the latest pending booking", which let one paid
+      // session mark multiple bookings paid on replay.
+      const producerBookingId = session.metadata?.producer_booking_id;
+      if (!producerBookingId) {
+        logStep("Producer session: no producer_booking_id in metadata — nothing to confirm");
+        return new Response(JSON.stringify({ verified: true, type: "producer-session" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
-      if (pendingProducer && pendingProducer.length > 0) {
-        await supabaseAdmin
-          .from("producer_bookings")
-          .update({ stripe_session_id: session_id })
-          .eq("id", pendingProducer[0].id);
+      const { data: pb0 } = await supabaseAdmin
+        .from("producer_bookings")
+        .select("id, user_id, stripe_session_id")
+        .eq("id", producerBookingId)
+        .maybeSingle();
+
+      if (!pb0 || pb0.user_id !== user.id) {
+        logStep("Producer booking not found or owner mismatch", { producerBookingId });
+        return new Response(JSON.stringify({ verified: pb0 ? false : true, ...(pb0 ? { error: "Unauthorized" } : {}) }), {
+          status: pb0 ? 403 : 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Idempotent, replay-safe: only stamp a not-yet-paid booking. A replay of
+      // the same session updates 0 rows; a *different* session on an already-paid
+      // booking is rejected below.
+      if (pb0.stripe_session_id && pb0.stripe_session_id !== session_id) {
+        logStep("Producer session binding mismatch (replay?)", { producerBookingId, bound: pb0.stripe_session_id });
+        return new Response(JSON.stringify({ verified: false, error: "Unauthorized" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: stampedRows } = await supabaseAdmin
+        .from("producer_bookings")
+        .update({ stripe_session_id: session_id })
+        .eq("id", producerBookingId)
+        .is("stripe_session_id", null)
+        .select("id");
+
+      const pendingProducer = stampedRows && stampedRows.length > 0 ? stampedRows : null;
+      if (pendingProducer) {
         logStep("Producer booking marked as paid", { bookingId: pendingProducer[0].id });
 
         // Notify admins about producer session
@@ -249,40 +294,80 @@ serve(async (req) => {
       }
     }
 
-    // Handle studio booking: confirm pending_payment booking
+    // Handle studio booking: confirm the ONE booking this session paid for.
     if (paymentType === "studio-booking" || !paymentType) {
-      // Match by stripe_session_id first for precision, fallback to latest pending
+      // The session is bound to exactly one booking via metadata.booking_id
+      // (set in create-booking). We never fall back to "the user's latest
+      // pending booking" — that let a single paid session confirm a different,
+      // unpaid booking on replay.
       const bookingId = session.metadata?.booking_id;
-      let pendingBookings: any[] = [];
-
-      if (bookingId) {
-        const { data } = await supabaseAdmin
-          .from("bookings")
-          .select("id, studio_id, stripe_session_id")
-          .eq("id", bookingId)
-          .eq("status", "pending_payment")
-          .limit(1);
-        pendingBookings = data || [];
+      if (!bookingId) {
+        logStep("Studio booking: no booking_id in session metadata — nothing to confirm");
+        return new Response(JSON.stringify({ verified: true, type: "studio-booking" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
 
-      if (pendingBookings.length === 0) {
-        const { data } = await supabaseAdmin
-          .from("bookings")
-          .select("id, studio_id, stripe_session_id")
-          .eq("user_id", user.id)
-          .eq("status", "pending_payment")
-          .order("created_at", { ascending: false })
-          .limit(1);
-        pendingBookings = data || [];
+      const { data: booking } = await supabaseAdmin
+        .from("bookings")
+        .select("id, studio_id, user_id, status, total_price, wallet_applied, stripe_session_id")
+        .eq("id", bookingId)
+        .maybeSingle();
+
+      if (!booking) {
+        logStep("Studio booking not found", { bookingId });
+        return new Response(JSON.stringify({ verified: true, type: "studio-booking" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
 
-      if (pendingBookings && pendingBookings.length > 0) {
-        const b = pendingBookings[0];
-        await supabaseAdmin
-          .from("bookings")
-          .update({ status: "confirmed", stripe_session_id: session_id, updated_at: new Date().toISOString() })
-          .eq("id", b.id);
+      // The booking must belong to the paying user.
+      if (booking.user_id !== user.id) {
+        logStep("Booking owner mismatch", { bookingId, owner: booking.user_id, requestUser: user.id });
+        return new Response(JSON.stringify({ verified: false, error: "Unauthorized" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
+      // Anti-replay: this booking was created with a specific session id. A
+      // different (old, already-paid) session may not confirm it.
+      if (booking.stripe_session_id && booking.stripe_session_id !== session_id) {
+        logStep("Session/booking binding mismatch (replay?)", { bookingId, bound: booking.stripe_session_id, got: session_id });
+        return new Response(JSON.stringify({ verified: false, error: "Unauthorized" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // The amount actually paid must equal what this booking owed
+      // (full price minus any wallet credit applied at creation).
+      const expectedAmount = Math.round((Number(booking.total_price || 0) - Number(booking.wallet_applied || 0)) * 100);
+      if ((session.amount_total || 0) !== expectedAmount) {
+        logStep("Amount mismatch", { bookingId, expected: expectedAmount, got: session.amount_total });
+        return new Response(JSON.stringify({ verified: false, error: "Payment amount mismatch" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Race-safe, idempotent confirm: only a pending_payment -> confirmed
+      // transition proceeds. A concurrent call (Stripe redirect + manual
+      // refresh) that loses the race updates 0 rows and skips the side effects,
+      // so notifications/Nuki/Zapier fire exactly once.
+      const { data: confirmedRows } = await supabaseAdmin
+        .from("bookings")
+        .update({ status: "confirmed", stripe_session_id: session_id, updated_at: new Date().toISOString() })
+        .eq("id", booking.id)
+        .eq("status", "pending_payment")
+        .select("id");
+
+      if (!confirmedRows || confirmedRows.length === 0) {
+        logStep("Booking already confirmed (idempotent no-op)", { bookingId: booking.id });
+        return new Response(JSON.stringify({ verified: true, type: "studio-booking" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      {
+        const b = booking;
         // Fetch booking details for notification
         const { data: bookingDetails } = await supabaseAdmin
           .from("bookings")

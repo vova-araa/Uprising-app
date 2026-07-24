@@ -70,13 +70,13 @@ const ProducerBookingPage = () => {
 
     setIsLoading(true);
     try {
-      const { error: bookingError } = await (supabase as any).from("producer_bookings").insert({
+      const { data: newBooking, error: bookingError } = await (supabase as any).from("producer_bookings").insert({
         user_id: user.id,
         preferred_date: format(date, "yyyy-MM-dd"),
         preferred_time: time,
         description,
         status: "pending",
-      });
+      }).select("id").single();
 
       if (bookingError) throw bookingError;
 
@@ -84,6 +84,7 @@ const ProducerBookingPage = () => {
         body: {
           booking_data: {
             type: "producer-session",
+            producer_booking_id: newBooking.id,
             date: format(date, "yyyy-MM-dd"),
             time,
             amount: finalPrice,
