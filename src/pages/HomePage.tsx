@@ -200,29 +200,34 @@ const HomePage = () => {
 
       {/* Hero */}
       {visibleSections.some(s => s.id === "hero") && (
-      <motion.div variants={item} className="relative overflow-hidden lg:rounded-2xl lg:mx-8 lg:mt-4" style={{ height: "calc(320px + var(--safe-area-top))", paddingTop: "var(--safe-area-top)" }}>
-        <img src={heroImg} alt="Uprising Studio" className="absolute inset-0 h-full w-full object-cover" fetchPriority="high" decoding="async" width={1200} height={320} />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
+      <motion.div variants={item} className="relative overflow-hidden lg:rounded-3xl lg:mx-8 lg:mt-4" style={{ height: "calc(360px + var(--safe-area-top))", paddingTop: "var(--safe-area-top)" }}>
+        <img src={heroImg} alt="Uprising Studio" className="absolute inset-0 h-full w-full object-cover scale-105" fetchPriority="high" decoding="async" width={1200} height={360} />
+        {/* Cinematic grade: bottom-up dark lift + purple studio glow + side vignette */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/78 to-background/10" />
+        <div className="absolute inset-0" style={{ background: "radial-gradient(120% 80% at 82% 8%, hsl(272 96% 58% / 0.42), transparent 55%)" }} />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, hsl(250 30% 4% / 0.55), transparent 30%, transparent 78%, hsl(250 30% 4% / 0.5))" }} />
         <div className="absolute bottom-6 left-5 right-5 lg:left-10 lg:right-10 lg:bottom-10 z-10">
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
-            className="uppercase tracking-wider mb-1 text-xl lg:text-2xl font-bold text-white">
+          <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+            className="inline-flex items-center gap-2 uppercase tracking-[0.18em] mb-2.5 text-[11px] lg:text-xs font-bold text-white/85">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-glow" />
             {user?.user_metadata?.full_name
               ? `${t("welcome")}, ${user.user_metadata.full_name}`
               : t("yourCreativePlatform")}
           </motion.p>
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-3xl lg:text-5xl font-bold font-display leading-tight">
+            className="text-[2.6rem] leading-[0.95] lg:text-6xl font-extrabold font-display tracking-[-0.02em] text-white"
+            style={{ textShadow: "0 2px 24px hsl(272 92% 30% / 0.55), 0 1px 2px hsl(0 0% 0% / 0.4)" }}>
             {lang === "nl" ? heroContent.titleNl : heroContent.titleEn}
           </motion.h1>
           <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.5 }}
-            className="mt-2 max-w-[280px] lg:max-w-[420px] text-white text-base lg:text-lg">
+            className="mt-3 max-w-[290px] lg:max-w-[440px] text-white/80 text-[15px] lg:text-lg leading-snug">
             {t(heroContent.subtitleKey as any)}
           </motion.p>
           <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.4 }}
             onClick={() => navigate(heroContent.ctaPath)}
-            className="mt-4 flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 lg:px-6 lg:py-3 text-sm lg:text-base font-semibold text-primary-foreground active:scale-[0.97] lg:hover:bg-primary/90 lg:hover:scale-[1.02] transition-all">
+            className="btn-glow mt-5 inline-flex items-center gap-2 rounded-2xl px-6 py-3 lg:px-7 lg:py-3.5 text-sm lg:text-base font-bold text-primary-foreground active:scale-[0.97] lg:hover:scale-[1.03] transition-transform">
             {t(heroContent.ctaLabelKey as any)}
-            <ArrowRight size={16} />
+            <ArrowRight size={17} strokeWidth={2.5} />
           </motion.button>
         </div>
       </motion.div>
@@ -231,9 +236,12 @@ const HomePage = () => {
       <div className="px-5 lg:px-8 space-y-7 mt-6">
         {/* What can you do here? — clear capability overview for every visitor */}
         <motion.section variants={item}>
-          <h2 className="text-lg font-bold font-display leading-tight">{t("capsTitle")}</h2>
-          <p className="text-xs text-muted-foreground mt-1 mb-3">{t("capsSubtitle")}</p>
-          <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-3">
+          <div className="flex items-center gap-2.5 mb-1">
+            <span className="h-5 w-1 rounded-full accent-bar" />
+            <h2 className="text-xl font-extrabold font-display leading-tight tracking-[-0.01em]">{t("capsTitle")}</h2>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1 mb-4 pl-3.5">{t("capsSubtitle")}</p>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
             {[
               { icon: Mic, label: t("cap1Label"), desc: t("cap1Desc"), path: "/book?type=studio" },
               { icon: Camera, label: t("cap2Label"), desc: t("cap2Desc"), path: "/diensten/content" },
@@ -243,13 +251,13 @@ const HomePage = () => {
               { icon: Crown, label: t("cap6Label"), desc: t("cap6Desc"), path: "/diensten/memberships" },
             ].map((c) => (
               <button key={c.label} onClick={() => navigate(c.path)}
-                className="group flex flex-col gap-2 rounded-2xl card-premium border border-border p-3.5 text-left transition-all hover:border-primary/40 active:scale-[0.98]">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15">
-                  <c.icon size={17} className="text-primary" />
+                className="group flex flex-col gap-3 rounded-2xl card-feature border border-white/5 p-4 text-left transition-all duration-200 hover:border-primary/40 hover:-translate-y-0.5 active:scale-[0.98]">
+                <div className="icon-tile flex h-11 w-11 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105">
+                  <c.icon size={20} className="text-white" strokeWidth={2.2} />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold font-display leading-tight">{c.label}</p>
-                  <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">{c.desc}</p>
+                  <p className="text-[15px] font-bold font-display leading-tight">{c.label}</p>
+                  <p className="text-[11.5px] text-muted-foreground leading-snug mt-1">{c.desc}</p>
                 </div>
               </button>
             ))}
