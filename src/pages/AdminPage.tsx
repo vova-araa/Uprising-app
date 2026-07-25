@@ -701,65 +701,83 @@ const AdminPage = () => {
             {/* ===== OVERVIEW ===== */}
             {activeTab === "overview" && (
               <>
+                {/* KPI overview — lead with the numbers */}
                 <motion.div variants={item}>
-                  <button onClick={() => navigate("/planning")}
-                    className="w-full flex items-center gap-3 rounded-xl bg-primary/10 border border-primary/20 p-4 text-left transition-all hover:bg-primary/20 active:scale-[0.98]">
-                    <CalendarClock size={20} className="text-primary" />
-                    <div className="flex-1">
-                      <span className="text-sm font-semibold text-primary">Planning & Kalender</span>
-                      <p className="text-[10px] text-muted-foreground">{lang === "nl" ? "Sessies inplannen & beheren" : "Schedule & manage sessions"}</p>
-                    </div>
-                    <ChevronRight size={16} className="text-primary" />
-                  </button>
-                </motion.div>
-
-                <motion.div variants={item}>
-                  <button onClick={() => navigate("/admin-taken")}
-                    className="w-full flex items-center gap-3 rounded-xl bg-primary/10 border border-primary/20 p-4 text-left transition-all hover:bg-primary/20 active:scale-[0.98]">
-                    <Bell size={20} className="text-primary" />
-                    <div className="flex-1">
-                      <span className="text-sm font-semibold text-primary">Taken Uprising</span>
-                      <p className="text-[10px] text-muted-foreground">Microsoft To Do-stijl takenbeheer</p>
-                    </div>
-                    <ChevronRight size={16} className="text-primary" />
-                  </button>
-                </motion.div>
-
-                <motion.div variants={item}>
-                  <button onClick={() => navigate("/admin-faciliteiten")}
-                    className="w-full flex items-center gap-3 rounded-xl bg-primary/10 border border-primary/20 p-4 text-left transition-all hover:bg-primary/20 active:scale-[0.98]">
-                    <Package size={20} className="text-primary" />
-                    <div className="flex-1">
-                      <span className="text-sm font-semibold text-primary">Schoonmaak & Inventaris</span>
-                      <p className="text-[10px] text-muted-foreground">Schoonmaak, inventarisatie & vendingmachine</p>
-                    </div>
-                    <ChevronRight size={16} className="text-primary" />
-                  </button>
-                </motion.div>
-
-                <motion.div variants={item} className="grid grid-cols-2 gap-3">
-                  {[
-                    { icon: Users, label: lang === "nl" ? "Totaal gebruikers" : "Total users", value: stats.totalUsers.toString() },
-                    { icon: UserCheck, label: lang === "nl" ? "Actief (30 dagen)" : "Active (30 days)", value: stats.activeUsersLast30.toString() },
-                    { icon: Calendar, label: lang === "nl" ? "Boekingen deze maand" : "Bookings this month", value: stats.bookingsThisMonth.toString() },
-                    { icon: CreditCard, label: lang === "nl" ? "Totale omzet" : "Total revenue", value: `€${stats.totalRevenue}` },
-                  ].map((stat) => (
-                    <div key={stat.label} className="rounded-xl bg-card border border-border p-4">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/20 mb-3">
-                        <stat.icon size={18} className="text-primary" />
+                  <div className="flex items-center gap-2.5 mb-3">
+                    <span className="h-5 w-1 rounded-full accent-bar" />
+                    <h2 className="text-lg font-extrabold font-display tracking-[-0.01em]">{lang === "nl" ? "Overzicht" : "Overview"}</h2>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { icon: Users, label: lang === "nl" ? "Totaal gebruikers" : "Total users", value: stats.totalUsers.toString(), accent: "text-foreground" },
+                      { icon: UserCheck, label: lang === "nl" ? "Actief (30 dagen)" : "Active (30 days)", value: stats.activeUsersLast30.toString(), accent: "text-foreground" },
+                      { icon: Calendar, label: lang === "nl" ? "Boekingen deze maand" : "Bookings this month", value: stats.bookingsThisMonth.toString(), accent: "text-foreground" },
+                      { icon: CreditCard, label: lang === "nl" ? "Totale omzet" : "Total revenue", value: `€${stats.totalRevenue}`, accent: "text-success" },
+                    ].map((stat) => (
+                      <div key={stat.label} className="rounded-2xl card-feature border border-white/5 p-4">
+                        <div className="icon-tile flex h-10 w-10 items-center justify-center rounded-xl mb-3">
+                          <stat.icon size={18} className="text-white" strokeWidth={2.2} />
+                        </div>
+                        <p className={`text-[26px] font-extrabold font-display leading-none tabular-nums ${stat.accent}`}>{stat.value}</p>
+                        <p className="text-[11px] text-muted-foreground mt-1.5">{stat.label}</p>
                       </div>
-                      <p className="text-2xl font-bold font-display">{stat.value}</p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">{stat.label}</p>
-                    </div>
+                    ))}
+                  </div>
+                </motion.div>
+
+                {/* Pending actions — what needs attention, up top */}
+                <motion.div variants={item} className="rounded-2xl card-feature border border-white/5 p-4">
+                  <h3 className="font-bold font-display text-sm mb-3">
+                    {lang === "nl" ? "Openstaande acties" : "Pending actions"}
+                  </h3>
+                  <div className="space-y-2">
+                    {[
+                      { label: lang === "nl" ? "Boekingen wachtend" : "Bookings pending", count: stats.pendingBookings, tab: "bookings" as Tab },
+                      { label: lang === "nl" ? "Producer aanvragen" : "Producer requests", count: stats.pendingProducer, tab: "producer" as Tab },
+                      { label: lang === "nl" ? "Content aanvragen" : "Content requests", count: stats.pendingRequests, tab: "requests" as Tab },
+                      { label: lang === "nl" ? "Actieve projecten" : "Active projects", count: stats.activeProjects, tab: "projects" as Tab },
+                    ].map((action) => (
+                      <button key={action.label} onClick={() => handleTabChange(action.tab)}
+                        className="flex w-full items-center justify-between rounded-xl bg-secondary/60 p-3 text-left transition-all hover:bg-secondary active:scale-[0.99]">
+                        <span className="text-sm font-medium">{action.label}</span>
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-xs font-bold tabular-nums ${action.count > 0 ? "bg-warning/20 text-warning" : "bg-muted text-muted-foreground"}`}>
+                            {action.count}
+                          </span>
+                          <ChevronRight size={14} className="text-muted-foreground" />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+
+                {/* Primary management shortcuts */}
+                <motion.div variants={item} className="grid gap-2.5">
+                  {[
+                    { icon: CalendarClock, label: "Planning & Kalender", desc: lang === "nl" ? "Sessies inplannen & beheren" : "Schedule & manage sessions", path: "/planning" },
+                    { icon: Bell, label: "Taken Uprising", desc: lang === "nl" ? "Microsoft To Do-stijl takenbeheer" : "Microsoft To Do-style task management", path: "/admin-taken" },
+                    { icon: Package, label: lang === "nl" ? "Schoonmaak & Inventaris" : "Cleaning & Inventory", desc: lang === "nl" ? "Schoonmaak, inventarisatie & vending" : "Cleaning, inventory & vending", path: "/admin-faciliteiten" },
+                  ].map((s) => (
+                    <button key={s.label} onClick={() => navigate(s.path)}
+                      className="group flex items-center gap-3.5 rounded-2xl card-feature border border-white/5 p-3.5 text-left transition-all hover:border-primary/40 hover:-translate-y-0.5 active:scale-[0.99]">
+                      <div className="icon-tile flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-transform group-hover:scale-105">
+                        <s.icon size={19} className="text-white" strokeWidth={2.1} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="block text-sm font-bold font-display">{s.label}</span>
+                        <span className="block text-[11px] text-muted-foreground leading-snug mt-0.5">{s.desc}</span>
+                      </div>
+                      <ChevronRight size={16} className="text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
+                    </button>
                   ))}
                 </motion.div>
 
                 {/* Quick access to management areas */}
                 <motion.div variants={item}>
-                  <h3 className="font-semibold font-display text-sm mb-3 text-muted-foreground uppercase tracking-wider">
+                  <h3 className="font-bold font-display text-xs mb-3 text-muted-foreground uppercase tracking-[0.14em]">
                     {lang === "nl" ? "Snel naar" : "Quick access"}
                   </h3>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
                     {[
                       { label: "Insights", icon: TrendingUp, tab: "insights" as Tab },
                       { label: lang === "nl" ? "Kalender" : "Calendar", icon: CalendarClock, path: "/planning" },
@@ -771,36 +789,11 @@ const AdminPage = () => {
                       { label: "Config", icon: Settings, tab: "config" as Tab },
                     ].map((s) => (
                       <button key={s.label} onClick={() => (s.path ? navigate(s.path) : handleTabChange(s.tab!))}
-                        className="flex flex-col items-center gap-2 rounded-xl bg-card border border-border p-3 text-center transition-all hover:border-primary/40 hover:shadow-glow active:scale-[0.98]">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15">
-                          <s.icon size={16} className="text-primary" />
+                        className="flex flex-col items-center gap-2 rounded-2xl card-feature border border-white/5 p-3 text-center transition-all hover:border-primary/40 hover:-translate-y-0.5 active:scale-[0.98]">
+                        <div className="icon-tile flex h-10 w-10 items-center justify-center rounded-xl">
+                          <s.icon size={17} className="text-white" strokeWidth={2.1} />
                         </div>
-                        <span className="text-[10px] font-medium leading-tight">{s.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-
-                <motion.div variants={item} className="rounded-xl bg-card border border-border p-5">
-                  <h3 className="font-semibold font-display text-sm mb-3">
-                    {lang === "nl" ? "Openstaande acties" : "Pending actions"}
-                  </h3>
-                  <div className="space-y-2">
-                    {[
-                      { label: lang === "nl" ? "Boekingen wachtend" : "Bookings pending", count: stats.pendingBookings, tab: "bookings" as Tab },
-                      { label: lang === "nl" ? "Producer aanvragen" : "Producer requests", count: stats.pendingProducer, tab: "producer" as Tab },
-                      { label: lang === "nl" ? "Content aanvragen" : "Content requests", count: stats.pendingRequests, tab: "requests" as Tab },
-                      { label: lang === "nl" ? "Actieve projecten" : "Active projects", count: stats.activeProjects, tab: "projects" as Tab },
-                    ].map((action) => (
-                      <button key={action.label} onClick={() => handleTabChange(action.tab)}
-                        className="flex w-full items-center justify-between rounded-lg bg-secondary p-3 text-left transition-all hover:bg-secondary/80">
-                        <span className="text-sm">{action.label}</span>
-                        <div className="flex items-center gap-2">
-                          <span className={`text-sm font-bold ${action.count > 0 ? "text-warning" : "text-muted-foreground"}`}>
-                            {action.count}
-                          </span>
-                          <ChevronRight size={14} className="text-muted-foreground" />
-                        </div>
+                        <span className="text-[10px] font-semibold leading-tight">{s.label}</span>
                       </button>
                     ))}
                   </div>

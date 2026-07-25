@@ -8,7 +8,7 @@ import {
   Calendar, Clock, User, Navigation, Timer, LogOut, Globe, ChevronRight,
   Layers, Music, Mic, TrendingUp, FileAudio, Loader2, LayoutDashboard,
   Gift, Copy, Users, Check, Crown, CreditCard, XCircle, ExternalLink, Camera, BookOpen, AlertTriangle, Upload, Bell,
-  Trash2, Pencil, Info, Star, Video, Sparkles, CalendarPlus
+  Trash2, Pencil, Info, Star, Video, Sparkles, CalendarPlus, DoorOpen, MapPin
 } from "lucide-react";
 import { downloadBookingICS } from "@/lib/calendar";
 import NukiAccessButton from "@/components/NukiAccessButton";
@@ -747,7 +747,7 @@ const AccountPage = () => {
 
       {/* Profile Card */}
       <div className="px-5 mt-2">
-        <div className="rounded-xl bg-card border border-border p-4 flex items-center gap-4" data-toast-section>
+        <div className="rounded-2xl card-feature border border-white/5 p-4 flex items-center gap-4" data-toast-section>
           <button onClick={handleAvatarUpload} className="relative shrink-0" disabled={uploadingAvatar}>
             <Avatar className="h-14 w-14">
               {avatarUrl ? (
@@ -778,7 +778,7 @@ const AccountPage = () => {
           {tabs.map((tab) => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold whitespace-nowrap transition-all ${
-                activeTab === tab.id ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
+                activeTab === tab.id ? "btn-glow text-primary-foreground" : "bg-secondary text-muted-foreground"
               }`}>
               <tab.icon size={14} />
               {tab.label}
@@ -791,6 +791,70 @@ const AccountPage = () => {
         {/* ===== DASHBOARD TAB ===== */}
         {activeTab === "dashboard" && (
           <>
+            {/* Direct toegang — volgende sessie + deur openen, bovenaan het dashboard */}
+            <motion.div variants={item}>
+              {nextBooking ? (
+                <div className="card-feature rounded-2xl border border-white/5 p-4" data-toast-section>
+                  <div className="flex items-center gap-3">
+                    <div className="icon-tile flex h-12 w-12 shrink-0 items-center justify-center rounded-xl">
+                      <DoorOpen size={22} className="text-white" strokeWidth={2.1} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">
+                        {lang === "nl" ? "Volgende sessie" : "Next session"}
+                      </p>
+                      <p className="text-base font-bold font-display leading-tight truncate">{getStudioName(nextBooking.studio_id)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(nextBooking.booking_date), "EEE d MMM", { locale })} • {nextBooking.start_time} • {nextBooking.duration_hours}u
+                      </p>
+                    </div>
+                    <button onClick={() => setActiveTab("bookings")} aria-label={t("bookingsTab")}
+                      className="shrink-0 flex h-8 w-8 items-center justify-center rounded-lg bg-secondary/70 text-muted-foreground active:scale-95">
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 mt-2.5 text-[11px] text-muted-foreground">
+                    <MapPin size={12} className="text-primary" /> Spaceshuttle 6e, Amersfoort
+                  </div>
+
+                  {/* Deurtoegang inline — toont de ontgrendelknoppen zodra de sessie actief is */}
+                  <NukiAccessButton
+                    bookingId={nextBooking.id}
+                    bookingDate={nextBooking.booking_date}
+                    startTime={nextBooking.start_time}
+                    durationHours={nextBooking.duration_hours}
+                    status={nextBooking.status}
+                  />
+
+                  <div className="grid grid-cols-2 gap-2 mt-3">
+                    <button
+                      onClick={() => downloadBookingICS(nextBooking, `${getStudioName(nextBooking.studio_id)} — Uprising Studio`, "Je sessie bij Uprising Studio. Adres: Spaceshuttle 6e, Amersfoort.")}
+                      className="flex items-center justify-center gap-1.5 rounded-lg bg-secondary/70 py-2.5 text-xs font-semibold text-foreground active:scale-[0.98]">
+                      <CalendarPlus size={13} /> {t("addToCalendarBtn")}
+                    </button>
+                    <button
+                      onClick={() => navigate("/spaces")}
+                      className="flex items-center justify-center gap-1.5 rounded-lg bg-secondary/70 py-2.5 text-xs font-semibold text-foreground active:scale-[0.98]">
+                      <Navigation size={13} /> {lang === "nl" ? "Route" : "Directions"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button onClick={() => navigate("/book")}
+                  className="card-feature w-full rounded-2xl border border-white/5 p-4 text-left flex items-center gap-3 active:scale-[0.99]">
+                  <div className="icon-tile flex h-12 w-12 shrink-0 items-center justify-center rounded-xl">
+                    <CalendarPlus size={22} className="text-white" strokeWidth={2.1} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-base font-bold font-display leading-tight">{lang === "nl" ? "Boek je volgende sessie" : "Book your next session"}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{lang === "nl" ? "Studio, contentruimte of producer — 24/7" : "Studio, content room or producer — 24/7"}</p>
+                  </div>
+                  <ChevronRight size={18} className="text-muted-foreground shrink-0" />
+                </button>
+              )}
+            </motion.div>
+
             {/* Blocked projects alert */}
             {projects.filter((p: any) => p.staff_notes).map((project: any) => (
               <motion.div key={`blocked-${project.id}`} variants={item} className="rounded-xl bg-warning/10 border border-warning/30 p-4">

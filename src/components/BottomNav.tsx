@@ -69,20 +69,23 @@ const BottomNav = () => {
               onFocus={() => prefetchRoute(item.path)}
               aria-label={item.label[lang] || item.label.en}
               aria-current={isActive ? "page" : undefined}
-              className="relative flex flex-1 flex-col items-center gap-0 px-1 py-1 transition-colors min-w-0 active:scale-95 active:opacity-80">
-              
+              className="relative flex flex-1 flex-col items-center gap-1 px-1 py-1 transition-colors min-w-0 active:scale-95 active:opacity-80">
+
               {isActive &&
               <div
                 className="absolute -top-2 h-0.5 w-8 rounded-full gradient-primary bg-primary animate-nav-indicator"
               />
               }
-              <item.icon
-                size={20}
-                className={isActive ? "text-[hsl(var(--nav-active))]" : "text-muted-foreground"} />
-              
+              <div className={`flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-200 ${isActive ? "bg-primary/15 shadow-glow" : ""}`}>
+                <item.icon
+                  size={20}
+                  strokeWidth={isActive ? 2.4 : 2}
+                  className={isActive ? "text-[hsl(var(--nav-active))]" : "text-muted-foreground"} />
+              </div>
+
               <span
-                className={`text-[10px] font-medium ${
-                isActive ? "text-[hsl(var(--nav-active))]" : "text-muted-foreground"}`
+                className={`text-[10px] leading-none ${
+                isActive ? "font-bold text-[hsl(var(--nav-active))]" : "font-medium text-muted-foreground"}`
                 }>
                 {item.label[lang] || item.label.en}
               </span>
