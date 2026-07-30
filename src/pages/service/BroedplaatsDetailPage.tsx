@@ -80,11 +80,11 @@ const BroedplaatsDetailPage = () => {
           {t("back")}
         </button>
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/20">
-            <Users size={28} className="text-primary" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl icon-tile">
+            <Users size={28} className="text-white" strokeWidth={2.1} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold font-display">{t("creativeHub")}</h1>
+            <h1 className="text-2xl font-extrabold font-display tracking-[-0.01em]">{t("creativeHub")}</h1>
             <p className="text-sm text-muted-foreground mt-0.5">{t("creativeDevForMakers")}</p>
           </div>
         </div>
@@ -92,7 +92,7 @@ const BroedplaatsDetailPage = () => {
 
       <motion.div variants={container} initial="hidden" animate="show" className="px-5 space-y-6">
         {/* Intro */}
-        <motion.div variants={item} className="rounded-2xl card-premium border border-border p-5">
+        <motion.div variants={item} className="rounded-2xl card-feature border border-white/5 p-5">
           <p className="text-sm text-muted-foreground leading-relaxed">
             {lang === "nl"
               ? "De Broedplaats is een creatieve ontwikkelplek waar makers samenkomen om zich te ontwikkelen in muziek, content en creatieve projecten. Iedereen kan deelnemen, met een speciale optie voor scholieren."
@@ -107,12 +107,15 @@ const BroedplaatsDetailPage = () => {
 
         {/* Activities — BIG ICON COLUMN */}
         <motion.div variants={item}>
-          <h3 className="font-semibold font-display text-sm mb-3 px-1">{t("youCanComeFor")}</h3>
+          <div className="flex items-center gap-2 mb-3 px-1">
+            <span className="h-5 w-1 rounded-full accent-bar" />
+            <h3 className="font-extrabold font-display text-sm tracking-[-0.01em]">{t("youCanComeFor")}</h3>
+          </div>
           <div className="grid grid-cols-3 gap-2">
             {activities.map((a) => (
-              <div key={a.nl} className="rounded-2xl card-premium border border-border p-4 text-center flex flex-col items-center gap-2">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/30 to-primary/5">
-                  <a.icon size={22} className="text-primary" strokeWidth={1.5} />
+              <div key={a.nl} className="rounded-2xl card-feature border border-white/5 p-4 text-center flex flex-col items-center gap-2 hover:-translate-y-0.5 transition-all">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl icon-tile">
+                  <a.icon size={22} className="text-white" strokeWidth={2.1} />
                 </div>
                 <span className="text-xs font-semibold leading-tight">{a[localizedLang]}</span>
               </div>
@@ -127,12 +130,12 @@ const BroedplaatsDetailPage = () => {
             <Sparkles size={16} className="text-primary/60" />
           </span>
           <div className="flex items-center gap-3 mb-3 relative">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/25 ring-1 ring-primary/40">
-              <BookOpen size={20} className="text-primary" />
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl icon-tile ring-1 ring-primary/40">
+              <BookOpen size={20} className="text-white" strokeWidth={2.1} />
             </div>
             <div>
               <p className="text-[10px] font-bold tracking-widest text-primary uppercase">{lang === "nl" ? "Maandelijks" : "Monthly"}</p>
-              <h3 className="font-bold font-display text-base">Workshops</h3>
+              <h3 className="font-extrabold font-display text-base tracking-[-0.01em]">Workshops</h3>
             </div>
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed relative">
@@ -144,15 +147,18 @@ const BroedplaatsDetailPage = () => {
 
         {/* App features — TIMELINE */}
         <motion.div variants={item}>
-          <h3 className="font-semibold font-display text-sm mb-3 px-1">{t("inTheAppYouCan")}</h3>
+          <div className="flex items-center gap-2 mb-3 px-1">
+            <span className="h-5 w-1 rounded-full accent-bar" />
+            <h3 className="font-extrabold font-display text-sm tracking-[-0.01em]">{t("inTheAppYouCan")}</h3>
+          </div>
           <div className="relative pl-1">
             {appFeatures.map((f, i) => {
               const isLast = i === appFeatures.length - 1;
               return (
                 <div key={i} className="relative flex items-start gap-3 pb-4 last:pb-0">
                   {!isLast && <span aria-hidden className="absolute left-[15px] top-8 bottom-0 w-px bg-gradient-to-b from-primary/40 to-primary/10" />}
-                  <div className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 ring-2 ring-primary/40">
-                    <f.icon size={14} className="text-primary" />
+                  <div className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full icon-tile ring-2 ring-primary/40">
+                    <f.icon size={14} className="text-white" strokeWidth={2.1} />
                   </div>
                   <p className="text-sm text-foreground/90 pt-1.5">{f[localizedLang]}</p>
                 </div>
@@ -163,7 +169,10 @@ const BroedplaatsDetailPage = () => {
 
         {/* Tiers — STACKED with ACCENT BAR */}
         <motion.div variants={item}>
-          <h3 className="font-semibold font-display text-sm mb-3 px-1">{t("broedplaatsMemberships")}</h3>
+          <div className="flex items-center gap-2 mb-3 px-1">
+            <span className="h-5 w-1 rounded-full accent-bar" />
+            <h3 className="font-extrabold font-display text-sm tracking-[-0.01em]">{t("broedplaatsMemberships")}</h3>
+          </div>
           <div className="space-y-2">
             {tiers.map((tier) => {
               const isCurrent = broedplaatsTier === tier.plan;
@@ -181,7 +190,7 @@ const BroedplaatsDetailPage = () => {
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <h4 className="font-bold font-display text-sm leading-tight">{tier.name[localizedLang]}</h4>
+                            <h4 className="font-extrabold font-display text-sm leading-tight tracking-[-0.01em]">{tier.name[localizedLang]}</h4>
                             {isCurrent && (
                               <span className="rounded-full bg-success/20 px-1.5 py-0.5 text-[9px] font-bold text-success">{t("currentPlan")}</span>
                             )}
@@ -214,7 +223,7 @@ const BroedplaatsDetailPage = () => {
         <motion.div variants={item}>
           <button
             onClick={() => navigate("/book")}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl gradient-primary py-4 text-sm font-bold text-primary-foreground shadow-glow active:scale-[0.98] transition-transform"
+            className="w-full flex items-center justify-center gap-2 rounded-2xl btn-glow py-4 text-sm font-extrabold text-primary-foreground active:scale-[0.98] hover:-translate-y-0.5 transition-all"
           >
             {t("chooseMembership")}
             <ChevronRight size={16} />

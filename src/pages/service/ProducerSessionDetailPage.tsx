@@ -38,11 +38,11 @@ const ProducerSessionDetailPage = () => {
           {t("back")}
         </button>
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/20">
-            <Music size={28} className="text-primary" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl icon-tile">
+            <Music size={28} className="text-white" strokeWidth={2.1} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold font-display">{t("producerSessionTitle")}</h1>
+            <h1 className="text-2xl font-extrabold font-display tracking-[-0.01em]">{t("producerSessionTitle")}</h1>
             <div className="flex items-center gap-2 mt-0.5">
               <p className="text-sm text-muted-foreground">{t("workTogetherTrack")}</p>
               <span className="text-[10px] font-semibold text-warning bg-warning/20 px-2 py-0.5 rounded-full">
@@ -55,7 +55,7 @@ const ProducerSessionDetailPage = () => {
 
       <motion.div variants={container} initial="hidden" animate="show" className="px-5 space-y-6">
         {/* Intro */}
-        <motion.div variants={item} className="rounded-2xl card-premium border border-border p-5">
+        <motion.div variants={item} className="rounded-2xl card-feature border border-white/5 p-5">
           <p className="text-sm text-muted-foreground leading-relaxed">
             {lang === "nl"
               ? "Tijdens een producer sessie werk je samen met een ervaren producer aan het maken van een volledige track. Samen werk je van idee tot een complete productie."
@@ -68,8 +68,11 @@ const ProducerSessionDetailPage = () => {
 
         {/* Pricing — COMPARISON BARS */}
         <motion.div variants={item}>
-          <h3 className="font-semibold font-display text-sm mb-3 px-1">{t("pricingLabel")}</h3>
-          <div className="rounded-2xl card-premium border border-border p-5 space-y-3">
+          <div className="flex items-center gap-2 mb-3 px-1">
+            <span className="h-5 w-1 rounded-full accent-bar" />
+            <h3 className="font-extrabold font-display text-sm tracking-[-0.01em]">{t("pricingLabel")}</h3>
+          </div>
+          <div className="rounded-2xl card-feature border border-white/5 p-5 space-y-3">
             {pricingRows.map((r) => {
               const widthPct = (r.price / basePrice) * 100;
               return (
@@ -105,14 +108,17 @@ const ProducerSessionDetailPage = () => {
 
         {/* Session parts — 2x2 BENTO */}
         <motion.div variants={item}>
-          <h3 className="font-semibold font-display text-sm mb-3 px-1">{t("sessionCanInclude")}</h3>
+          <div className="flex items-center gap-2 mb-3 px-1">
+            <span className="h-5 w-1 rounded-full accent-bar" />
+            <h3 className="font-extrabold font-display text-sm tracking-[-0.01em]">{t("sessionCanInclude")}</h3>
+          </div>
           <div className="grid grid-cols-2 gap-2">
             {sessionParts.map((sp, i) => (
-              <div key={sp.nl} className="relative rounded-2xl card-premium border border-border p-4 overflow-hidden">
+              <div key={sp.nl} className="relative rounded-2xl card-feature border border-white/5 p-4 overflow-hidden hover:-translate-y-0.5 transition-all">
                 <span aria-hidden className="absolute -bottom-4 -right-4 h-14 w-14 rounded-full bg-primary/10 blur-xl" />
                 <p className="text-[10px] font-bold tracking-widest text-primary/60 mb-2">0{i + 1}</p>
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/20 mb-3">
-                  <sp.icon size={16} className="text-primary" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl icon-tile mb-3">
+                  <sp.icon size={16} className="text-white" strokeWidth={2.1} />
                 </div>
                 <p className="text-sm font-semibold leading-tight">{sp[localizedLang]}</p>
               </div>
@@ -129,7 +135,7 @@ const ProducerSessionDetailPage = () => {
         <motion.div variants={item}>
           <button
             onClick={() => navigate("/producer-booking")}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl gradient-primary py-4 text-sm font-bold text-primary-foreground shadow-glow active:scale-[0.98] transition-transform"
+            className="w-full flex items-center justify-center gap-2 rounded-2xl btn-glow py-4 text-sm font-extrabold text-primary-foreground active:scale-[0.98] hover:-translate-y-0.5 transition-all"
           >
             {t("requestSession")}
             <ChevronRight size={16} />

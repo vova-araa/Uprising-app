@@ -633,7 +633,7 @@ const BookingPage = () => {
                   setPendingUpgrade(null);
                 }}
                 disabled={!!upgradeLoading}
-                className="flex-1 rounded-xl gradient-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground flex items-center justify-center gap-2 disabled:opacity-60">
+                className="flex-1 rounded-xl btn-glow px-4 py-2.5 text-sm font-semibold text-primary-foreground flex items-center justify-center gap-2 disabled:opacity-60">
                 {upgradeLoading ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                 {lang === "nl" ? "Bevestigen" : "Confirm"}
               </button>
@@ -706,7 +706,7 @@ const BookingPage = () => {
               {/* Direct booking services */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2 mb-1">
-                  <div className="h-5 w-1 rounded-full gradient-primary" />
+                  <span className="h-5 w-1 rounded-full accent-bar" />
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                     {t("bookDirectly")}
                   </h2>
@@ -714,13 +714,13 @@ const BookingPage = () => {
 
                 <button
                   onClick={() => setStep(1)}
-                  className="w-full flex items-center gap-4 rounded-2xl bg-card border border-border p-4 text-left transition-all hover:border-primary/30 active:scale-[0.99]"
+                  className="w-full flex items-center gap-4 rounded-2xl card-feature border border-white/5 p-4 text-left transition-all hover:border-primary/30 hover:-translate-y-0.5 active:scale-[0.99]"
                 >
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/20">
-                    <MapPin size={24} className="text-primary" />
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl icon-tile">
+                    <MapPin size={24} strokeWidth={2.1} className="text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold font-display text-base">{t("studioSession")}</h3>
+                    <h3 className="font-extrabold font-display tracking-[-0.01em] text-base">{t("studioSession")}</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">{t("bookRecordingRoom")}</p>
                     {isMember ? (
                       <p className="text-sm font-bold text-success mt-1 flex items-center gap-1"><Crown size={12} /> {t("included")}</p>
@@ -733,13 +733,13 @@ const BookingPage = () => {
 
                 <button
                   onClick={() => { setSelectedStudio("content-room"); setTimeout(() => setStep(2), 200); }}
-                  className="w-full flex items-center gap-4 rounded-2xl bg-card border border-border p-4 text-left transition-all hover:border-primary/30 active:scale-[0.99]"
+                  className="w-full flex items-center gap-4 rounded-2xl card-feature border border-white/5 p-4 text-left transition-all hover:border-primary/30 hover:-translate-y-0.5 active:scale-[0.99]"
                 >
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/20">
-                    <Camera size={24} className="text-primary" />
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl icon-tile">
+                    <Camera size={24} strokeWidth={2.1} className="text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold font-display text-base">Content Room</h3>
+                    <h3 className="font-extrabold font-display tracking-[-0.01em] text-base">Content Room</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">{t("photoVideoProduction")}</p>
                     {isMember ? (
                       <p className="text-sm font-bold text-success mt-1 flex items-center gap-1"><Crown size={12} /> {t("included")}</p>
@@ -752,13 +752,13 @@ const BookingPage = () => {
 
                 <button
                   onClick={() => navigate("/mix-master")}
-                  className="w-full flex items-center gap-4 rounded-2xl bg-card border border-border p-4 text-left transition-all hover:border-primary/30 active:scale-[0.99]"
+                  className="w-full flex items-center gap-4 rounded-2xl card-feature border border-white/5 p-4 text-left transition-all hover:border-primary/30 hover:-translate-y-0.5 active:scale-[0.99]"
                 >
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/20">
-                    <Sliders size={24} className="text-primary" />
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl icon-tile">
+                    <Sliders size={24} strokeWidth={2.1} className="text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold font-display text-base">Mix & Master</h3>
+                    <h3 className="font-extrabold font-display tracking-[-0.01em] text-base">Mix & Master</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">{t("professionalMixMaster")}</p>
                     {isMember && memberTier === "unlimited" ? (
                       <p className="text-sm font-bold text-primary mt-1">€120 {t("perTrack")} <span className="text-[10px] text-success font-semibold">(-20%)</span></p>
@@ -773,14 +773,14 @@ const BookingPage = () => {
 
                 <button
                   onClick={() => navigate("/producer-booking")}
-                  className="w-full flex items-center gap-4 rounded-2xl bg-card border border-border p-4 text-left transition-all hover:border-primary/30 active:scale-[0.99]"
+                  className="w-full flex items-center gap-4 rounded-2xl card-feature border border-white/5 p-4 text-left transition-all hover:border-primary/30 hover:-translate-y-0.5 active:scale-[0.99]"
                 >
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/20">
-                    <Music size={24} className="text-primary" />
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl icon-tile">
+                    <Music size={24} strokeWidth={2.1} className="text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-bold font-display text-base">{t("producerSession")}</h3>
+                      <h3 className="font-extrabold font-display tracking-[-0.01em] text-base">{t("producerSession")}</h3>
                       <span className="rounded-full bg-warning/20 px-2 py-0.5 text-[9px] font-semibold text-warning">
                         {t("onRequest")}
                       </span>
@@ -833,7 +833,7 @@ const BookingPage = () => {
                   className="w-full flex items-center justify-between mb-3 text-left"
                 >
                   <div className="flex items-center gap-2">
-                    <div className="h-5 w-1 rounded-full gradient-primary" />
+                    <span className="h-5 w-1 rounded-full accent-bar" />
                     <div>
                       <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Producer Memberships</h2>
                       {!showMemberships && (() => {
@@ -961,7 +961,7 @@ const BookingPage = () => {
                           }
                         }}
                         disabled={isCurrentPlan || isDisabled || !!membershipLoading || !!upgradeLoading}
-                        className={`w-full flex items-center gap-4 rounded-2xl bg-card border p-4 text-left transition-all active:scale-[0.99] ${
+                        className={`w-full flex items-center gap-4 rounded-2xl card-feature border border-white/5 p-4 text-left transition-all hover:-translate-y-0.5 active:scale-[0.99] ${
                           isCurrentPlan ? "border-success/50 bg-success/5" : isPreselected ? "border-primary/60 ring-2 ring-primary/40 bg-primary/5" : "border-border hover:border-primary/30"
                         } ${isDisabled ? "opacity-60" : ""}`}
                       >
@@ -971,7 +971,7 @@ const BookingPage = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <h3 className="font-bold font-display text-base">{plan.name}</h3>
+                            <h3 className="font-extrabold font-display tracking-[-0.01em] text-base">{plan.name}</h3>
                             {isCurrentPlan && (
                               <span className="rounded-full bg-success/20 px-2 py-0.5 text-[9px] font-bold text-success">
                                 {t("currentPlan")}
@@ -1023,7 +1023,7 @@ const BookingPage = () => {
                   className="w-full flex items-center justify-between mb-3 text-left"
                 >
                   <div className="flex items-center gap-2">
-                    <div className="h-5 w-1 rounded-full gradient-primary" />
+                    <span className="h-5 w-1 rounded-full accent-bar" />
                     <div>
                       <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                         {t("creativeHub")}
@@ -1068,7 +1068,7 @@ const BookingPage = () => {
                           }
                         }}
                         disabled={isCurrentBroedplaats || !!membershipLoading || !!upgradeLoading}
-                        className={`w-full flex items-center gap-4 rounded-2xl bg-card border p-4 text-left transition-all active:scale-[0.99] ${
+                        className={`w-full flex items-center gap-4 rounded-2xl card-feature border border-white/5 p-4 text-left transition-all hover:-translate-y-0.5 active:scale-[0.99] ${
                           isCurrentBroedplaats ? "border-success/50 bg-success/5" : "border-border hover:border-primary/30"
                         } ${(membershipLoading || upgradeLoading) && !isCurrentBroedplaats ? "opacity-60" : ""}`}
                       >
@@ -1077,7 +1077,7 @@ const BookingPage = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <h3 className="font-bold font-display text-base">{plan.name[localizedLang]}</h3>
+                            <h3 className="font-extrabold font-display tracking-[-0.01em] text-base">{plan.name[localizedLang]}</h3>
                             {isCurrentBroedplaats && (
                               <span className="rounded-full bg-success/20 px-2 py-0.5 text-[9px] font-bold text-success">
                                 {t("currentPlan")}
@@ -1104,14 +1104,14 @@ const BookingPage = () => {
                     setSelectedStudio(s.id);
                     setTimeout(() => setStep(2), 200);
                   }}
-                  className={`w-full rounded-xl border p-0 overflow-hidden text-left transition-all ${
+                  className={`w-full rounded-2xl card-feature border border-white/5 p-0 overflow-hidden text-left transition-all hover:-translate-y-0.5 ${
                     selectedStudio === s.id ? "border-primary shadow-glow" : "border-border hover:border-primary/30"
                   } active:scale-[0.99]`}
                 >
                   <img src={studioImages[s.id]} alt={t(s.nameKey as any)} className="h-36 w-full object-cover" loading="lazy" decoding="async" width={400} height={144} />
                   <div className="p-4">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-bold font-display text-lg">{t(s.nameKey as any)}</h3>
+                      <h3 className="font-extrabold font-display tracking-[-0.01em] text-lg">{t(s.nameKey as any)}</h3>
                       {selectedStudio === s.id && (
                         <div className="flex h-6 w-6 items-center justify-center rounded-full gradient-primary">
                           <Check size={14} className="text-primary-foreground" />
@@ -1635,7 +1635,7 @@ const BookingPage = () => {
               <button
                 disabled={isLoading || !rulesAccepted || (isMember && !canBook) || (isMember && remainingMemberHours < selectedDuration && tierLimits.maxHours < 999)}
                 onClick={handlePayment}
-                className="w-full rounded-xl gradient-primary py-4 text-center font-bold text-primary-foreground transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] shadow-glow flex items-center justify-center gap-2"
+                className="w-full rounded-2xl btn-glow py-4 text-center font-extrabold tracking-[-0.01em] text-primary-foreground transition-all hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] shadow-glow flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <Loader2 size={20} className="animate-spin" />

@@ -36,11 +36,11 @@ const ContentDetailPage = () => {
           {t("back")}
         </button>
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/20">
-            <Camera size={28} className="text-primary" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl icon-tile">
+            <Camera size={28} className="text-white" strokeWidth={2.1} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold font-display">Content</h1>
+            <h1 className="text-2xl font-extrabold font-display tracking-[-0.01em]">Content</h1>
             <p className="text-sm text-muted-foreground mt-0.5">{t("professionalContentCreation")}</p>
           </div>
         </div>
@@ -48,7 +48,7 @@ const ContentDetailPage = () => {
 
       <motion.div variants={container} initial="hidden" animate="show" className="px-5 space-y-6">
         {/* Editorial intro with film-strip motif */}
-        <motion.div variants={item} className="relative rounded-2xl card-premium border border-border p-5 overflow-hidden">
+        <motion.div variants={item} className="relative rounded-2xl card-feature border border-white/5 p-5 overflow-hidden">
           <span aria-hidden className="absolute top-0 left-0 right-0 h-2 flex gap-1 px-2 pt-1">
             {Array.from({ length: 14 }).map((_, i) => (
               <span key={i} className="flex-1 h-1 rounded-full bg-primary/30" />
@@ -68,17 +68,20 @@ const ContentDetailPage = () => {
 
         {/* Content types — refined uniform grid */}
         <motion.div variants={item}>
-          <h3 className="font-semibold font-display text-sm mb-3 px-1">{t("roomSuitableFor")}</h3>
+          <div className="flex items-center gap-2 mb-3 px-1">
+            <span className="h-5 w-1 rounded-full accent-bar" />
+            <h3 className="font-extrabold font-display text-sm tracking-[-0.01em]">{t("roomSuitableFor")}</h3>
+          </div>
           <div className="grid grid-cols-2 gap-2.5">
             {contentTypes.map((ct) => (
               <div
                 key={ct.nl}
-                className="group relative rounded-2xl bg-gradient-to-br from-card to-card/40 border border-border/60 p-4 overflow-hidden hover:border-primary/40 transition-all duration-300 hover:-translate-y-0.5"
+                className="group relative rounded-2xl card-feature border border-white/5 p-4 overflow-hidden hover:border-primary/40 transition-all duration-300 hover:-translate-y-0.5"
               >
                 <span aria-hidden className="absolute -top-8 -right-8 h-24 w-24 rounded-full bg-primary/10 blur-2xl opacity-60 group-hover:opacity-100 transition-opacity" />
                 <div className="relative flex flex-col gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 ring-1 ring-primary/20">
-                    <ct.icon size={18} className="text-primary" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl icon-tile ring-1 ring-primary/20">
+                    <ct.icon size={18} className="text-white" strokeWidth={2.1} />
                   </div>
                   <span className="text-sm font-semibold leading-tight">{ct[localizedLang]}</span>
                 </div>
@@ -90,12 +93,15 @@ const ContentDetailPage = () => {
 
         {/* App features — NUMBERED CHEVRON STEPS */}
         <motion.div variants={item}>
-          <h3 className="font-semibold font-display text-sm mb-3 px-1">{t("throughTheAppCan")}</h3>
+          <div className="flex items-center gap-2 mb-3 px-1">
+            <span className="h-5 w-1 rounded-full accent-bar" />
+            <h3 className="font-extrabold font-display text-sm tracking-[-0.01em]">{t("throughTheAppCan")}</h3>
+          </div>
           <div className="space-y-2">
             {appFlow.map((f, i) => (
-              <div key={i} className="flex items-center gap-3 rounded-2xl bg-card border border-border pl-3 pr-4 py-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 shrink-0">
-                  <f.icon size={18} className="text-primary" />
+              <div key={i} className="flex items-center gap-3 rounded-2xl card-feature border border-white/5 pl-3 pr-4 py-3 hover:-translate-y-0.5 transition-all">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl icon-tile shrink-0">
+                  <f.icon size={18} className="text-white" strokeWidth={2.1} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] font-bold tracking-widest text-primary/70">{String(i + 1).padStart(2, "0")}</p>
@@ -115,7 +121,7 @@ const ContentDetailPage = () => {
         <motion.div variants={item}>
           <button
             onClick={() => navigate("/book?studio=content-room")}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl gradient-primary py-4 text-sm font-bold text-primary-foreground shadow-glow active:scale-[0.98] transition-transform"
+            className="w-full flex items-center justify-center gap-2 rounded-2xl btn-glow py-4 text-sm font-extrabold text-primary-foreground active:scale-[0.98] hover:-translate-y-0.5 transition-all"
           >
             {t("bookContentRoomBtn")}
             <ChevronRight size={16} />

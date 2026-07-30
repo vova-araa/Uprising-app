@@ -88,11 +88,11 @@ const MembershipsDetailPage = () => {
           {t("back")}
         </button>
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/20">
-            <Crown size={28} className="text-primary" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl icon-tile">
+            <Crown size={28} className="text-white" strokeWidth={2.1} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold font-display">Producer Memberships</h1>
+            <h1 className="text-2xl font-extrabold font-display tracking-[-0.01em]">Producer Memberships</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
               {lang === "nl" ? "Memberships voor producers" : "Memberships for producers"}
             </p>
@@ -102,7 +102,7 @@ const MembershipsDetailPage = () => {
 
       <motion.div variants={container} initial="hidden" animate="show" className="px-5 space-y-5">
         {/* Intro */}
-        <motion.div variants={item} className="rounded-2xl card-premium border border-border p-5">
+        <motion.div variants={item} className="rounded-2xl card-feature border border-white/5 p-5">
           <p className="text-sm text-muted-foreground leading-relaxed">
             {lang === "nl"
               ? "Met een Uprising Producer Membership krijg je vaste toegang tot onze studio's en creatieve ruimtes. Speciaal ontwikkeld voor producers die regelmatig willen werken aan hun beats, tracks en projecten in een professionele studio omgeving. Minimaal 3 maanden commitment, maandelijks betalen."
@@ -112,12 +112,15 @@ const MembershipsDetailPage = () => {
 
         {/* App Features — STEP LADDER */}
         <motion.div variants={item}>
-          <h3 className="font-semibold font-display text-sm mb-3 px-1">{t("throughTheAppEasily")}</h3>
+          <div className="flex items-center gap-2 mb-3 px-1">
+            <span className="h-5 w-1 rounded-full accent-bar" />
+            <h3 className="font-extrabold font-display text-sm tracking-[-0.01em]">{t("throughTheAppEasily")}</h3>
+          </div>
           <div className="space-y-1.5">
             {appFeatures[localizedLang].map((f, i) => (
               <div
                 key={i}
-                className="flex items-center gap-3 rounded-2xl bg-card border border-border py-3 pr-4"
+                className="flex items-center gap-3 rounded-2xl card-feature border border-white/5 py-3 pr-4 hover:-translate-y-0.5 transition-all"
                 style={{ paddingLeft: `${12 + i * 8}px` }}
               >
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/15 shrink-0">
@@ -131,9 +134,12 @@ const MembershipsDetailPage = () => {
 
         {/* Period toggle */}
         <motion.div variants={item} className="flex items-center justify-between">
-          <h3 className="font-semibold font-display text-sm px-1">
-            {t("availablePlansLabel")}
-          </h3>
+          <div className="flex items-center gap-2 px-1">
+            <span className="h-5 w-1 rounded-full accent-bar" />
+            <h3 className="font-extrabold font-display text-sm tracking-[-0.01em]">
+              {t("availablePlansLabel")}
+            </h3>
+          </div>
           <button onClick={() => setYearly(!yearly)}
             className="flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold transition-all">
             <span className={yearly ? "text-muted-foreground" : "text-foreground"}>
@@ -202,14 +208,14 @@ const MembershipsDetailPage = () => {
                 <button
                   key={tier.name}
                   onClick={() => navigate(`/book?plan=${tier.name.toLowerCase()}&interval=${yearly ? "year" : "quarter"}`)}
-                  className="w-full text-left rounded-2xl card-premium border border-border p-5 transition-all hover:border-primary/30 active:scale-[0.99]"
+                  className="w-full text-left rounded-2xl card-feature border border-white/5 p-5 transition-all hover:border-primary/30 active:scale-[0.99] hover:-translate-y-0.5"
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/20">
-                        <tier.icon size={20} className="text-primary" />
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl icon-tile">
+                        <tier.icon size={20} className="text-white" strokeWidth={2.1} />
                       </div>
-                      <h4 className="font-bold font-display text-base">{tier.name}</h4>
+                      <h4 className="font-extrabold font-display text-base tracking-[-0.01em]">{tier.name}</h4>
                     </div>
                     <div className="text-right">
                       <div className="flex items-baseline gap-1.5">
@@ -241,13 +247,13 @@ const MembershipsDetailPage = () => {
         </motion.div>
 
         {/* Business */}
-        <motion.div variants={item} className="rounded-2xl bg-card border border-primary/20 p-5">
+        <motion.div variants={item} className="rounded-2xl card-feature border border-white/5 p-5">
           <div className="flex items-center gap-3 mb-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/20">
-              <Building2 size={20} className="text-primary" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl icon-tile">
+              <Building2 size={20} className="text-white" strokeWidth={2.1} />
             </div>
             <div>
-              <h4 className="font-bold font-display text-sm">Business</h4>
+              <h4 className="font-extrabold font-display text-sm tracking-[-0.01em]">Business</h4>
               <span className="text-[10px] font-semibold text-warning">{t("onRequest")}</span>
             </div>
           </div>
@@ -262,7 +268,7 @@ const MembershipsDetailPage = () => {
         <motion.div variants={item}>
           <button
             onClick={() => navigate(`/book?interval=${yearly ? "year" : "quarter"}`)}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl gradient-primary py-4 text-sm font-bold text-primary-foreground shadow-glow active:scale-[0.98] transition-transform"
+            className="w-full flex items-center justify-center gap-2 rounded-2xl btn-glow py-4 text-sm font-extrabold text-primary-foreground active:scale-[0.98] hover:-translate-y-0.5 transition-all"
           >
             {t("viewPlansBtn")}
             <ChevronRight size={16} />

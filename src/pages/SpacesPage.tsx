@@ -115,7 +115,10 @@ const SpacesPage = () => {
       <SEO title="Ruimtes & Studio's — Uprising Studio Amersfoort" description="Ontdek onze muziekstudio's en contentruimtes in Amersfoort, met afmetingen en capaciteit per ruimte." path="/spaces" />
       <div className="relative px-5 pt-6 pb-5">
         <div>
-          <h1 className="text-3xl font-bold font-display tracking-tight">{t("spaces")}</h1>
+          <div className="flex items-center gap-2.5">
+            <span className="h-5 w-1 rounded-full accent-bar" />
+            <h1 className="text-3xl font-extrabold font-display tracking-[-0.01em]">{t("spaces")}</h1>
+          </div>
           <p className="text-sm text-muted-foreground mt-1">{t("spacesSubtitle")}</p>
         </div>
       </div>
@@ -128,7 +131,7 @@ const SpacesPage = () => {
           return (
             <motion.div key={space.id} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.08, duration: 0.5 }} layout
-            className="relative overflow-hidden rounded-2xl border border-border card-premium">
+            className="relative overflow-hidden rounded-2xl border border-white/5 card-feature hover:-translate-y-0.5 transition-all">
               <button onClick={() => setExpandedSpace(isExpanded ? null : space.id)} className="relative w-full aspect-[2/1] overflow-hidden">
                 <img src={(() => { const studio = configStudios.find(s => s.id === space.id); const configImg = studio?.imageUrl || (space.id === "print-shop" ? printShopConfig?.imageUrl : ""); return configImg || fallbackImages[space.id] || ""; })()} alt={t(space.nameKey as any)} className="h-full w-full object-cover transition-transform duration-700 hover:scale-105" loading="lazy" decoding="async" width={600} height={240} />
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
@@ -152,7 +155,7 @@ const SpacesPage = () => {
                 </div>
 
                 <div className="absolute bottom-0 left-0 right-0 p-3">
-                  <h3 className="text-lg font-bold font-display text-white">{(() => { const studio = configStudios.find(s => s.id === space.id); const ps = space.id === "print-shop" ? printShopConfig : null; const title = lang === "nl" ? (studio?.titleNl || ps?.titleNl) : (studio?.titleEn || ps?.titleEn); return title || t(space.nameKey as any); })()}</h3>
+                  <h3 className="text-lg font-extrabold font-display tracking-[-0.01em] text-white">{(() => { const studio = configStudios.find(s => s.id === space.id); const ps = space.id === "print-shop" ? printShopConfig : null; const title = lang === "nl" ? (studio?.titleNl || ps?.titleNl) : (studio?.titleEn || ps?.titleEn); return title || t(space.nameKey as any); })()}</h3>
                   {details &&
                   <div className="flex items-center gap-2 mt-1">
                       <div className="flex items-center gap-1 text-white/70"><Users size={10} /><span className="text-[10px] font-medium">max {details.capacity}</span></div>
@@ -191,7 +194,9 @@ const SpacesPage = () => {
                           const EqIcon = equipmentIcons[eq] || Headphones;
                           return (
                             <div key={eq} className="flex items-center gap-2 rounded-lg bg-secondary/60 px-2.5 py-2">
-                                <EqIcon size={12} className="text-primary shrink-0" />
+                                <div className="icon-tile h-7 w-7 shrink-0 flex items-center justify-center rounded-lg">
+                                  <EqIcon size={14} strokeWidth={2.1} className="text-white" />
+                                </div>
                                 <span className="text-[11px] font-medium text-secondary-foreground truncate">{eq}</span>
                               </div>);
 
@@ -203,7 +208,7 @@ const SpacesPage = () => {
                       if (space.pricePerHour > 0) navigate(`/book?studio=${space.id}`);else
                       navigate(`/request?type=${space.id}`);
                     }}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl gradient-primary py-3.5 text-sm font-bold text-primary-foreground shadow-glow active:scale-[0.98] transition-transform">
+                    className="w-full flex items-center justify-center gap-2 rounded-xl btn-glow py-3.5 text-sm font-bold text-primary-foreground active:scale-[0.98] transition-transform">
                         {space.pricePerHour > 0 ? t("bookThisSpace") : t("request")}
                         <ChevronRight size={16} />
                       </button>
@@ -220,7 +225,7 @@ const SpacesPage = () => {
                   if (space.pricePerHour > 0) navigate(`/book?studio=${space.id}`);else
                   navigate(`/request?type=${space.id}`);
                 }}
-                className="shrink-0 flex items-center gap-1 rounded-full gradient-primary px-4 py-2 text-[11px] font-bold text-primary-foreground shadow-glow active:scale-[0.97] transition-transform">
+                className="shrink-0 flex items-center gap-1 rounded-full btn-glow px-4 py-2 text-[11px] font-bold text-primary-foreground active:scale-[0.97] transition-transform">
                     {t("book2")}
                     <ChevronRight size={12} />
                   </button>
@@ -231,13 +236,13 @@ const SpacesPage = () => {
         })}
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-        className="rounded-2xl card-premium border border-border p-5">
+        className="rounded-2xl card-feature border border-white/5 p-5 hover:-translate-y-0.5 transition-all">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-              <MapPin size={18} className="text-primary" />
+            <div className="icon-tile flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+              <MapPin size={20} strokeWidth={2.1} className="text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-bold font-display text-sm">Uprising Studio</h3>
+              <h3 className="font-extrabold font-display tracking-[-0.01em] text-sm">Uprising Studio</h3>
               <p className="text-xs text-muted-foreground mt-0.5">Spaceshuttle 6e, Amersfoort</p>
               <div className="flex items-center gap-4 mt-2">
                 <a href="https://maps.google.com/?q=Spaceshuttle+6e+Amersfoort" target="_blank" rel="noopener noreferrer"

@@ -876,10 +876,12 @@ const AccountPage = () => {
             ))}
 
             {/* Studio Subscription Management */}
-            <motion.div variants={item} className="rounded-xl bg-card border border-border p-5" data-toast-section>
-              <div className="flex items-center gap-2 mb-3">
-                <CreditCard size={16} className="text-primary" />
-                <h3 className="font-semibold font-display text-sm">
+            <motion.div variants={item} className="rounded-2xl card-feature border border-white/5 p-5" data-toast-section>
+              <div className="flex items-center gap-2.5 mb-3">
+                <span className="icon-tile flex h-9 w-9 items-center justify-center rounded-xl">
+                  <CreditCard size={16} className="text-white" strokeWidth={2.1} />
+                </span>
+                <h3 className="font-extrabold font-display tracking-[-0.01em] text-sm">
                   {t("studioSubscription")}
                 </h3>
               </div>
@@ -892,11 +894,11 @@ const AccountPage = () => {
                 <div className="space-y-4">
                   {/* Plan info with dates */}
                   <div className="flex items-center gap-3">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${tierInfo.bg}`}>
-                      <tierInfo.icon size={22} className={tierInfo.color} />
+                    <div className="icon-tile flex h-12 w-12 items-center justify-center rounded-xl">
+                      <tierInfo.icon size={22} className="text-white" strokeWidth={2.1} />
                     </div>
                     <div className="flex-1">
-                      <p className="font-bold font-display text-base">{tierInfo.name}</p>
+                      <p className="font-extrabold font-display tracking-[-0.01em] text-base">{tierInfo.name}</p>
                       {!subscription?.subscribed && profileMembership ? (
                         <p className="text-xs text-muted-foreground">
                           {t("assignedByAdmin")}
@@ -1657,11 +1659,11 @@ const AccountPage = () => {
                 { icon: Mic, label: t("totalSessions"), value: realStats.totalSessions.toString(), color: "text-primary" },
                 { icon: FileAudio, label: "Mix/Master", value: realStats.mixMasterProjects.toString(), color: "text-primary" },
               ].map((stat) => (
-                <div key={stat.label} className="rounded-xl bg-card border border-border p-4">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/20 mb-2">
-                    <stat.icon size={18} className={stat.color} />
+                <div key={stat.label} className="rounded-2xl card-feature border border-white/5 p-4">
+                  <div className="icon-tile flex h-9 w-9 items-center justify-center rounded-xl mb-2.5">
+                    <stat.icon size={18} className="text-white" strokeWidth={2.1} />
                   </div>
-                  <p className="text-xl font-bold font-display">{stat.value}</p>
+                  <p className="text-2xl font-extrabold font-display tracking-[-0.01em]">{stat.value}</p>
                   <p className="text-[11px] text-muted-foreground">{stat.label}</p>
                 </div>
               ))}
@@ -1751,17 +1753,19 @@ const AccountPage = () => {
             </motion.div>
 
             {/* Tegoed & Toegewezen Uren */}
-            <motion.div variants={item} className="rounded-xl bg-card border border-border p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <Gift size={16} className="text-primary" />
-                <h3 className="font-semibold font-display text-sm">
+            <motion.div variants={item} className="rounded-2xl card-feature border border-white/5 p-5">
+              <div className="flex items-center gap-2.5 mb-4">
+                <span className="icon-tile flex h-9 w-9 items-center justify-center rounded-xl">
+                  <Gift size={16} className="text-white" strokeWidth={2.1} />
+                </span>
+                <h3 className="font-extrabold font-display tracking-[-0.01em] text-sm">
                   {t("creditsAndAssignedHours")}
                 </h3>
               </div>
               <div className="space-y-3">
-                <div className="flex items-center gap-3 rounded-xl bg-primary/5 border border-primary/20 p-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/20 shrink-0">
-                    <CreditCard size={18} className="text-primary" />
+                <div className="flex items-center gap-3 rounded-2xl bg-primary/5 border border-primary/20 p-4">
+                  <div className="icon-tile flex h-10 w-10 items-center justify-center rounded-xl shrink-0">
+                    <CreditCard size={18} className="text-white" strokeWidth={2.1} />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-semibold">{t("creditBalance")}</p>
@@ -1814,13 +1818,15 @@ const AccountPage = () => {
             </motion.div>
 
             {/* Uprising Points */}
-            <motion.div variants={item} className="rounded-xl bg-card border border-border p-5" data-toast-section>
+            <motion.div variants={item} className="rounded-2xl card-feature border border-white/5 p-5" data-toast-section>
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Star size={16} className="text-primary" />
-                  <h3 className="font-semibold font-display text-sm">Uprising Points</h3>
+                <div className="flex items-center gap-2.5">
+                  <span className="icon-tile flex h-9 w-9 items-center justify-center rounded-xl">
+                    <Star size={16} className="text-white" strokeWidth={2.1} />
+                  </span>
+                  <h3 className="font-extrabold font-display tracking-[-0.01em] text-sm">Uprising Points</h3>
                 </div>
-                <span className="text-xl font-bold text-primary font-display">{pointsBalance} pt</span>
+                <span className="text-xl font-extrabold text-primary font-display tracking-[-0.01em]">{pointsBalance} pt</span>
               </div>
               <p className="text-[11px] text-muted-foreground mb-3">
                 Verdien punten: sessievideo insturen (+50), ruimte schoon achterlaten met foto (+20),
@@ -1933,12 +1939,12 @@ const AccountPage = () => {
           projectsLoading ? (
             <div className="flex justify-center py-12"><Loader2 size={24} className="animate-spin text-primary" /></div>
           ) : projects.length === 0 ? (
-            <motion.div variants={item} className="rounded-xl bg-card border border-border p-8 text-center">
+            <motion.div variants={item} className="rounded-2xl card-feature border border-white/5 p-8 text-center">
               <FileAudio size={32} className="mx-auto text-muted-foreground mb-3" />
-              <h3 className="font-semibold font-display text-sm mb-1">{t("noProjectsYet")}</h3>
+              <h3 className="font-extrabold font-display tracking-[-0.01em] text-sm mb-1">{t("noProjectsYet")}</h3>
               <p className="text-xs text-muted-foreground mb-4">{t("submitFirstProject")}</p>
               <button onClick={() => navigate("/mix-master")}
-                className="rounded-xl gradient-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground">
+                className="rounded-xl btn-glow px-5 py-2.5 text-sm font-semibold text-primary-foreground">
                 {t("submitProject")}
               </button>
             </motion.div>
@@ -1946,10 +1952,10 @@ const AccountPage = () => {
             projects.map((project) => {
               const currentStep = statusSteps.indexOf(project.status);
               return (
-                <motion.div key={project.id} variants={item} className="rounded-xl bg-card border border-border p-5">
+                <motion.div key={project.id} variants={item} className="rounded-2xl card-feature border border-white/5 p-5">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="font-semibold font-display text-base">{project.title}</h3>
+                      <h3 className="font-extrabold font-display tracking-[-0.01em] text-base">{project.title}</h3>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         {format(new Date(project.created_at), "d MMMM yyyy", { locale })}
                       </p>
@@ -2006,21 +2012,21 @@ const AccountPage = () => {
           producerLoading ? (
             <div className="flex justify-center py-12"><Loader2 size={24} className="animate-spin text-primary" /></div>
           ) : producerBookings.length === 0 ? (
-            <motion.div variants={item} className="rounded-xl bg-card border border-border p-8 text-center">
+            <motion.div variants={item} className="rounded-2xl card-feature border border-white/5 p-8 text-center">
               <Music size={32} className="mx-auto text-muted-foreground mb-3" />
-              <h3 className="font-semibold font-display text-sm mb-1">{t("noProducerSessions")}</h3>
+              <h3 className="font-extrabold font-display tracking-[-0.01em] text-sm mb-1">{t("noProducerSessions")}</h3>
               <p className="text-xs text-muted-foreground mb-4">{t("scheduleFirstProducer")}</p>
               <button onClick={() => navigate("/producer-booking")}
-                className="rounded-xl gradient-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground">
+                className="rounded-xl btn-glow px-5 py-2.5 text-sm font-semibold text-primary-foreground">
                 {t("bookProducer")}
               </button>
             </motion.div>
           ) : (
             producerBookings.map((pb) => (
-              <motion.div key={pb.id} variants={item} className="rounded-xl bg-card border border-border p-5">
+              <motion.div key={pb.id} variants={item} className="rounded-2xl card-feature border border-white/5 p-5">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <h3 className="font-semibold font-display text-sm">{t("producerSession")}</h3>
+                    <h3 className="font-extrabold font-display tracking-[-0.01em] text-sm">{t("producerSession")}</h3>
                     <p className="text-xs text-muted-foreground">
                       {format(new Date(pb.preferred_date), "d MMMM yyyy", { locale })} • {pb.preferred_time}
                     </p>
@@ -2046,12 +2052,12 @@ const AccountPage = () => {
           bookingsLoading ? (
             <div className="flex justify-center py-12"><Loader2 size={24} className="animate-spin text-primary" /></div>
           ) : dbBookings.length === 0 ? (
-            <motion.div variants={item} className="rounded-xl bg-card border border-border p-8 text-center">
+            <motion.div variants={item} className="rounded-2xl card-feature border border-white/5 p-8 text-center">
               <Calendar size={32} className="mx-auto text-muted-foreground mb-3" />
-              <h3 className="font-semibold font-display text-sm mb-1">{t("noBookingsLabel")}</h3>
+              <h3 className="font-extrabold font-display tracking-[-0.01em] text-sm mb-1">{t("noBookingsLabel")}</h3>
               <p className="text-xs text-muted-foreground mb-4">{t("scheduleFirstSession")}</p>
               <button onClick={() => navigate("/book")}
-                className="rounded-xl gradient-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground">
+                className="rounded-xl btn-glow px-5 py-2.5 text-sm font-semibold text-primary-foreground">
                 {t("bookStudio")}
               </button>
             </motion.div>
@@ -2069,14 +2075,15 @@ const AccountPage = () => {
                 </button>
               </div>
               {bookingsFilter === "upcoming" && upcomingBookings.length === 0 && (
-                <div className="rounded-xl bg-card border border-border p-6 text-center">
+                <div className="rounded-2xl card-feature border border-white/5 p-6 text-center">
                   <p className="text-xs text-muted-foreground mb-3">{t("scheduleFirstSession")}</p>
-                  <button onClick={() => navigate("/book")} className="rounded-xl gradient-primary px-4 py-2 text-xs font-semibold text-primary-foreground">{t("bookStudio")}</button>
+                  <button onClick={() => navigate("/book")} className="rounded-xl btn-glow px-4 py-2 text-xs font-semibold text-primary-foreground">{t("bookStudio")}</button>
                 </div>
               )}
               {bookingsFilter === "upcoming" && upcomingBookings.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">
+                  <h3 className="flex items-center gap-2 text-xs font-extrabold text-primary uppercase tracking-wider mb-2">
+                    <span className="h-5 w-1 rounded-full accent-bar" />
                     {t("upcoming")}
                   </h3>
                   <div className="space-y-2">
@@ -2084,10 +2091,10 @@ const AccountPage = () => {
                       const isMemberOrGratis = b.session_type === "member" || b.session_type === "gratis";
                       return (
                         <motion.div key={b.id} variants={item}
-                          className="rounded-xl bg-card border border-primary/20 p-4" data-toast-section>
+                          className="rounded-2xl card-feature border border-white/5 p-4" data-toast-section>
                           <div className="flex items-center justify-between">
                             <div>
-                              <h4 className="font-semibold text-sm">{getStudioName(b.studio_id)}</h4>
+                              <h4 className="font-extrabold font-display tracking-[-0.01em] text-sm">{getStudioName(b.studio_id)}</h4>
                               <p className="text-xs text-muted-foreground">
                                 {format(new Date(b.booking_date), "d MMMM", { locale })} • {b.start_time} • {b.duration_hours}h
                               </p>
@@ -2163,7 +2170,8 @@ const AccountPage = () => {
               )}
               {bookingsFilter === "past" && pastBookings.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">
+                  <h3 className="flex items-center gap-2 text-xs font-extrabold text-primary uppercase tracking-wider mb-2">
+                    <span className="h-5 w-1 rounded-full accent-bar" />
                     {t("history")}
                   </h3>
                   <div className="space-y-2">
@@ -2171,10 +2179,10 @@ const AccountPage = () => {
                       const isRecent = (Date.now() - new Date(b.booking_date).getTime()) < 2 * 86_400_000;
                       return (
                         <motion.div key={b.id} variants={item}
-                          className="rounded-xl bg-card border border-border p-4 opacity-70">
+                          className="rounded-2xl card-feature border border-white/5 p-4 opacity-70">
                           <div className="flex items-center justify-between">
                             <div>
-                              <h4 className="text-sm">{getStudioName(b.studio_id)}</h4>
+                              <h4 className="font-bold font-display tracking-[-0.01em] text-sm">{getStudioName(b.studio_id)}</h4>
                               <p className="text-xs text-muted-foreground">
                                 {format(new Date(b.booking_date), "d MMMM", { locale })} • {b.start_time} • {b.duration_hours}h
                               </p>

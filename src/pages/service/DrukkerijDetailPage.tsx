@@ -107,18 +107,18 @@ const DrukkerijDetailPage = () => {
           {t("back")}
         </button>
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/20">
-            <Printer size={28} className="text-primary" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl icon-tile">
+            <Printer size={28} className="text-white" strokeWidth={2.1} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold font-display">{t("printShopTitle")}</h1>
+            <h1 className="text-2xl font-extrabold font-display tracking-[-0.01em]">{t("printShopTitle")}</h1>
             <p className="text-sm text-muted-foreground mt-0.5">{t("customClothingMerch")}</p>
           </div>
         </div>
       </div>
 
       <motion.div variants={container} initial="hidden" animate="show" className="px-5 space-y-5">
-        <motion.div variants={item} className="rounded-2xl card-premium border border-border p-5">
+        <motion.div variants={item} className="rounded-2xl card-feature border border-white/5 p-5">
           <p className="text-sm text-muted-foreground leading-relaxed">
             {lang === "nl"
               ? "Met onze drukkerij kun je eenvoudig eigen kleding en merchandise laten produceren. Wij bedrukken t-shirts, hoodies, merchandise en accessoires — ideaal voor artiesten, creators en merken die hun eigen kledinglijn willen aanbieden."
@@ -129,9 +129,12 @@ const DrukkerijDetailPage = () => {
         {/* Process carousel — swipe between topics */}
         <motion.div variants={item} className="-mx-5">
           <div className="flex items-end justify-between px-5 mb-3">
-            <h3 className="font-semibold font-display text-sm">
-              {lang === "nl" ? "Hoe het werkt" : "How it works"}
-            </h3>
+            <div className="flex items-center gap-2">
+              <span className="h-5 w-1 rounded-full accent-bar" />
+              <h3 className="font-extrabold font-display text-sm tracking-[-0.01em]">
+                {lang === "nl" ? "Hoe het werkt" : "How it works"}
+              </h3>
+            </div>
             <p className="text-[11px] text-muted-foreground">
               {lang === "nl" ? "Swipe →" : "Swipe →"}
             </p>
@@ -145,8 +148,8 @@ const DrukkerijDetailPage = () => {
                 return (
                   <CarouselItem key={idx} className="pl-3 basis-[88%]">
                     <div
-                      className={`relative h-full rounded-2xl bg-card border p-5 transition-all overflow-hidden ${
-                        active ? "border-primary/50 shadow-glow" : "border-border"
+                      className={`relative h-full rounded-2xl card-feature border p-5 transition-all overflow-hidden ${
+                        active ? "border-primary/50 shadow-glow" : "border-white/5"
                       }`}
                     >
                       {/* Decorative dots */}
@@ -155,14 +158,14 @@ const DrukkerijDetailPage = () => {
                       <span aria-hidden className="absolute right-7 top-7 h-1 w-1 rounded-full bg-primary/30" />
 
                       <div className="flex items-center gap-3 mb-1 relative">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/20">
-                          <Icon size={20} className="text-primary" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl icon-tile">
+                          <Icon size={20} className="text-white" strokeWidth={2.1} />
                         </div>
                         <div>
                           <p className="text-[10px] font-bold tracking-widest text-primary/80 uppercase">
                             {String(idx + 1).padStart(2, "0")} / {String(processTopics.length).padStart(2, "0")}
                           </p>
-                          <h4 className="font-bold font-display text-base leading-tight">{topic.title[localizedLang]}</h4>
+                          <h4 className="font-extrabold font-display text-base leading-tight tracking-[-0.01em]">{topic.title[localizedLang]}</h4>
                         </div>
                       </div>
                       <p className="text-xs text-muted-foreground mb-5 ml-[52px]">{topic.subtitle[localizedLang]}</p>
@@ -191,8 +194,11 @@ const DrukkerijDetailPage = () => {
         </motion.div>
 
         {/* App features */}
-        <motion.div variants={item} className="rounded-2xl card-premium border border-border p-5">
-          <h3 className="font-semibold font-display text-sm mb-3">{t("throughTheAppCan")}</h3>
+        <motion.div variants={item} className="rounded-2xl card-feature border border-white/5 p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="h-5 w-1 rounded-full accent-bar" />
+            <h3 className="font-extrabold font-display text-sm tracking-[-0.01em]">{t("throughTheAppCan")}</h3>
+          </div>
           <div className="space-y-2">
             {[t("requestPrintJob"), t("haveMerchDeveloped"), t("startMerchManagement")].map((f, i) => (
               <div key={i} className="flex items-start gap-2.5">
@@ -206,7 +212,7 @@ const DrukkerijDetailPage = () => {
         <motion.div variants={item}>
           <button
             onClick={() => navigate("/request?type=clothing")}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl gradient-primary py-4 text-sm font-bold text-primary-foreground shadow-glow active:scale-[0.98] transition-transform bg-primary"
+            className="w-full flex items-center justify-center gap-2 rounded-2xl btn-glow py-4 text-sm font-extrabold text-primary-foreground active:scale-[0.98] hover:-translate-y-0.5 transition-all"
           >
             {t("requestBtn")}
             <ChevronRight size={16} />

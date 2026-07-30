@@ -173,14 +173,14 @@ const ServicesPage = () => {
     <div className="min-h-full">
       <SEO title="Diensten — Uprising Studio Amersfoort" description="Alle creatieve diensten van Uprising Studio: studio-sessies, content, mix & master en meer." path="/services" />
       <div className="px-5 pt-6 pb-2">
-        <h1 className="text-2xl font-bold font-display">{t("allServices")}</h1>
+        <h1 className="text-2xl font-extrabold font-display tracking-[-0.01em]">{t("allServices")}</h1>
       </div>
 
       <motion.div variants={container} initial="hidden" animate="show" className="px-5 pb-6 mt-4">
         {/* Bookable */}
         <motion.div variants={item} className="mb-6">
           <div className="flex items-center gap-2 mb-3">
-            <div className="h-5 w-1 rounded-full gradient-primary" />
+            <span className="h-5 w-1 rounded-full accent-bar" />
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
               {t("bookDirectly")}
             </h2>
@@ -190,13 +190,13 @@ const ServicesPage = () => {
               const Icon = iconMap[service.icon] || Mic;
               return (
                 <motion.button key={service.id} variants={item} onClick={() => handleServiceClick(service.id)}
-                className="group relative flex w-full items-center gap-4 rounded-2xl card-premium border border-border p-4 text-left transition-all hover:border-primary/40 active:scale-[0.99] overflow-hidden">
+                className="group relative flex w-full items-center gap-4 rounded-2xl card-feature border border-white/5 p-4 text-left transition-all hover:-translate-y-0.5 hover:border-primary/40 active:scale-[0.99] overflow-hidden">
                   <div className="absolute -left-4 top-1/2 -translate-y-1/2 h-20 w-20 rounded-full bg-primary/10 blur-2xl" />
-                  <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl gradient-primary shadow-glow">
-                    <Icon size={24} className="text-primary-foreground" />
+                  <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl icon-tile shadow-glow">
+                    <Icon size={24} className="text-white" strokeWidth={2.1} />
                   </div>
                   <div className="flex-1 min-w-0 relative">
-                    <h3 className="font-semibold font-display text-base">{t(service.nameKey as any)}</h3>
+                    <h3 className="font-extrabold font-display tracking-[-0.01em] text-base">{t(service.nameKey as any)}</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {lang === "nl" ? service.description : service.descriptionEn}
                     </p>
@@ -214,7 +214,7 @@ const ServicesPage = () => {
         <motion.div variants={item} className="mb-6">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-            <div className="h-5 w-1 rounded-full bg-success" />
+            <span className="h-5 w-1 rounded-full accent-bar" />
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Producer Memberships</h2>
             </div>
             <button onClick={() => { setYearly(!yearly); setContractAccepted(false); }}
@@ -286,13 +286,13 @@ const ServicesPage = () => {
                   }
                 }}
                 disabled={isDisabled}
-                className={`group relative flex w-full items-center gap-4 rounded-2xl card-premium border border-border p-4 text-left transition-all ${plan.borderColor} active:scale-[0.99] overflow-hidden ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}>
+                className={`group relative flex w-full items-center gap-4 rounded-2xl card-feature border border-white/5 p-4 text-left transition-all hover:-translate-y-0.5 ${plan.borderColor} active:scale-[0.99] overflow-hidden ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}>
                   <div className={`absolute -left-4 top-1/2 -translate-y-1/2 h-20 w-20 rounded-full ${plan.bgIcon} blur-2xl opacity-50`} />
                   <div className={`relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${plan.bgIcon}`}>
                     <plan.icon size={24} className={plan.color} />
                   </div>
                   <div className="flex-1 min-w-0 relative">
-                    <h3 className="font-semibold font-display text-base">{plan.name}</h3>
+                    <h3 className="font-extrabold font-display tracking-[-0.01em] text-base">{plan.name}</h3>
                     <p className="text-xs text-muted-foreground mt-0.5 my-[3px]">{desc}</p>
                     <div className="flex items-center gap-2 mt-1.5">
                       {hasCustomPrice ? (
@@ -321,7 +321,7 @@ const ServicesPage = () => {
         {/* On Request - now split into Mix & Master (bookable) and contact form services */}
         <motion.div variants={item}>
           <div className="flex items-center gap-2 mb-3">
-            <div className="h-5 w-1 rounded-full bg-warning" />
+            <span className="h-5 w-1 rounded-full accent-bar" />
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("onRequest")}</h2>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -330,12 +330,12 @@ const ServicesPage = () => {
               return (
                 <motion.button key={service.id} variants={item}
                 onClick={() => handleServiceClick(service.id)}
-                className="group flex flex-col items-center gap-3 rounded-2xl card-premium border border-border p-5 text-center transition-all hover:border-primary/30 active:scale-[0.98]">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary">
-                    <Icon size={22} className="text-primary" />
+                className="group flex flex-col items-center gap-3 rounded-2xl card-feature border border-white/5 p-5 text-center transition-all hover:-translate-y-0.5 hover:border-primary/30 active:scale-[0.98]">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl icon-tile">
+                    <Icon size={22} className="text-white" strokeWidth={2.1} />
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold font-display leading-tight">{t(service.nameKey as any)}</h3>
+                    <h3 className="text-sm font-extrabold font-display tracking-[-0.01em] leading-tight">{t(service.nameKey as any)}</h3>
                     <p className="text-[10px] text-muted-foreground mt-1">
                       {getServicePrice(service)}
                     </p>
