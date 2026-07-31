@@ -5,7 +5,8 @@ import { Music, LayoutGrid, CalendarCheck, DoorOpen, User, Gift, Sparkles, Rocke
 import { useI18n } from "@/lib/i18n";
 import type { TranslationKey } from "@/lib/translations";
 
-export const ONBOARDING_KEY = "uprising-onboarding-v1";
+import { ONBOARDING_KEY } from "./onboardingKey";
+export { ONBOARDING_KEY };
 
 interface Slide {
   icon: typeof Music;

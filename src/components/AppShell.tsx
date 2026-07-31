@@ -9,7 +9,7 @@ import BottomNav from "./BottomNav";
 import DesktopNav from "./DesktopNav";
 import InstallPrompt from "./InstallPrompt";
 import { Loader2 } from "lucide-react";
-import { ONBOARDING_KEY } from "./OnboardingTour";
+import { ONBOARDING_KEY } from "./onboardingKey";
 const AIAssistantOverlay = lazy(() => import("./AIAssistantOverlay"));
 const OnboardingTour = lazy(() => import("./OnboardingTour"));
 
