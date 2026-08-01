@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { LoadError } from "@/components/LoadError";
 import { format, isToday, isPast, isTomorrow, isThisWeek } from "date-fns";
 import { nl } from "date-fns/locale";
 import { inlineToast as toast } from "@/components/InlineToast";
@@ -52,6 +53,7 @@ const AdminTasksPage = () => {
   const [tasks, setTasks] = useState<AdminTask[]>([]);
   const [admins, setAdmins] = useState<{ id: string; full_name: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [activeList, setActiveList] = useState<ListView>("mijn_dag");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -67,6 +69,8 @@ const AdminTasksPage = () => {
 
   const loadData = async () => {
     setLoading(true);
+    setLoadError(false);
+    try {
     const [tasksRes, orgTasksRes, adminsRes] = await Promise.all([
       supabase.from("admin_tasks" as any).select("*").order("created_at", { ascending: false }),
       supabase.from("org_tasks").select("*").order("created_at", { ascending: false }),
@@ -77,6 +81,7 @@ const AdminTasksPage = () => {
         return (profiles || []).filter((p: any) => adminIds.has(p.id));
       })(),
     ]);
+    if (tasksRes.error) throw tasksRes.error;
     const adminTasks: AdminTask[] = ((tasksRes.data as any[]) || []).map((t: any) => ({ ...t, _source: "admin" as const }));
     const orgTasks: AdminTask[] = ((orgTasksRes.data as any[]) || []).map((t: any) => ({
       id: t.id, title: t.title, description: t.description, assigned_to: t.assigned_to,
@@ -87,7 +92,11 @@ const AdminTasksPage = () => {
     }));
     setTasks([...adminTasks, ...orgTasks]);
     setAdmins(adminsRes as any[]);
-    setLoading(false);
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { loadData(); }, []);
@@ -256,6 +265,10 @@ const AdminTasksPage = () => {
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-[50dvh]"><Loader2 className="animate-spin text-primary" size={28} /></div>;
+  }
+
+  if (loadError) {
+    return <LoadError message="De taken konden niet worden geladen." onRetry={loadData} />;
   }
 
   // Detail panel content (shared between mobile overlay and desktop side panel)

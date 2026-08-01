@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { inlineToast as toast } from "@/components/InlineToast";
+import { LoadError } from "@/components/LoadError";
 import {
   Building2, Plus, Loader2, ChevronLeft, Users, Clock, FileText, Send, Check,
   Mic, X, Download, BadgeEuro,
@@ -22,23 +23,32 @@ const AdminLabelsTab = () => {
   const [labels, setLabels] = useState<Label[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [selected, setSelected] = useState<Label | null>(null);
   const [showCreate, setShowCreate] = useState(false);
 
   const load = async () => {
     setLoading(true);
-    const [labelsRes, profilesRes] = await Promise.all([
-      supabase.from("labels").select("*").order("created_at", { ascending: false }),
-      supabase.from("profiles").select("id, full_name, email").order("full_name"),
-    ]);
-    setLabels((labelsRes.data as Label[]) || []);
-    setProfiles((profilesRes.data as Profile[]) || []);
-    if (selected) setSelected(((labelsRes.data as Label[]) || []).find((l) => l.id === selected.id) || null);
-    setLoading(false);
+    setLoadError(false);
+    try {
+      const [labelsRes, profilesRes] = await Promise.all([
+        supabase.from("labels").select("*").order("created_at", { ascending: false }),
+        supabase.from("profiles").select("id, full_name, email").order("full_name"),
+      ]);
+      if (labelsRes.error) throw labelsRes.error;
+      setLabels((labelsRes.data as Label[]) || []);
+      setProfiles((profilesRes.data as Profile[]) || []);
+      if (selected) setSelected(((labelsRes.data as Label[]) || []).find((l) => l.id === selected.id) || null);
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
   };
   useEffect(() => { load(); }, []);
 
   if (loading) return <div className="flex items-center justify-center py-16"><Loader2 className="animate-spin text-primary" size={24} /></div>;
+  if (loadError) return <LoadError message="De labels konden niet worden geladen." onRetry={load} />;
 
   if (selected) return <LabelDetail label={selected} profiles={profiles} onBack={() => setSelected(null)} onChanged={load} />;
 
