@@ -18,6 +18,7 @@ const TooltipProvider = lazy(() => import("@/components/ui/tooltip").then(m => (
 const OfflineBanner = lazy(() => import("@/components/OfflineBanner"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const HomePage = lazy(() => import("./pages/HomePage"));
+const LandingPage = lazy(() => import("./pages/LandingPage"));
 
 // Lazy-loaded pages
 const BookingPage = lazy(() => import("./pages/BookingPage"));
@@ -113,10 +114,21 @@ const RequireAuth = ({ children }: { children: React.ReactNode }) => {
 
 const AppRoutes = () => {
   const location = useLocation();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     prefetchCorePages();
   }, []);
+
+  // Uitgelogde bezoekers krijgen op de root de publieke marketing-landing te zien
+  // (chrome-loos, buiten de AppShell). Ingelogde gebruikers zien hun dashboard.
+  if (!loading && !user && location.pathname === "/") {
+    return (
+      <Suspense fallback={<div style={{ position: "fixed", inset: 0, background: "#0a0810" }} />}>
+        <LandingPage />
+      </Suspense>
+    );
+  }
 
   return (
     <AppShell>
