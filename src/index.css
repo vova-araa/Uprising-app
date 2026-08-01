@@ -118,7 +118,7 @@
     --safe-area-right: env(safe-area-inset-right, 0px);
 
     --safe-top-offset: calc(var(--safe-area-top) + 8px);
-    --bottom-nav-height: 58px;
+    --bottom-nav-height: 74px;
     --bottom-nav-safe-padding: max(env(safe-area-inset-bottom, 0px) - 12px, 2px);
     --bottom-nav-total-offset: calc(var(--bottom-nav-height) + var(--bottom-nav-safe-padding));
   }
@@ -256,10 +256,45 @@
     width: 150vw;
     height: 75vh;
     background:
-      radial-gradient(ellipse 60% 55% at 38% 40%, hsl(268 95% 58% / 0.24), transparent 60%),
-      radial-gradient(ellipse 55% 50% at 66% 30%, hsl(292 90% 55% / 0.16), transparent 62%);
+      radial-gradient(ellipse 60% 55% at 38% 40%, hsl(268 95% 58% / 0.28), transparent 60%),
+      radial-gradient(ellipse 55% 50% at 66% 30%, hsl(292 90% 55% / 0.20), transparent 62%);
     pointer-events: none;
     z-index: 0;
+    animation: aurora-drift 22s ease-in-out infinite alternate;
+  }
+  /* Tweede aurora-veeg onderin — geeft diepte op elk scherm */
+  .ambient-glow::after {
+    content: "";
+    position: fixed;
+    bottom: -28vh;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150vw;
+    height: 60vh;
+    background:
+      radial-gradient(ellipse 55% 50% at 30% 70%, hsl(292 92% 55% / 0.16), transparent 60%),
+      radial-gradient(ellipse 50% 45% at 72% 60%, hsl(266 96% 60% / 0.14), transparent 62%);
+    pointer-events: none;
+    z-index: 0;
+    animation: aurora-drift 28s ease-in-out infinite alternate-reverse;
+  }
+  @keyframes aurora-drift {
+    0%   { transform: translateX(-52%) translateY(0) scale(1); opacity: 0.9; }
+    100% { transform: translateX(-48%) translateY(3vh) scale(1.08); opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ambient-glow::before, .ambient-glow::after { animation: none; }
+  }
+  /* Zwevende glazen nav-pill — het Aurora-signatuur */
+  .nav-pill {
+    background: hsl(250 20% 8% / 0.72);
+    backdrop-filter: blur(22px) saturate(1.5);
+    -webkit-backdrop-filter: blur(22px) saturate(1.5);
+    border: 1px solid hsl(272 60% 62% / 0.22);
+    box-shadow:
+      0 -2px 40px -12px hsl(272 92% 50% / 0.45),
+      0 18px 40px -18px hsl(250 60% 2% / 0.9),
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.06);
   }
   .font-display {
     font-family: var(--font-display);

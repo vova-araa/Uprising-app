@@ -50,14 +50,14 @@ const BottomNav = () => {
   return (
     <nav
       aria-label="Main navigation"
-      className={`fixed bottom-0 left-0 right-0 z-50 border-t glass hairline-top transition-colors lg:hidden ${navHighlight ? "border-primary" : "border-border"}`}
+      className={`nav-pill fixed z-50 rounded-[26px] transition-colors lg:hidden ${navHighlight ? "ring-1 ring-primary" : ""}`}
       style={{
-        paddingBottom: "max(env(safe-area-inset-bottom, 0px) - 14px, 0px)",
-        paddingLeft: "env(safe-area-inset-left, 0px)",
-        paddingRight: "env(safe-area-inset-right, 0px)",
+        left: "max(env(safe-area-inset-left, 0px) + 12px, 12px)",
+        right: "max(env(safe-area-inset-right, 0px) + 12px, 12px)",
+        bottom: "max(env(safe-area-inset-bottom, 0px), 12px)",
       }}
     >
-      <div className="flex items-center justify-around px-0 py-1">
+      <div className="flex items-center justify-around px-1 py-1.5">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path ||
           item.path !== "/" && location.pathname.startsWith(item.path);
@@ -71,16 +71,11 @@ const BottomNav = () => {
               aria-current={isActive ? "page" : undefined}
               className="relative flex flex-1 flex-col items-center gap-1 px-1 py-1 transition-colors min-w-0 active:scale-95 active:opacity-80">
 
-              {isActive &&
-              <div
-                className="absolute -top-2 h-0.5 w-8 rounded-full gradient-primary bg-primary animate-nav-indicator"
-              />
-              }
-              <div className={`flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-200 ${isActive ? "bg-primary/15 shadow-glow" : ""}`}>
+              <div className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200 ${isActive ? "gradient-primary shadow-glow-strong" : ""}`}>
                 <item.icon
-                  size={20}
-                  strokeWidth={isActive ? 2.4 : 2}
-                  className={isActive ? "text-[hsl(var(--nav-active))]" : "text-muted-foreground"} />
+                  size={19}
+                  strokeWidth={isActive ? 2.5 : 2}
+                  className={isActive ? "text-white" : "text-muted-foreground"} />
               </div>
 
               <span
@@ -92,8 +87,6 @@ const BottomNav = () => {
             </button>);
         })}
       </div>
-      {/* Fill behind home indicator / safe area */}
-      <div className="absolute bottom-0 left-0 right-0 -z-10" style={{ height: "max(env(safe-area-inset-bottom, 0px) - 14px, 0px)", backgroundColor: "hsl(var(--card))" }} />
     </nav>);
 };
 
