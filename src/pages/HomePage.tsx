@@ -386,18 +386,18 @@ const HomePage = () => {
             {/* AI Assistant */}
             {featureFlags.ai_assistant_enabled && (
               <button onClick={() => setShowAI(true)}
-                className="flex flex-col items-center gap-2 rounded-xl bg-primary/10 border border-primary/40 p-4 text-center transition-all hover:bg-primary/20 hover:border-primary hover:shadow-glow active:scale-[0.98] lg:hover:scale-[1.02]">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/20">
-                  <Sparkles size={18} className="text-primary" />
+                className="glass flex flex-col items-center gap-2 rounded-2xl border border-primary/20 p-4 text-center transition-all hover:border-primary/50 hover:shadow-glow active:scale-[0.98] lg:hover:scale-[1.02]">
+                <div className="icon-tile flex h-10 w-10 items-center justify-center rounded-xl">
+                  <Sparkles size={18} className="text-white" strokeWidth={2.2} />
                 </div>
                 <span className="text-[11px] lg:text-xs font-medium leading-tight">AI Assistant</span>
               </button>
             )}
             {/* Notifications / Settings */}
             <button onClick={() => navigate({ pathname: "/account", search: "?tab=settings" })}
-              className="flex flex-col items-center gap-2 rounded-xl bg-primary/10 border border-primary/40 p-4 text-center transition-all hover:bg-primary/20 hover:border-primary hover:shadow-glow active:scale-[0.98] lg:hover:scale-[1.02]">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/20">
-                <Bell size={18} className="text-primary" />
+              className="glass flex flex-col items-center gap-2 rounded-2xl border border-primary/20 p-4 text-center transition-all hover:border-primary/50 hover:shadow-glow active:scale-[0.98] lg:hover:scale-[1.02]">
+              <div className="icon-tile flex h-10 w-10 items-center justify-center rounded-xl">
+                <Bell size={18} className="text-white" strokeWidth={2.2} />
               </div>
               <span className="text-[11px] lg:text-xs font-medium leading-tight">{t("notifications") || "Meldingen"}</span>
             </button>

@@ -198,7 +198,7 @@ const LabelDashboardPage = () => {
                 const used = usage.get(a.id) || 0;
                 return (
                   <div key={a.id} className="flex items-center gap-3 rounded-xl card-premium border border-border p-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 shrink-0"><Mic size={15} className="text-primary" /></div>
+                    <div className="icon-tile flex h-9 w-9 items-center justify-center rounded-lg shrink-0"><Mic size={15} className="text-white" strokeWidth={2.1} /></div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold truncate">{a.name}</p>
                       <p className="text-[11px] text-muted-foreground flex items-center gap-1"><TrendingDown size={11} /> {used} uur gebruikt</p>
