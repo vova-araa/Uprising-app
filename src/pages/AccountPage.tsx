@@ -1240,8 +1240,8 @@ const AccountPage = () => {
                 return profileBroedplaats || bpPlan ? (
                   <>
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/20">
-                        <Users size={20} className="text-primary" />
+                      <div className="icon-tile flex h-10 w-10 items-center justify-center rounded-xl">
+                        <Users size={20} className="text-white" strokeWidth={2.1} />
                       </div>
                       <div>
                         <p className="font-semibold font-display">{(bpPlan?.plan || profileBroedplaats || "").replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</p>
@@ -1412,8 +1412,8 @@ const AccountPage = () => {
                   </p>
                   <div className="rounded-xl bg-secondary/60 p-3.5">
                     <div className="flex items-start gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/20 shrink-0 mt-0.5">
-                        <BookOpen size={16} className="text-primary" />
+                      <div className="icon-tile flex h-9 w-9 items-center justify-center rounded-lg shrink-0 mt-0.5">
+                        <BookOpen size={16} className="text-white" strokeWidth={2.1} />
                       </div>
                       <div className="flex-1">
                         {workshopConfig?.learning_module ? (
@@ -1663,7 +1663,7 @@ const AccountPage = () => {
                   <div className="icon-tile flex h-9 w-9 items-center justify-center rounded-xl mb-2.5">
                     <stat.icon size={18} className="text-white" strokeWidth={2.1} />
                   </div>
-                  <p className="text-2xl font-extrabold font-display tracking-[-0.01em]">{stat.value}</p>
+                  <p className="text-2xl font-extrabold font-display tracking-[-0.01em] text-gradient">{stat.value}</p>
                   <p className="text-[11px] text-muted-foreground">{stat.label}</p>
                 </div>
               ))}
@@ -1671,7 +1671,7 @@ const AccountPage = () => {
 
             {/* Next Session Countdown */}
             {nextBooking && countdown && (
-              <motion.div variants={item} className="rounded-xl bg-card border border-primary/20 p-5">
+              <motion.div variants={item} className="card-feature rounded-2xl border border-primary/20 p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <Timer size={16} className="text-primary" />
                   <h3 className="font-semibold font-display text-sm">
@@ -1689,7 +1689,7 @@ const AccountPage = () => {
                     { value: countdown.seconds, label: "sec" },
                   ].map((unit) => (
                     <div key={unit.label} className="rounded-xl bg-secondary p-3 text-center">
-                      <p className="text-xl font-bold font-display text-primary">{unit.value}</p>
+                      <p className="text-xl font-bold font-display text-gradient">{unit.value}</p>
                       <p className="text-[10px] text-muted-foreground">{unit.label}</p>
                     </div>
                   ))}
@@ -1729,8 +1729,8 @@ const AccountPage = () => {
             <motion.div variants={item} className="space-y-2">
               <button onClick={() => navigate("/book")}
                 className="w-full flex items-center gap-3 rounded-xl bg-card border border-border p-4 text-left transition-all hover:border-primary/40 active:scale-[0.98]">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/20">
-                  <Calendar size={18} className="text-primary" />
+                <div className="icon-tile flex h-10 w-10 items-center justify-center rounded-lg">
+                  <Calendar size={18} className="text-white" strokeWidth={2.1} />
                 </div>
                 <div className="flex-1">
                   <span className="text-sm font-semibold">{t("bookStudio")}</span>
@@ -1741,8 +1741,8 @@ const AccountPage = () => {
 
               <button onClick={() => navigate("/mix-master")}
                 className="w-full flex items-center gap-3 rounded-xl bg-card border border-border p-4 text-left transition-all hover:border-primary/40 active:scale-[0.98]">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/20">
-                  <Music size={18} className="text-primary" />
+                <div className="icon-tile flex h-10 w-10 items-center justify-center rounded-lg">
+                  <Music size={18} className="text-white" strokeWidth={2.1} />
                 </div>
                 <div className="flex-1">
                   <span className="text-sm font-semibold">Mix & Master</span>
