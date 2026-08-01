@@ -87,9 +87,9 @@ const OrgInsights = () => {
           { label: "Totaal deelnemers", value: totalParticipants, icon: Users, color: "text-blue-400" },
           { label: "Gem. deelnemers", value: avgParticipants, icon: Users, color: "text-amber-400" },
         ].map((kpi, i) => (
-          <div key={i} className="p-4 rounded-xl border border-border bg-card">
+          <div key={i} className="p-4 rounded-2xl border border-border card-premium">
             <kpi.icon size={20} className={`${kpi.color} mb-2`} />
-            <div className="text-2xl font-bold text-foreground">{kpi.value}</div>
+            <div className="text-2xl font-bold font-display text-foreground">{kpi.value}</div>
             <div className="text-xs text-muted-foreground">{kpi.label}</div>
           </div>
         ))}
