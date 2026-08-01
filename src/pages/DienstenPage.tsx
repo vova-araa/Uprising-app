@@ -208,8 +208,8 @@ const DienstenPage = () => {
               onClick={() => navigate(`/diensten/${cat.id}`)}
               className="group relative flex w-full items-center gap-4 rounded-2xl card-premium border border-border p-4 lg:p-5 text-left transition-all hover:border-primary/40 active:scale-[0.99] lg:hover:scale-[1.01] lg:hover:-translate-y-0.5 lg:hover:shadow-glow overflow-hidden"
             >
-              <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/20">
-                <cat.icon size={22} className="text-primary" />
+              <div className="icon-tile relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl">
+                <cat.icon size={22} className="text-white" strokeWidth={2.1} />
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold font-display text-base">{getLocalized(cat.label, lang)}</h3>
