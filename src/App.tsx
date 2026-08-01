@@ -1,7 +1,8 @@
 import { lazy, Suspense, useEffect } from "react";
 import { Loader2 } from "lucide-react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from "@tanstack/react-query";
 import { HashRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 
 import { I18nProvider } from "@/lib/i18n";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
@@ -61,6 +62,24 @@ const PageLoader = () => (
 );
 
 const queryClient = new QueryClient({
+  // App-brede foutfeedback: elke mislukte query/mutatie geeft één nette melding,
+  // zodat een stille fout nooit onopgemerkt blijft.
+  queryCache: new QueryCache({
+    onError: () =>
+      toast({
+        variant: "destructive",
+        title: "Kon niet laden",
+        description: "Er ging iets mis bij het ophalen. Probeer het zo opnieuw.",
+      }),
+  }),
+  mutationCache: new MutationCache({
+    onError: () =>
+      toast({
+        variant: "destructive",
+        title: "Actie mislukt",
+        description: "Je wijziging is niet opgeslagen. Probeer het opnieuw.",
+      }),
+  }),
   defaultOptions: {
     queries: {
       retry: 1,
