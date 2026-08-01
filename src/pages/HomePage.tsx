@@ -117,6 +117,28 @@ const HomePage = () => {
     return todaySlots.filter((_, i) => i > currentHour).slice(0, 8);
   }, [todaySlots]);
 
+  // Number of studios free in the soonest upcoming slot today — drives the live pill.
+  const studiosFreeSoon = useMemo(() => {
+    const soon = visibleSlots.find((s) => s.available);
+    return soon ? soon.availableStudios.length : 0;
+  }, [visibleSlots]);
+
+  // Marketing landing content (shown to logged-out visitors). Admin-editable via config,
+  // with sensible fallbacks so the page is never empty.
+  const landingStats = (config.getConfigRaw("landing_stats") as { sessions?: string; artists?: string; rating?: string } | null) || {};
+  const stat = {
+    sessions: landingStats.sessions || "1.200+",
+    artists: landingStats.artists || "300+",
+    rating: landingStats.rating || "4.9",
+  };
+  // Populaire diensten — driven by real studio config (name + real price), up to 3.
+  const popularServices = studios.slice(0, 3).map((s) => ({
+    id: s.id,
+    name: t(s.nameKey as any),
+    desc: t(s.descKey as any),
+    price: s.pricePerHour,
+  }));
+
   // Last-minute deals: free slots starting within the configured window today
   const lastMinuteCfg = { enabled: false, discount_pct: 25, within_hours: 6, ...(config.getConfigRaw("lastminute_pricing") || {}) };
   const dealSlots = useMemo(() => {
@@ -207,6 +229,13 @@ const HomePage = () => {
         <div className="absolute inset-0" style={{ background: "radial-gradient(120% 80% at 82% 8%, hsl(272 96% 58% / 0.42), transparent 55%)" }} />
         <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, hsl(250 30% 4% / 0.55), transparent 30%, transparent 78%, hsl(250 30% 4% / 0.5))" }} />
         <div className="absolute bottom-6 left-5 right-5 lg:left-10 lg:right-10 lg:bottom-10 z-10">
+          {!user && featureFlags.booking_enabled && studiosFreeSoon > 0 && (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+              className="flex w-max items-center gap-2 mb-3 rounded-full border border-white/15 bg-black/30 px-3 py-1.5 text-[12px] font-semibold text-white backdrop-blur-sm">
+              <span className="h-1.5 w-1.5 rounded-full bg-success" style={{ boxShadow: "0 0 9px hsl(var(--success))" }} />
+              {studiosFreeSoon} {lang === "nl" ? (studiosFreeSoon === 1 ? "studio binnenkort vrij" : "studio's binnenkort vrij") : (studiosFreeSoon === 1 ? "studio free soon" : "studios free soon")}
+            </motion.div>
+          )}
           <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
             className="inline-flex items-center gap-2 uppercase tracking-[0.18em] mb-2.5 text-[11px] lg:text-xs font-bold text-white/85">
             <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-glow" />
@@ -234,6 +263,26 @@ const HomePage = () => {
       )}
 
       <div className="px-5 lg:px-8 space-y-7 mt-6">
+        {/* Social-proof stats — marketing landing (logged-out) */}
+        {!user && (
+        <motion.section variants={item}>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="card-premium rounded-2xl border border-border p-4 text-center">
+              <p className="text-2xl font-extrabold font-display text-gradient leading-none">{stat.sessions}</p>
+              <p className="text-[11px] text-muted-foreground mt-1.5">{lang === "nl" ? "sessies geboekt" : "sessions booked"}</p>
+            </div>
+            <div className="card-premium rounded-2xl border border-border p-4 text-center">
+              <p className="text-2xl font-extrabold font-display text-gradient leading-none">{stat.artists}</p>
+              <p className="text-[11px] text-muted-foreground mt-1.5">{lang === "nl" ? "artiesten" : "artists"}</p>
+            </div>
+            <div className="card-premium rounded-2xl border border-border p-4 text-center">
+              <p className="text-2xl font-extrabold font-display text-gradient leading-none">★ {stat.rating}</p>
+              <p className="text-[11px] text-muted-foreground mt-1.5">{lang === "nl" ? "gemiddeld" : "avg. rating"}</p>
+            </div>
+          </div>
+        </motion.section>
+        )}
+
         {/* What can you do here? — clear capability overview for every visitor */}
         <motion.section variants={item}>
           <div className="flex items-center gap-2.5 mb-1">
@@ -263,6 +312,34 @@ const HomePage = () => {
             ))}
           </div>
         </motion.section>
+
+        {/* Populaire diensten — marketing landing (logged-out), real studio prices */}
+        {!user && popularServices.length > 0 && (
+        <motion.section variants={item}>
+          <div className="flex items-center gap-2.5 mb-3">
+            <span className="h-5 w-1 rounded-full accent-bar" />
+            <h2 className="text-xl font-extrabold font-display leading-tight tracking-[-0.01em]">{lang === "nl" ? "Populaire diensten" : "Popular services"}</h2>
+          </div>
+          <div className="space-y-3">
+            {popularServices.map((svc) => (
+              <button key={svc.id} onClick={() => navigate(`/book?studio=${svc.id}`)}
+                className="w-full flex items-center gap-4 rounded-2xl card-premium border border-border p-4 text-left transition-all hover:border-primary/40 hover:shadow-glow active:scale-[0.99]">
+                <div className="icon-tile flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl">
+                  <Mic size={22} className="text-white" strokeWidth={2.2} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-base font-bold font-display leading-tight truncate">{svc.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{svc.desc}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-lg font-bold font-display">€{svc.price}</p>
+                  <p className="text-[10px] text-muted-foreground">{lang === "nl" ? "per uur" : "per hour"}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </motion.section>
+        )}
 
         {/* Personalized summary (logged-in) */}
         {user && summary && (
@@ -379,6 +456,48 @@ const HomePage = () => {
         </motion.section>
         )}
 
+        {/* Zo werkt het — marketing landing (logged-out) */}
+        {!user && (
+        <motion.section variants={item}>
+          <div className="flex items-center gap-2.5 mb-3">
+            <span className="h-5 w-1 rounded-full accent-bar" />
+            <h2 className="text-xl font-extrabold font-display leading-tight tracking-[-0.01em]">{lang === "nl" ? "Zo werkt het" : "How it works"}</h2>
+          </div>
+          <div className="space-y-4">
+            {[
+              { n: 1, t: lang === "nl" ? "Kies & boek" : "Choose & book", d: lang === "nl" ? "Zie live welke studio vrij is en boek in seconden — met of zonder mix & master." : "See live which studio is free and book in seconds — with or without mix & master." },
+              { n: 2, t: lang === "nl" ? "Kom langs met je code" : "Come by with your code", d: lang === "nl" ? "Je krijgt automatisch een toegangscode voor je slot. Geen sleutels, geen gedoe." : "You automatically get an access code for your slot. No keys, no hassle." },
+              { n: 3, t: lang === "nl" ? "Maak, deel & spaar" : "Create, share & earn", d: lang === "nl" ? "Deel je sessie en verdien punten die je inwisselt voor gratis studio-uren." : "Share your session and earn points to redeem for free studio hours." },
+            ].map((s) => (
+              <div key={s.n} className="flex gap-4 items-start">
+                <div className="gradient-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold font-display text-primary-foreground">{s.n}</div>
+                <div>
+                  <p className="text-[15px] font-bold font-display leading-tight">{s.t}</p>
+                  <p className="text-[12.5px] text-muted-foreground leading-snug mt-1">{s.d}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.section>
+        )}
+
+        {/* Loyaliteit / punten — marketing landing (logged-out) */}
+        {!user && (
+        <motion.section variants={item}>
+          <div className="card-feature relative overflow-hidden rounded-3xl border border-primary/30 p-6"
+            style={{ background: "linear-gradient(150deg, hsl(266 90% 30% / 0.5), hsl(275 80% 30% / 0.16))" }}>
+            <p className="text-[11px] font-bold font-display uppercase tracking-[0.24em] text-primary">{lang === "nl" ? "Loyaliteit" : "Loyalty"}</p>
+            <h2 className="text-2xl font-extrabold font-display leading-tight mt-2">{lang === "nl" ? "Spaar punten, verzilver gratis uren" : "Earn points, redeem free hours"}</h2>
+            <p className="text-[13.5px] text-white/85 mt-2 max-w-[340px]">{lang === "nl" ? "Verdien punten met reviews, content en referrals. Wissel ze in voor gratis studio-uren." : "Earn points with reviews, content and referrals. Redeem them for free studio hours."}</p>
+            <button onClick={() => navigate("/diensten/memberships")}
+              className="btn-glow mt-5 inline-flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold text-primary-foreground active:scale-[0.97]">
+              {lang === "nl" ? "Word lid" : "Become a member"}
+              <ArrowRight size={16} strokeWidth={2.5} />
+            </button>
+          </div>
+        </motion.section>
+        )}
+
         {/* AI & Notifications */}
         {user && (
         <motion.section variants={item}>
@@ -444,6 +563,54 @@ const HomePage = () => {
                 </div>
               </motion.button>
             ))}
+          </div>
+        </motion.section>
+        )}
+
+        {/* Social proof — marketing landing (logged-out) */}
+        {!user && (
+        <motion.section variants={item}>
+          <div className="flex items-center gap-2.5 mb-3">
+            <span className="h-5 w-1 rounded-full accent-bar" />
+            <h2 className="text-xl font-extrabold font-display leading-tight tracking-[-0.01em]">{lang === "nl" ? "Wat artiesten zeggen" : "What artists say"}</h2>
+          </div>
+          <div className="space-y-3">
+            {[
+              { q: lang === "nl" ? "Beste studio van de regio. Boeken is zo gepiept en de mix kwam radioklaar terug." : "Best studio in the region. Booking is a breeze and the mix came back radio-ready.", av: "JD", name: "Jay D.", role: lang === "nl" ? "Rapper · Amersfoort" : "Rapper · Amersfoort" },
+              { q: lang === "nl" ? "De punten zijn echt ziek — ik heb al 3 gratis uren gespaard met content delen." : "The points are amazing — I've already earned 3 free hours by sharing content.", av: "MO", name: "Mo", role: lang === "nl" ? "Producer" : "Producer" },
+            ].map((r) => (
+              <div key={r.av} className="card-feature rounded-2xl border border-white/5 p-4">
+                <p className="text-sm italic leading-relaxed text-foreground/90">&ldquo;{r.q}&rdquo;</p>
+                <div className="flex items-center gap-3 mt-3">
+                  <div className="gradient-primary flex h-9 w-9 items-center justify-center rounded-xl text-[13px] font-bold font-display text-primary-foreground">{r.av}</div>
+                  <div>
+                    <p className="text-[13px] font-bold font-display leading-tight">{r.name}</p>
+                    <p className="text-[11px] text-muted-foreground">{r.role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.section>
+        )}
+
+        {/* Final CTA — marketing landing (logged-out) */}
+        {!user && (
+        <motion.section variants={item}>
+          <div className="relative overflow-hidden rounded-3xl p-8 text-center"
+            style={{ background: "radial-gradient(120% 120% at 50% 0%, hsl(272 90% 55% / 0.5), transparent 60%), linear-gradient(160deg, hsl(266 80% 24% / 0.7), hsl(250 20% 8%))" }}>
+            <h2 className="text-2xl font-extrabold font-display leading-tight">{lang === "nl" ? "Klaar om iets zieks te maken?" : "Ready to make something great?"}</h2>
+            <p className="text-[14px] text-white/85 mt-2 max-w-[320px] mx-auto">{lang === "nl" ? "Boek je eerste sessie of word lid en spaar direct punten." : "Book your first session or become a member and start earning points."}</p>
+            <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
+              <button onClick={() => navigate("/book?type=studio")}
+                className="inline-flex items-center gap-2 rounded-2xl bg-white px-6 py-3 text-sm font-bold font-display text-[hsl(266,60%,14%)] active:scale-[0.97]">
+                {lang === "nl" ? "Boek nu" : "Book now"} <ArrowRight size={16} strokeWidth={2.5} />
+              </button>
+              <button onClick={() => navigate("/auth")}
+                className="inline-flex items-center gap-2 rounded-2xl border border-primary/40 bg-primary/10 px-6 py-3 text-sm font-bold font-display text-white active:scale-[0.97]">
+                {lang === "nl" ? "Word lid" : "Sign up"}
+              </button>
+            </div>
           </div>
         </motion.section>
         )}
