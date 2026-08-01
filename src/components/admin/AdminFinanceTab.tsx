@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Euro, Download, Building2, Mic, Music2, AlertCircle } from "lucide-react";
+import { LoadError } from "@/components/LoadError";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from "recharts";
 
 // Financial overview for staff: revenue by source and month, outstanding
@@ -15,6 +16,8 @@ const monthKey = (d: string) => d.slice(0, 7); // YYYY-MM
 const AdminFinanceTab = () => {
   const [months, setMonths] = useState<6 | 12>(6);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -23,22 +26,29 @@ const AdminFinanceTab = () => {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const since = new Date(); since.setMonth(since.getMonth() - months);
-      const sinceStr = since.toISOString().split("T")[0];
-      const [bRes, pRes, iRes, lRes] = await Promise.all([
-        supabase.from("bookings").select("booking_date, total_price, status, session_type").gte("booking_date", sinceStr),
-        supabase.from("projects").select("created_at, price, status").gte("created_at", since.toISOString()),
-        supabase.from("label_invoices").select("invoice_number, total, status, created_at, label_id, hours").order("created_at", { ascending: false }),
-        supabase.from("labels").select("id, name"),
-      ]);
-      setBookings((bRes.data as Booking[]) || []);
-      setProjects((pRes.data as Project[]) || []);
-      setInvoices((iRes.data as Invoice[]) || []);
-      setLabelNames(new Map(((lRes.data as any[]) || []).map((l) => [l.id, l.name])));
-      setLoading(false);
+      setLoadError(false);
+      try {
+        const since = new Date(); since.setMonth(since.getMonth() - months);
+        const sinceStr = since.toISOString().split("T")[0];
+        const [bRes, pRes, iRes, lRes] = await Promise.all([
+          supabase.from("bookings").select("booking_date, total_price, status, session_type").gte("booking_date", sinceStr),
+          supabase.from("projects").select("created_at, price, status").gte("created_at", since.toISOString()),
+          supabase.from("label_invoices").select("invoice_number, total, status, created_at, label_id, hours").order("created_at", { ascending: false }),
+          supabase.from("labels").select("id, name"),
+        ]);
+        if (bRes.error) throw bRes.error;
+        setBookings((bRes.data as Booking[]) || []);
+        setProjects((pRes.data as Project[]) || []);
+        setInvoices((iRes.data as Invoice[]) || []);
+        setLabelNames(new Map(((lRes.data as any[]) || []).map((l) => [l.id, l.name])));
+      } catch {
+        setLoadError(true);
+      } finally {
+        setLoading(false);
+      }
     };
     load();
-  }, [months]);
+  }, [months, reloadKey]);
 
   const data = useMemo(() => {
     const byMonth = new Map<string, { month: string; studio: number; mixmaster: number; labels: number }>();
@@ -84,6 +94,7 @@ const AdminFinanceTab = () => {
   };
 
   if (loading) return <div className="flex items-center justify-center py-16"><Loader2 className="animate-spin text-primary" size={24} /></div>;
+  if (loadError) return <LoadError message="De financiële cijfers konden niet worden geladen." onRetry={() => setReloadKey((k) => k + 1)} />;
 
   const kpis = [
     { icon: Euro, label: "Totale omzet", value: `€${Math.round(data.total)}` },

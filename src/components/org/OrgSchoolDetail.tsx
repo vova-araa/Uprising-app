@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { LoadError } from "@/components/LoadError";
 import OrgTrajectDetail from "./OrgTrajectDetail";
 import OrgWorkshopDetail from "./OrgWorkshopDetail";
 
@@ -32,6 +33,7 @@ const statusColors: Record<string, string> = {
 const OrgSchoolDetail = ({ schoolId, onBack }: Props) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [school, setSchool] = useState<any>(null);
   const [trajecten, setTrajecten] = useState<any[]>([]);
   const [workshops, setWorkshops] = useState<any[]>([]);
@@ -48,11 +50,14 @@ const OrgSchoolDetail = ({ schoolId, onBack }: Props) => {
 
   const load = async () => {
     setLoading(true);
+    setLoadError(false);
+    try {
     const [schoolRes, trajRes, teamRes] = await Promise.all([
       supabase.from("org_schools" as any).select("*").eq("id", schoolId).single(),
       supabase.from("org_trajecten" as any).select("*").eq("school_id", schoolId).order("created_at", { ascending: false }),
       supabase.from("org_team_members" as any).select("*").eq("is_active", true),
     ]);
+    if (schoolRes.error) throw schoolRes.error;
     setSchool((schoolRes.data as any) || null);
     const trajs = (trajRes.data as any[]) || [];
     setTrajecten(trajs);
@@ -97,8 +102,11 @@ const OrgSchoolDetail = ({ schoolId, onBack }: Props) => {
       setWorkshops((bwData as any[]) || []);
       setWorkshopReports((bwReports as any[]) || []);
     }
-
-    setLoading(false);
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, [schoolId]);
@@ -131,6 +139,7 @@ const OrgSchoolDetail = ({ schoolId, onBack }: Props) => {
   }
 
   if (loading) return <div className="flex justify-center py-16"><Loader2 className="animate-spin text-primary" size={28} /></div>;
+  if (loadError) return <LoadError message="Deze school kon niet worden geladen." onRetry={load} />;
   if (!school) return <div className="text-center py-16 text-muted-foreground">School niet gevonden</div>;
 
   const openMaps = (address: string) => {

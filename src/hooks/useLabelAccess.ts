@@ -23,6 +23,12 @@ export function useLabelAccess() {
         const row = (data || []).find((r: any) => r.labels?.active);
         setLabelId(row?.label_id || null);
         setLoading(false);
+      })
+      .catch(() => {
+        // Bij een fout: geen label-toegang aannemen i.p.v. blijven hangen.
+        if (!active) return;
+        setLabelId(null);
+        setLoading(false);
       });
     return () => { active = false; };
   }, [user]);

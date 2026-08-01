@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, TrendingUp, Clock, XCircle, UserX, Euro, BellRing } from "lucide-react";
+import { LoadError } from "@/components/LoadError";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line,
 } from "recharts";
@@ -26,6 +27,8 @@ interface BookingRow {
 const AdminInsightsTab = () => {
   const [days, setDays] = useState<30 | 90>(30);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [checkins, setCheckins] = useState<Map<string, string | null>>(new Map());
   const [waitlistCounts, setWaitlistCounts] = useState<Record<string, number>>({});
@@ -34,6 +37,8 @@ const AdminInsightsTab = () => {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
+      setLoadError(false);
+      try {
       const since = new Date(Date.now() - days * 86_400_000).toISOString().split("T")[0];
       const today = new Date().toISOString().split("T")[0];
 
@@ -52,6 +57,8 @@ const AdminInsightsTab = () => {
           .select("studio_id")
           .gte("booking_date", today),
       ]);
+
+      if (bookingsRes.error) throw bookingsRes.error;
 
       const rows = (bookingsRes.data || []) as BookingRow[];
       setBookings(rows);
@@ -73,11 +80,14 @@ const AdminInsightsTab = () => {
         const { data: profiles } = await supabase.from("profiles").select("id, full_name, email").in("id", topIds);
         setProfileNames(new Map((profiles || []).map((p: any) => [p.id, p.full_name || p.email || "Onbekend"])));
       }
-
-      setLoading(false);
+      } catch {
+        setLoadError(true);
+      } finally {
+        setLoading(false);
+      }
     };
     load();
-  }, [days]);
+  }, [days, reloadKey]);
 
   const stats = useMemo(() => {
     const confirmed = bookings.filter((b) => b.status === "confirmed");
@@ -139,6 +149,15 @@ const AdminInsightsTab = () => {
 
   if (loading) {
     return <div className="flex items-center justify-center py-16"><Loader2 className="animate-spin text-primary" size={24} /></div>;
+  }
+
+  if (loadError) {
+    return (
+      <LoadError
+        message="De cijfers konden niet worden geladen."
+        onRetry={() => setReloadKey((k) => k + 1)}
+      />
+    );
   }
 
   const kpis = [

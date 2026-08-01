@@ -5,6 +5,7 @@ import { nl } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Plus, Loader2, MapPin, User, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { LoadError } from "@/components/LoadError";
 import OrgSessionDialog from "./OrgSessionDialog";
 
 type ViewMode = "month" | "week" | "day";
@@ -14,6 +15,7 @@ const OrgCalendarView = () => {
   const [locations, setLocations] = useState<any[]>([]);
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>("month");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -24,12 +26,15 @@ const OrgCalendarView = () => {
 
   const loadData = async () => {
     setLoading(true);
+    setLoadError(false);
+    try {
     const [sessRes, locRes, teamRes, bpRes] = await Promise.all([
       supabase.from("org_sessions" as any).select("*").order("session_date", { ascending: true }),
       supabase.from("org_locations" as any).select("*").eq("is_active", true),
       supabase.from("org_team_members" as any).select("*").eq("is_active", true),
       (supabase.from as any)("broedplaats_workshops").select("*").order("workshop_date", { ascending: true }),
     ]);
+    if (sessRes.error) throw sessRes.error;
     const orgSessions = (sessRes.data as any[]) || [];
     const bpWorkshops = ((bpRes.data as any[]) || []).map((ws: any) => ({
       id: `bp-${ws.id}`,
@@ -47,7 +52,11 @@ const OrgCalendarView = () => {
     setSessions([...orgSessions, ...bpWorkshops]);
     setLocations((locRes.data as any[]) || []);
     setTeamMembers((teamRes.data as any[]) || []);
-    setLoading(false);
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { loadData(); }, []);
@@ -312,6 +321,8 @@ const OrgCalendarView = () => {
 
       {loading ? (
         <div className="flex justify-center py-12"><Loader2 className="animate-spin text-primary" size={24} /></div>
+      ) : loadError ? (
+        <LoadError message="De agenda kon niet worden geladen." onRetry={loadData} />
       ) : isMobile ? (
         // Mobile views
         viewMode === "month" ? renderMobileMonth()
