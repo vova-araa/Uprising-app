@@ -839,8 +839,8 @@ const AdminConfigTab = () => {
               onClick={() => setExpandedCategory(isExpanded ? null : cat)}
               className="w-full flex items-center gap-3 p-4 text-left hover:bg-secondary/30 transition-colors"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/20 shrink-0">
-                <Icon size={16} className="text-primary" />
+              <div className="icon-tile flex h-9 w-9 items-center justify-center rounded-xl shrink-0">
+                <Icon size={16} className="text-white" strokeWidth={2.1} />
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-sm font-semibold">{categoryLabels[cat] || cat}</h3>

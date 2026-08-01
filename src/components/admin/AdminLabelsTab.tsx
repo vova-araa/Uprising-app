@@ -64,7 +64,7 @@ const AdminLabelsTab = () => {
         <div className="space-y-1.5">
           {labels.map((l) => (
             <button key={l.id} onClick={() => setSelected(l)} className="w-full flex items-center gap-3 rounded-lg bg-card border border-border p-3 text-left hover:border-primary/40">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 shrink-0"><Building2 size={15} className="text-primary" /></div>
+              <div className="icon-tile flex h-9 w-9 items-center justify-center rounded-lg shrink-0"><Building2 size={15} className="text-white" strokeWidth={2.1} /></div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate">{l.name}</p>
                 <p className="text-[11px] text-muted-foreground">{l.hours_balance} uur in de pot • €{l.default_rate}/u</p>

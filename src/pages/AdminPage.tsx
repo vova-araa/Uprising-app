@@ -909,8 +909,8 @@ const AdminPage = () => {
                       onClick={() => handleTabChange(card.id)}
                       className="flex items-start gap-4 rounded-2xl border border-border bg-card p-5 text-left hover:border-primary/30 hover:shadow-md transition-all active:scale-[0.98]"
                     >
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                        <card.icon size={22} className="text-primary" />
+                      <div className="icon-tile flex h-12 w-12 shrink-0 items-center justify-center rounded-xl">
+                        <card.icon size={22} className="text-white" strokeWidth={2.1} />
                       </div>
                       <div>
                         <p className="font-bold text-sm">{card.label}</p>
@@ -1836,8 +1836,8 @@ const AdminPage = () => {
                       onClick={() => handleTabChange(card.id)}
                       className="flex items-start gap-4 rounded-2xl border border-border bg-card p-5 text-left hover:border-primary/30 hover:shadow-md transition-all active:scale-[0.98]"
                     >
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                        <card.icon size={22} className="text-primary" />
+                      <div className="icon-tile flex h-12 w-12 shrink-0 items-center justify-center rounded-xl">
+                        <card.icon size={22} className="text-white" strokeWidth={2.1} />
                       </div>
                       <div>
                         <p className="font-bold text-sm">{card.label}</p>
