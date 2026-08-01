@@ -290,11 +290,11 @@ const HomePage = () => {
             )}
             <div className="grid grid-cols-3 gap-2 border-t border-border pt-3">
               <button onClick={() => navigate("/account")} className="text-center">
-                <p className="text-lg font-bold font-display text-primary">€{summary.wallet}</p>
+                <p className="text-xl font-bold font-display text-gradient">€{summary.wallet}</p>
                 <p className="text-[10px] text-muted-foreground">{lang === "nl" ? "Tegoed" : "Credit"}</p>
               </button>
               <button onClick={() => navigate("/account?tab=settings")} className="text-center border-x border-border">
-                <p className="text-lg font-bold font-display text-primary">{summary.points}</p>
+                <p className="text-xl font-bold font-display text-gradient">{summary.points}</p>
                 <p className="text-[10px] text-muted-foreground">Points</p>
               </button>
               <button onClick={() => navigate("/coach")} className="text-center">
@@ -358,13 +358,16 @@ const HomePage = () => {
           <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-none">
             {visibleSlots.length > 0 ? visibleSlots.map((slot) =>
               <button key={slot.time} disabled={!slot.available} onClick={() => navigate("/book?type=studio")}
-                className={`flex shrink-0 flex-col items-center rounded-lg px-3 py-2.5 text-xs font-medium transition-all min-w-[80px] ${
-                  slot.available ? "bg-card border border-border hover:border-primary/40" : "bg-muted/50 text-muted-foreground opacity-50"
-                }`}>
-                <Clock size={14} className={slot.available ? "text-primary mb-1" : "mb-1"} />
-                <span>{slot.time}</span>
+                className={`flex shrink-0 flex-col items-center rounded-xl px-3 py-2.5 text-xs font-medium transition-all min-w-[80px] active:scale-[0.97] ${
+                  slot.available
+                    ? "border border-success/30 text-foreground hover:border-success/60"
+                    : "bg-muted/50 text-muted-foreground opacity-50"
+                }`}
+                style={slot.available ? { background: "linear-gradient(160deg, hsl(152 68% 45% / 0.14), hsl(250 20% 8% / 0.5))" } : undefined}>
+                <Clock size={14} className={slot.available ? "text-success mb-1" : "mb-1"} />
+                <span className="font-display font-semibold">{slot.time}</span>
                 {slot.available && slot.availableStudios.length > 0 && (
-                  <span className="text-[9px] text-muted-foreground mt-1 leading-tight text-center">
+                  <span className="text-[9px] text-success/90 mt-1 leading-tight text-center">
                     {slot.availableStudios.map(id => studioNameMap[id] || id).join(", ")}
                   </span>
                 )}
