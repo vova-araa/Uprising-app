@@ -1007,6 +1007,27 @@ main{position:relative; z-index:2}
 [data-hover]{ cursor:none }
 </style>
 <style>.tweaks{display:none!important}</style>
+<style>
+.nav-burger{display:none;margin-left:auto;background:none;border:0;padding:8px;cursor:pointer;z-index:60}
+.nav-burger span{display:block;width:24px;height:2px;background:#fff;margin:5px 0;border-radius:2px;transition:.3s}
+.nav-burger.is-open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.nav-burger.is-open span:nth-child(2){opacity:0}
+.nav-burger.is-open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.mobile-menu{position:fixed;inset:0;z-index:55;background:rgba(10,8,16,.975);backdrop-filter:blur(14px);
+  display:flex;flex-direction:column;justify-content:center;gap:4px;padding:32px;
+  transform:translateY(-8%);opacity:0;pointer-events:none;transition:transform .42s var(--ease-out-expo),opacity .3s var(--ease)}
+.mobile-menu.open{transform:translateY(0);opacity:1;pointer-events:auto}
+.mobile-menu .mm-link{font-family:var(--display);font-size:clamp(34px,10vw,54px);line-height:1.05;
+  text-transform:uppercase;color:#fff;padding:8px 0;text-decoration:none}
+.mobile-menu .mm-link:active{color:var(--accent)}
+.mobile-menu .mm-cta{font-family:var(--mono);font-size:13px;letter-spacing:.2em;text-transform:uppercase;
+  background:var(--accent);color:var(--accent-ink);padding:16px 22px;border-radius:4px;text-align:center;margin-top:18px;text-decoration:none}
+.mm-close{position:absolute;top:18px;right:20px;background:none;border:0;color:#fff;font-size:26px;line-height:1;cursor:pointer}
+@media (max-width:800px){ .nav-burger{display:block} }
+@media (min-width:801px){ .mobile-menu{display:none!important} }
+/* custom cursor alleen op fijne pointers (niet op touch) */
+@media (hover:none),(pointer:coarse){ *{cursor:auto!important} .cursor{display:none!important} }
+</style>
 </head>
 <body>
 
@@ -1069,7 +1090,16 @@ main{position:relative; z-index:2}
   <div class="clock" style="display:none">
     <span class="cta-mini" data-hover>AMF · <span id="clk">--:--:--</span></span>
   </div>
+  <button class="nav-burger" id="navBurger" aria-label="Menu"><span></span><span></span><span></span></button>
 </nav>
+<div class="mobile-menu" id="mobileMenu" role="dialog" aria-label="Navigatie">
+  <button class="mm-close" id="mmClose" aria-label="Sluiten">&#10005;</button>
+  <a href="#studios" class="mm-link">Studio's</a>
+  <a href="#diensten" class="mm-link">Diensten</a>
+  <a href="#work" class="mm-link">Werk</a>
+  <a href="#contact" class="mm-link">Contact</a>
+  <a href="/#/book" target="_top" class="mm-cta">Boek een sessie &#8594;</a>
+</div>
 
 <main id="top">
 
@@ -1444,9 +1474,9 @@ main{position:relative; z-index:2}
 </div>
       <div class="c">Spaceshuttle 6E · 3824 ML Amersfoort</div>
       <div class="r">
-        <a href="#" data-hover>Instagram</a>
-        <a href="#" data-hover>YouTube</a>
-        <a href="#" data-hover>Spotify</a>
+        <a href="https://www.instagram.com/uprising.nl/" target="_blank" rel="noopener" data-hover>Instagram</a>
+        <a href="#" onclick="return false" data-hover>YouTube</a>
+        <a href="#" onclick="return false" data-hover>Spotify</a>
       </div>
     </div>
   </section>
@@ -1853,5 +1883,16 @@ main{position:relative; z-index:2}
 })();
 </script>
 
+<script>
+(function(){
+  var b=document.getElementById('navBurger'), m=document.getElementById('mobileMenu'), c=document.getElementById('mmClose');
+  if(!b||!m) return;
+  function open(){ m.classList.add('open'); b.classList.add('is-open'); document.body.style.overflow='hidden'; }
+  function close(){ m.classList.remove('open'); b.classList.remove('is-open'); document.body.style.overflow=''; }
+  b.addEventListener('click', function(){ m.classList.contains('open')?close():open(); });
+  if(c) c.addEventListener('click', close);
+  m.querySelectorAll('.mm-link, .mm-cta').forEach(function(a){ a.addEventListener('click', close); });
+})();
+</script>
 </body>
 </html>
