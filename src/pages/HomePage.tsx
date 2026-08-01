@@ -315,9 +315,9 @@ const HomePage = () => {
           <div className="grid grid-cols-3 lg:grid-cols-6 gap-2 lg:gap-3">
             {quickActions.map((action) =>
               <button key={action.label} onClick={() => navigate(action.path)}
-                className="flex flex-col items-center gap-2 rounded-xl bg-primary/10 border border-primary/40 p-3 lg:p-4 text-center transition-all hover:bg-primary/20 hover:border-primary hover:shadow-glow active:scale-[0.98] lg:hover:scale-[1.02] lg:hover:-translate-y-0.5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/20">
-                  <action.icon size={18} className="text-primary" />
+                className="glass flex flex-col items-center gap-2 rounded-2xl border border-primary/20 p-3 lg:p-4 text-center transition-all hover:border-primary/50 hover:shadow-glow active:scale-[0.98] lg:hover:scale-[1.02] lg:hover:-translate-y-0.5">
+                <div className="icon-tile flex h-10 w-10 items-center justify-center rounded-xl">
+                  <action.icon size={18} className="text-white" strokeWidth={2.2} />
                 </div>
                 <span className="text-[11px] lg:text-xs font-medium leading-tight">{action.label}</span>
               </button>
@@ -329,19 +329,19 @@ const HomePage = () => {
         {/* Last-minute deals */}
         {featureFlags.booking_enabled && dealSlots.length > 0 && (
         <motion.section variants={item}>
-          <div className="rounded-2xl border border-primary/30 card-premium p-4">
+          <div className="card-feature rounded-2xl border border-primary/25 p-4">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-lg">⚡</span>
-              <h2 className="text-sm font-bold font-display">{lang === "nl" ? `Last-minute — ${lastMinuteCfg.discount_pct}% korting vandaag` : `Last-minute — ${lastMinuteCfg.discount_pct}% off today`}</h2>
+              <h2 className="text-sm font-bold font-display text-gradient">{lang === "nl" ? `Last-minute — ${lastMinuteCfg.discount_pct}% korting vandaag` : `Last-minute — ${lastMinuteCfg.discount_pct}% off today`}</h2>
             </div>
             <p className="text-[11px] text-muted-foreground mb-3">{lang === "nl" ? "Boek een vrij slot dat binnenkort start en pak de korting." : "Book a free slot starting soon and grab the discount."}</p>
             <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
               {dealSlots.map((slot) => (
                 <button key={slot.time} onClick={() => navigate("/book?type=studio")}
-                  className="flex shrink-0 flex-col items-center rounded-lg bg-primary/10 border border-primary/30 px-3 py-2.5 text-xs font-semibold min-w-[76px] active:scale-[0.97]">
+                  className="glass flex shrink-0 flex-col items-center rounded-xl border border-primary/30 px-3 py-2.5 text-xs font-semibold min-w-[76px] active:scale-[0.97] hover:border-primary/60 transition-colors">
                   <Clock size={14} className="text-primary mb-1" />
-                  <span>{slot.time}</span>
-                  <span className="text-[9px] text-primary mt-0.5">-{lastMinuteCfg.discount_pct}%</span>
+                  <span className="font-display">{slot.time}</span>
+                  <span className="text-[9px] text-gradient font-bold mt-0.5">-{lastMinuteCfg.discount_pct}%</span>
                 </button>
               ))}
             </div>
