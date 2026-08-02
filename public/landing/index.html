@@ -1032,14 +1032,8 @@ main{position:relative; z-index:2}
 /* ===== Praktische mobiele modus (<=800px) — desktop blijft ongewijzigd ===== */
 @media (max-width:800px){
   /* sneller: geen zware 3D-logo video + geen nav-hover video op mobiel */
-  .logo-stage{display:none!important}
   .nav .brand-logo video{display:none!important}
-  /* minder animatie: alles direct zichtbaar, geen reveal-vertraging */
-  .reveal,.work-card .reveal{opacity:1!important;clip-path:none!important;transition:none!important}
-  .hero-eyebrow,.hero-sub,.hero-actions,.hero-stats{opacity:1!important;transform:none!important;animation:none!important}
-  .hero-title .ln span{transform:none!important;animation:none!important}
   /* korter & directer: lange decoratieve secties weg op mobiel */
-  .marquee.alt.rev{display:none!important}
   #roster{display:none!important}
   /* dienstregels duidelijk aantikbaar */
   .services .svc-row{cursor:pointer}
@@ -1062,6 +1056,20 @@ main{position:relative; z-index:2}
     padding:15px 12px;border-radius:7px;text-decoration:none}
   .m-actionbar .mab-book{flex:2;background:var(--accent);color:var(--accent-ink);font-weight:700}
   .m-actionbar .mab-call{flex:1;background:transparent;border:1px solid var(--line-strong);color:#fff}
+}
+</style>
+<style>
+/* ===== Signature motion ===== */
+.hero-actions .btn{position:relative;transition:transform .28s var(--ease-out-expo),box-shadow .35s var(--ease),background .25s,color .25s;will-change:transform}
+.hero-actions .btn.primary{box-shadow:0 10px 30px -12px var(--accent-glow)}
+.hero-actions .btn.primary:hover{box-shadow:0 14px 50px -8px var(--accent-glow),0 0 30px -6px var(--accent-glow)}
+.hero-actions .btn.ghost:hover{box-shadow:0 0 26px -8px var(--accent-glow);border-color:var(--accent)}
+.logo-3d{transition:transform .16s var(--ease-out-expo);will-change:transform}
+.logo-stage{perspective:900px}
+.hero-stats .n{font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){
+  .logo-3d{transition:none!important}
+  .hero-actions .btn{transition:none!important}
 }
 </style>
 </head>
@@ -1947,12 +1955,57 @@ main{position:relative; z-index:2}
     if(!n||!row) return; var r=routes[n.textContent.trim()]; if(!r) return;
     row.addEventListener('click', function(){ try{window.top.location.href=r;}catch(e){window.location.href=r;} });
   });
-  // 2) zware video's niet laden op mobiel (sneller)
-  document.querySelectorAll('video').forEach(function(v){
-    try{ v.pause(); v.removeAttribute('autoplay'); v.preload='none'; v.removeAttribute('src');
-         v.querySelectorAll('source').forEach(function(s){s.removeAttribute('src');});
-         if(v.load) v.load(); }catch(e){}
-  });
+})();
+</script>
+<script>
+(function(){
+  var RM = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var fine = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+
+  /* 1) Count-up hero stats when in view */
+  function animateCount(el){
+    var htmlv=el.innerHTML, m=htmlv.match(/^(\s*)([0-9][0-9.]*)/); if(!m) return;
+    var pad=m[1], target=parseInt(m[2].replace(/\./g,''),10), rest=htmlv.slice(m[0].length);
+    if(!isFinite(target)) return;
+    var grp = m[2].indexOf('.')>-1;
+    var start=null, dur=1400;
+    function fmt(n){ return grp ? n.toLocaleString('nl-NL') : String(n); }
+    function step(t){ if(start===null)start=t; var p=Math.min(1,(t-start)/dur);
+      var e=1-Math.pow(1-p,3); el.innerHTML=pad+fmt(Math.round(target*e))+rest;
+      if(p<1) requestAnimationFrame(step); }
+    requestAnimationFrame(step);
+  }
+  var stats=document.querySelectorAll('.hero-stats .n');
+  if(stats.length && !RM){
+    // start net nadat de hero-stats zijn ingefade (~1.4s)
+    setTimeout(function(){ stats.forEach(function(s){ animateCount(s); }); }, 1500);
+  }
+
+  /* 2) Interactive tilt on the 3D logo (desktop pointer) */
+  var l3=document.getElementById('logo3d'), stage=document.getElementById('logoStage');
+  if(l3 && stage && fine && !RM){
+    var tx=0,ty=0,cx=0,cy=0,raf=null;
+    function loop(){ cx+=(tx-cx)*.12; cy+=(ty-cy)*.12;
+      l3.style.transform='rotateY('+cx.toFixed(2)+'deg) rotateX('+cy.toFixed(2)+'deg)';
+      if(Math.abs(tx-cx)>.05||Math.abs(ty-cy)>.05){raf=requestAnimationFrame(loop);}else{raf=null;} }
+    var hero=document.querySelector('.hero')||stage;
+    hero.addEventListener('mousemove',function(ev){
+      var r=hero.getBoundingClientRect();
+      var px=(ev.clientX-r.left)/r.width-.5, py=(ev.clientY-r.top)/r.height-.5;
+      tx=px*26; ty=-py*20; if(!raf)raf=requestAnimationFrame(loop);
+    });
+    hero.addEventListener('mouseleave',function(){ tx=0;ty=0; if(!raf)raf=requestAnimationFrame(loop); });
+  }
+
+  /* 3) Magnetic buttons (desktop) */
+  if(fine && !RM){
+    document.querySelectorAll('.hero-actions .btn').forEach(function(b){
+      b.addEventListener('mousemove',function(ev){var r=b.getBoundingClientRect();
+        var x=(ev.clientX-r.left-r.width/2)*.25, y=(ev.clientY-r.top-r.height/2)*.35;
+        b.style.transform='translate('+x.toFixed(1)+'px,'+y.toFixed(1)+'px)';});
+      b.addEventListener('mouseleave',function(){b.style.transform='';});
+    });
+  }
 })();
 </script>
 </body>
