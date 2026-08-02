@@ -1028,6 +1028,42 @@ main{position:relative; z-index:2}
 /* custom cursor alleen op fijne pointers (niet op touch) */
 @media (hover:none),(pointer:coarse){ *{cursor:auto!important} .cursor{display:none!important} }
 </style>
+<style>
+/* ===== Praktische mobiele modus (<=800px) — desktop blijft ongewijzigd ===== */
+@media (max-width:800px){
+  /* sneller: geen zware 3D-logo video + geen nav-hover video op mobiel */
+  .logo-stage{display:none!important}
+  .nav .brand-logo video{display:none!important}
+  /* minder animatie: alles direct zichtbaar, geen reveal-vertraging */
+  .reveal,.work-card .reveal{opacity:1!important;clip-path:none!important;transition:none!important}
+  .hero-eyebrow,.hero-sub,.hero-actions,.hero-stats{opacity:1!important;transform:none!important;animation:none!important}
+  .hero-title .ln span{transform:none!important;animation:none!important}
+  /* korter & directer: lange decoratieve secties weg op mobiel */
+  .marquee.alt.rev{display:none!important}
+  #roster{display:none!important}
+  /* dienstregels duidelijk aantikbaar */
+  .services .svc-row{cursor:pointer}
+  .services .svc .plus{position:relative}
+  .services .svc .plus::after{content:"\203A";position:absolute;right:0;top:50%;transform:translateY(-50%);
+    color:var(--accent);font-size:22px;line-height:1;opacity:.9}
+  /* ruimte onder de vaste actiebalk */
+  body{padding-bottom:76px!important}
+  .cta,.foot,.cta-foot{padding-bottom:96px!important}
+}
+/* vaste actiebalk — alleen mobiel */
+.m-actionbar{display:none}
+@media (max-width:800px){
+  .m-actionbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:80;gap:10px;
+    padding:10px 14px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));
+    background:rgba(10,8,16,.92);backdrop-filter:blur(16px);
+    border-top:1px solid rgba(243,235,224,.12)}
+  .m-actionbar a{display:flex;align-items:center;justify-content:center;gap:8px;
+    font-family:'Space Mono',ui-monospace,monospace;font-size:13px;letter-spacing:.12em;text-transform:uppercase;
+    padding:15px 12px;border-radius:7px;text-decoration:none}
+  .m-actionbar .mab-book{flex:2;background:var(--accent);color:var(--accent-ink);font-weight:700}
+  .m-actionbar .mab-call{flex:1;background:transparent;border:1px solid var(--line-strong);color:#fff}
+}
+</style>
 </head>
 <body>
 
@@ -1892,6 +1928,31 @@ main{position:relative; z-index:2}
   b.addEventListener('click', function(){ m.classList.contains('open')?close():open(); });
   if(c) c.addEventListener('click', close);
   m.querySelectorAll('.mm-link, .mm-cta').forEach(function(a){ a.addEventListener('click', close); });
+})();
+</script>
+<div class="m-actionbar">
+  <a href="/#/book" target="_top" class="mab-book">Boek nu &#8594;</a>
+  <a href="tel:+31628994552" class="mab-call">Bel</a>
+</div>
+<script>
+(function(){
+  var mob = window.matchMedia('(max-width:800px)').matches;
+  if(!mob) return;
+  // 1) dienstregels aantikbaar -> juiste app-route
+  var routes={"Studio's":"/#/book","Memberships":"/#/diensten/memberships","Coaching":"/#/diensten",
+    "Brand & Visuals":"/#/diensten/content","Content Room":"/#/diensten/content",
+    "Uprising Stichting":"/#/diensten/broedplaats","Uprising App":"/#/auth"};
+  document.querySelectorAll('.services .svc').forEach(function(li){
+    var n=li.querySelector('.name'); var row=li.querySelector('.svc-row');
+    if(!n||!row) return; var r=routes[n.textContent.trim()]; if(!r) return;
+    row.addEventListener('click', function(){ try{window.top.location.href=r;}catch(e){window.location.href=r;} });
+  });
+  // 2) zware video's niet laden op mobiel (sneller)
+  document.querySelectorAll('video').forEach(function(v){
+    try{ v.pause(); v.removeAttribute('autoplay'); v.preload='none'; v.removeAttribute('src');
+         v.querySelectorAll('source').forEach(function(s){s.removeAttribute('src');});
+         if(v.load) v.load(); }catch(e){}
+  });
 })();
 </script>
 </body>
