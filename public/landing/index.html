@@ -1072,6 +1072,14 @@ main{position:relative; z-index:2}
   .hero-actions .btn{transition:none!important}
 }
 </style>
+<style>
+/* Signature card motion (studio + release cards) */
+.studio,.work-card{transition:transform .18s var(--ease-out-expo),box-shadow .3s var(--ease);transform-style:preserve-3d;will-change:transform}
+@media (hover:hover) and (pointer:fine){
+  .studio:hover,.work-card:hover{box-shadow:0 34px 80px -34px rgba(168,85,247,.42),0 0 24px -10px rgba(168,85,247,.4)}
+}
+@media (prefers-reduced-motion:reduce){.studio,.work-card{transition:none!important;transform:none!important}}
+</style>
 </head>
 <body>
 
@@ -2006,6 +2014,25 @@ main{position:relative; z-index:2}
       b.addEventListener('mouseleave',function(){b.style.transform='';});
     });
   }
+})();
+</script>
+<script>
+(function(){
+  var fine=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+  var RM=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(!fine||RM) return;
+  document.querySelectorAll('.studio, .work-card').forEach(function(card){
+    var raf=null,tx=0,ty=0;
+    card.addEventListener('mousemove',function(e){
+      var r=card.getBoundingClientRect();
+      tx=((e.clientX-r.left)/r.width-0.5); ty=((e.clientY-r.top)/r.height-0.5);
+      if(!raf) raf=requestAnimationFrame(function(){
+        card.style.transform='perspective(900px) rotateY('+(tx*6).toFixed(2)+'deg) rotateX('+(-ty*6).toFixed(2)+'deg) translateY(-4px)';
+        raf=null;
+      });
+    });
+    card.addEventListener('mouseleave',function(){ card.style.transform=''; });
+  });
 })();
 </script>
 </body>
