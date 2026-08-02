@@ -181,6 +181,11 @@ const HomePage = () => {
     );
   }
 
+  // Uitgelogde bezoekers krijgen de publieke LandingPage (via de router-gate in App.tsx).
+  // Deze dashboard-home is uitsluitend voor ingelogde gebruikers — geen half-marketing
+  // flash tijdens het laden van de auth-status.
+  if (!user) return null;
+
   return (
     <div ref={containerRef}>
       <SEO title="Uprising Studio — Studio's & Ruimtes Amersfoort" description="Boek muziekstudio's, contentruimtes en creatieve diensten bij Uprising Studio in Amersfoort." path="/" />
