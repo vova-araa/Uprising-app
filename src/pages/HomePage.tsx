@@ -241,14 +241,30 @@ const HomePage = () => {
             <h2 className="text-xl font-extrabold font-display leading-tight tracking-[-0.01em]">{t("capsTitle")}</h2>
           </div>
           <p className="text-xs text-muted-foreground mt-1 mb-4 pl-3.5">{t("capsSubtitle")}</p>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+          {/* Bento grid: featured wide tile → 2×2 blocks → wide upsell bar */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Featured — Studio boeken (wide, prominent) */}
+            <button onClick={() => navigate("/book?type=studio")}
+              className="col-span-2 group relative flex items-center gap-4 rounded-2xl card-feature border border-white/5 p-5 text-left transition-all duration-200 hover:border-primary/40 hover:-translate-y-0.5 active:scale-[0.99]">
+              <div className="icon-tile flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl transition-transform duration-200 group-hover:scale-105">
+                <Mic size={26} className="text-white" strokeWidth={2.2} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="text-lg font-extrabold font-display leading-tight tracking-[-0.01em]">{t("cap1Label")}</p>
+                  <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary">{lang === "nl" ? "Populair" : "Popular"}</span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-snug mt-1 max-w-[38ch]">{t("cap1Desc")}</p>
+              </div>
+              <ChevronRight size={20} className="text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
+            </button>
+
+            {/* 2×2 blocks */}
             {[
-              { icon: Mic, label: t("cap1Label"), desc: t("cap1Desc"), path: "/book?type=studio" },
               { icon: Camera, label: t("cap2Label"), desc: t("cap2Desc"), path: "/diensten/content" },
               { icon: Sliders, label: t("cap3Label"), desc: t("cap3Desc"), path: "/mix-master" },
               { icon: Music, label: t("cap4Label"), desc: t("cap4Desc"), path: "/diensten/producer-session" },
               { icon: Sparkles, label: t("cap5Label"), desc: t("cap5Desc"), path: user ? "/coach" : "/auth" },
-              { icon: Crown, label: t("cap6Label"), desc: t("cap6Desc"), path: "/diensten/memberships" },
             ].map((c) => (
               <button key={c.label} onClick={() => navigate(c.path)}
                 className="group flex flex-col gap-3 rounded-2xl card-feature border border-white/5 p-4 text-left transition-all duration-200 hover:border-primary/40 hover:-translate-y-0.5 active:scale-[0.98]">
@@ -261,6 +277,19 @@ const HomePage = () => {
                 </div>
               </button>
             ))}
+
+            {/* Wide upsell — Memberships */}
+            <button onClick={() => navigate("/diensten/memberships")}
+              className="col-span-2 group relative flex items-center gap-4 rounded-2xl card-feature border border-white/5 p-4 text-left transition-all duration-200 hover:border-primary/40 hover:-translate-y-0.5 active:scale-[0.99]">
+              <div className="icon-tile flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105">
+                <Crown size={22} className="text-white" strokeWidth={2.1} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-base font-bold font-display leading-tight">{t("cap6Label")}</p>
+                <p className="text-[11.5px] text-muted-foreground leading-snug mt-0.5">{t("cap6Desc")}</p>
+              </div>
+              <ChevronRight size={18} className="text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
+            </button>
           </div>
         </motion.section>
 
