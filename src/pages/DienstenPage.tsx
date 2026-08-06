@@ -189,36 +189,73 @@ const pageSubtitle: LocalizedText = {
   hy: "Բացահայտիր մեր ամբողջ առաջարկը",
 };
 
+// Per-category colour + bento size so the overview reads as a lively launcher.
+const GRAD: Record<string, string> = {
+  "studio-session": "linear-gradient(142deg,#8b3ff5,#c94bf0)",
+  content: "linear-gradient(142deg,#f0409b,#f57ac0)",
+  "producer-session": "linear-gradient(142deg,#16c784,#4ade80)",
+  broedplaats: "linear-gradient(142deg,#3b82f6,#22d3ee)",
+  drukkerij: "linear-gradient(142deg,#f59e0b,#fbbf24)",
+  memberships: "linear-gradient(142deg,#e0a417,#f5c542)",
+};
+const gradFor = (id: string) => GRAD[id] || GRAD["studio-session"];
+// Bento order: featured wide → 2×2 blocks → wide upsell.
+const ORDER = ["studio-session", "content", "producer-session", "broedplaats", "drukkerij", "memberships"];
+const WIDE = new Set(["studio-session", "memberships"]);
+
 const DienstenPage = () => {
   const { lang } = useI18n();
   const navigate = useNavigate();
+  const byId = (id: string) => categories.find((c) => c.id === id)!;
 
   return (
     <div className="min-h-full pb-24 lg:pb-12">
       <SEO title="Diensten overzicht — Uprising Studio" description="Bekijk alle creatieve diensten en pakketten van Uprising Studio in Amersfoort." path="/diensten" />
       <div className="px-5 lg:px-8 pt-6 pb-2">
-        <h1 className="text-2xl lg:text-3xl font-bold font-display">{getLocalized(pageTitle, lang)}</h1>
-        <p className="text-sm lg:text-base text-muted-foreground mt-1">{getLocalized(pageSubtitle, lang)}</p>
+        <div className="flex items-center gap-2.5">
+          <span className="h-6 w-1.5 rounded-full accent-bar" />
+          <h1 className="text-2xl lg:text-3xl font-extrabold font-display tracking-[-0.01em]">{getLocalized(pageTitle, lang)}</h1>
+        </div>
+        <p className="text-sm lg:text-base text-muted-foreground mt-1.5 pl-4">{getLocalized(pageSubtitle, lang)}</p>
       </div>
 
-      <motion.div variants={container} initial="hidden" animate="show" className="px-5 lg:px-8 space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4 mt-4">
-        {categories.map((cat) => (
-          <motion.div key={cat.id} variants={item}>
-            <button
-              onClick={() => navigate(`/diensten/${cat.id}`)}
-              className="group relative flex w-full items-center gap-4 rounded-2xl card-premium border border-border p-4 lg:p-5 text-left transition-all hover:border-primary/40 active:scale-[0.99] lg:hover:scale-[1.01] lg:hover:-translate-y-0.5 lg:hover:shadow-glow overflow-hidden"
-            >
-              <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/20">
-                <cat.icon size={22} className="text-primary" />
+      <motion.div variants={container} initial="hidden" animate="show" className="px-5 lg:px-8 grid grid-cols-2 gap-3 mt-4">
+        {ORDER.map((id) => {
+          const cat = byId(id);
+          const wide = WIDE.has(id);
+          if (wide) {
+            return (
+              <motion.button key={id} variants={item} onClick={() => navigate(`/diensten/${id}`)}
+                className="col-span-2 group relative flex items-center gap-4 rounded-2xl card-feature border border-white/5 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-primary/40 active:scale-[0.99]">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-glow transition-transform group-hover:scale-105" style={{ background: gradFor(id) }}>
+                  <cat.icon size={26} className="text-white" strokeWidth={2.2} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-extrabold font-display tracking-[-0.01em] leading-tight">{getLocalized(cat.label, lang)}</h3>
+                    {id === "studio-session" && (
+                      <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary">{lang === "nl" ? "Populair" : "Popular"}</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-snug mt-1">{getLocalized(cat.description, lang)}</p>
+                </div>
+                <ChevronRight size={20} className="text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
+              </motion.button>
+            );
+          }
+          return (
+            <motion.button key={id} variants={item} onClick={() => navigate(`/diensten/${id}`)}
+              className="group flex flex-col gap-3 rounded-2xl card-feature border border-white/5 p-4 text-left transition-all hover:-translate-y-0.5 hover:border-primary/40 active:scale-[0.98]">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl transition-transform group-hover:scale-105" style={{ background: gradFor(id) }}>
+                <cat.icon size={20} className="text-white" strokeWidth={2.2} />
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold font-display text-base">{getLocalized(cat.label, lang)}</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">{getLocalized(cat.description, lang)}</p>
+              <div className="flex-1">
+                <h3 className="text-[15px] font-bold font-display leading-tight">{getLocalized(cat.label, lang)}</h3>
+                <p className="text-[11.5px] text-muted-foreground leading-snug mt-1">{getLocalized(cat.description, lang)}</p>
               </div>
-              <ChevronRight size={18} className="text-muted-foreground shrink-0 lg:group-hover:translate-x-1 transition-transform" />
-            </button>
-          </motion.div>
-        ))}
+            </motion.button>
+          );
+        })}
       </motion.div>
     </div>
   );

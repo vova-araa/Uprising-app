@@ -1,358 +1,146 @@
 import { useI18n } from "@/lib/i18n";
-import { useAppConfig } from "@/contexts/AppConfigContext";
 import { motion } from "framer-motion";
-import { services as fallbackServices } from "@/lib/data";
-import { Mic, Camera, Sliders, Music, Image, Shirt, Package, ChevronRight, Sparkles, Star, Crown, Building2, ToggleLeft, ToggleRight, FileText, CheckSquare } from "lucide-react";
+import { Mic, Camera, Sliders, Music, Crown, Sparkles, Image, Shirt, Package, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import SEO from "@/components/SEO";
-import MembershipTermsBody from "@/components/MembershipTermsBody";
 
-const iconMap: Record<string, any> = { Mic, Camera, Sliders, Music, Image, Shirt, Package };
-
-const container = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
+const container = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } };
 const item = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
 
-const DEFAULT_MEMBERSHIPS = [
-{
-  name: "Basic",
-  icon: Sparkles,
-  desc: { nl: "8 uur per maand, toegang tot Studio's & Content Room — voor producers die regelmatig werken", en: "8 hours per month, access to Studios & Content Room — for producers who work regularly" },
-  priceMonthly: 150,
-  priceYearly: 100,
-  color: "text-success",
-  borderColor: "hover:border-success/40",
-  bgIcon: "bg-success/20"
-},
-{
-  name: "Pro",
-  icon: Star,
-  desc: { nl: "16 uur per maand, 10% korting op mix & master en producer sessies — voor serieuze producers", en: "16 hours per month, 10% discount on mix & master and producer sessions — for serious producers" },
-  priceMonthly: 250,
-  priceYearly: 200,
-  color: "text-primary",
-  borderColor: "hover:border-primary/40",
-  bgIcon: "bg-primary/20"
-},
-{
-  name: "Unlimited",
-  icon: Crown,
-  desc: { nl: "Onbeperkt boeken, 20% korting op mix & master en producer sessies — de ultieme producer setup", en: "Unlimited booking, 20% discount on mix & master and producer sessions — the ultimate producer setup" },
-  priceMonthly: 350,
-  priceYearly: 300,
-  color: "text-warning",
-  borderColor: "hover:border-warning/40",
-  bgIcon: "bg-warning/20"
-},
-{
-  name: "Business",
-  icon: Building2,
-  desc: { nl: "Voor labels & bedrijven. Meerdere gebruikers, facturatie, dedicated account manager", en: "For labels & businesses. Multiple users, invoicing, dedicated account manager" },
-  priceMonthly: null,
-  priceYearly: null,
-  priceLabel: { nl: "Op aanvraag", en: "On request" },
-  color: "text-warning",
-  borderColor: "hover:border-warning/40",
-  bgIcon: "bg-warning/20"
-}];
-
-// Request-based services that go to the contact form
-const requestServices = ["photography", "clothing", "merch"];
+// Per-category colour so the overview reads as a lively launcher, not a grey list.
+const GRAD = {
+  studio: "linear-gradient(142deg,#8b3ff5,#c94bf0)",
+  content: "linear-gradient(142deg,#f0409b,#f57ac0)",
+  mix: "linear-gradient(142deg,#3b82f6,#22d3ee)",
+  producer: "linear-gradient(142deg,#16c784,#4ade80)",
+  coach: "linear-gradient(142deg,#f59e0b,#fbbf24)",
+  member: "linear-gradient(142deg,#e0a417,#f5c542)",
+  request: "linear-gradient(142deg,#f59e0b,#fbbf24)",
+};
 
 const ServicesPage = () => {
   const { t, lang } = useI18n();
-  const config = useAppConfig();
   const navigate = useNavigate();
-  const [yearly, setYearly] = useState(false);
-  const [contractAccepted, setContractAccepted] = useState(false);
-  const [memberTier, setMemberTier] = useState<string | null>(null);
-  const localizedLang = lang === "nl" ? "nl" : "en";
+  const { user } = useAuth();
+  const nl = lang === "nl";
 
-  // Membership prices are config-driven (single source of truth with
-  // BookingPage); fall back to the built-in defaults when config is empty.
-  const tierStyle: Record<string, { icon: typeof Sparkles; color: string; borderColor: string; bgIcon: string }> = {
-    basic: { icon: Sparkles, color: "text-success", borderColor: "hover:border-success/40", bgIcon: "bg-success/20" },
-    pro: { icon: Star, color: "text-primary", borderColor: "hover:border-primary/40", bgIcon: "bg-primary/20" },
-    unlimited: { icon: Crown, color: "text-warning", borderColor: "hover:border-warning/40", bgIcon: "bg-warning/20" },
-    business: { icon: Building2, color: "text-warning", borderColor: "hover:border-warning/40", bgIcon: "bg-warning/20" },
-  };
-  const memberships = config.membershipTiers.length > 0
-    ? config.membershipTiers.map((tier) => ({
-        name: tier.name,
-        desc: tier.desc,
-        priceMonthly: tier.priceMonthly,
-        priceYearly: tier.priceYearly,
-        priceLabel: tier.priceMonthly === null ? { nl: "Op aanvraag", en: "On request" } : undefined,
-        ...(tierStyle[tier.id] || tierStyle.business),
-      }))
-    : DEFAULT_MEMBERSHIPS;
-
-  // Use config-driven services, fallback to hardcoded
-  const configServices = config.servicesConfig;
-  const services = configServices.length > 0
-    ? configServices.map(cs => ({
-        id: cs.id,
-        nameKey: cs.nameKey,
-        description: cs.descNl,
-        descriptionEn: cs.descEn,
-        price: cs.priceNl,
-        priceEn: cs.priceEn,
-        requestOnly: cs.requestOnly,
-        icon: cs.icon,
-      }))
-    : fallbackServices;
-
-  useEffect(() => {
-    const checkMembership = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      try {
-        const { data, error } = await supabase.functions.invoke("check-subscription");
-        if (!error && data?.subscribed) {
-          setMemberTier(data.plan || "basic");
-          return;
-        }
-        const { data: profile } = await supabase.from("profiles").select("membership").eq("id", user.id).single();
-        if (profile?.membership) setMemberTier(profile.membership);
-      } catch {}
-    };
-    checkMembership();
-  }, []);
-
-  const memberDiscount = memberTier === "unlimited" ? 0.2 : memberTier === "pro" ? 0.1 : 0;
-
-  const getServicePrice = (service: typeof services[0]) => {
-    if (service.id === "mix-master") {
-      const base = 150;
-      const discounted = Math.round(base * (1 - memberDiscount));
-      if (memberDiscount > 0) {
-        return lang === "nl" ? `€${discounted} per track` : `€${discounted} per track`;
-      }
-      return lang === "nl" ? service.price : service.priceEn;
-    }
-    if (service.id === "producer") {
-      const base = 350;
-      const discounted = Math.round(base * (1 - memberDiscount));
-      if (memberDiscount > 0) {
-        return `€${discounted} per single`;
-      }
-      return lang === "nl" ? service.price : service.priceEn;
-    }
-    return lang === "nl" ? service.price : service.priceEn;
+  const featured = {
+    icon: Mic,
+    title: nl ? "Studio's boeken" : "Book a studio",
+    desc: nl ? "Opnemen & produceren in Studio 1 of 2 — 24/7 self-service" : "Record & produce in Studio 1 or 2 — 24/7 self-service",
+    price: nl ? "vanaf €30/uur" : "from €30/hr",
+    grad: GRAD.studio,
+    path: "/book?type=studio",
+    tag: nl ? "Populair" : "Popular",
   };
 
-  const bookable = services.filter((s) => !s.requestOnly);
-  const requestBased = services.filter((s) => s.requestOnly);
+  const tiles = [
+    { icon: Camera, title: nl ? "Contentruimte" : "Content room", desc: nl ? "Foto, video & podcast" : "Photo, video & podcast", price: nl ? "vanaf €35/uur" : "from €35/hr", grad: GRAD.content, path: "/book?studio=content-room" },
+    { icon: Sliders, title: "Mix & Master", desc: nl ? "Radio-ready door een engineer" : "Radio-ready by an engineer", price: "€150/track", grad: GRAD.mix, path: "/mix-master" },
+    { icon: Music, title: nl ? "Producer-sessie" : "Producer session", desc: nl ? "Samen aan je track werken" : "Work on your track together", price: "€350/single", grad: GRAD.producer, path: "/producer-booking" },
+    { icon: Sparkles, title: "Content Coach", desc: nl ? "Post-ideeën & releaseplan" : "Post ideas & release plan", price: nl ? "AI-coaching" : "AI coaching", grad: GRAD.coach, path: user ? "/coach" : "/auth" },
+  ];
 
-  const handleServiceClick = (serviceId: string) => {
-    if (serviceId === "mix-master") {
-      navigate("/mix-master");
-    } else if (serviceId === "producer") {
-      navigate("/producer-booking");
-    } else if (requestServices.includes(serviceId)) {
-      navigate(`/request?type=${serviceId}`);
-    } else if (serviceId === "content-space") {
-      navigate("/book?studio=content-room");
-    } else if (serviceId === "music-studio") {
-      navigate("/book?type=studio");
-    } else {
-      navigate("/book");
-    }
+  const membership = {
+    icon: Crown,
+    title: "Producer Memberships",
+    desc: nl ? "Korting op studio's & meer — voordeliger als je vaker komt" : "Discounts on studios & more — better value when you come often",
+    price: nl ? "vanaf €150/mnd" : "from €150/mo",
+    grad: GRAD.member,
+    path: "/diensten/memberships",
   };
 
-  const handleMembershipClick = (planName: string) => {
-    const params = new URLSearchParams({
-      plan: planName.toLowerCase(),
-      interval: yearly ? "year" : "quarter",
-    });
-    navigate(`/book?${params.toString()}`);
-  };
+  const requests = [
+    { icon: Image, title: nl ? "Fotografie" : "Photography", path: "/request?type=photography" },
+    { icon: Shirt, title: nl ? "Kleding" : "Clothing", path: "/request?type=clothing" },
+    { icon: Package, title: nl ? "Merchandise" : "Merchandise", path: "/request?type=merch" },
+  ];
 
   return (
-    <div className="min-h-full">
+    <div className="min-h-full pb-24">
       <SEO title="Diensten — Uprising Studio Amersfoort" description="Alle creatieve diensten van Uprising Studio: studio-sessies, content, mix & master en meer." path="/services" />
-      <div className="px-5 pt-6 pb-2">
+      <div className="px-5 pt-6 pb-1">
         <h1 className="text-2xl font-extrabold font-display tracking-[-0.01em]">{t("allServices")}</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          {nl ? "Kies een dienst en boek direct — of vraag maatwerk aan." : "Pick a service and book directly — or request custom work."}
+        </p>
       </div>
 
-      <motion.div variants={container} initial="hidden" animate="show" className="px-5 pb-6 mt-4">
-        {/* Bookable */}
-        <motion.div variants={item} className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="h-5 w-1 rounded-full accent-bar" />
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-              {t("bookDirectly")}
-            </h2>
-          </div>
-          <div className="space-y-4">
-            {bookable.map((service) => {
-              const Icon = iconMap[service.icon] || Mic;
-              return (
-                <motion.button key={service.id} variants={item} onClick={() => handleServiceClick(service.id)}
-                className="group relative flex w-full items-center gap-4 rounded-2xl card-feature border border-white/5 p-4 text-left transition-all hover:-translate-y-0.5 hover:border-primary/40 active:scale-[0.99] overflow-hidden">
-                  <div className="absolute -left-4 top-1/2 -translate-y-1/2 h-20 w-20 rounded-full bg-primary/10 blur-2xl" />
-                  <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl icon-tile shadow-glow">
-                    <Icon size={24} className="text-white" strokeWidth={2.1} />
-                  </div>
-                  <div className="flex-1 min-w-0 relative">
-                    <h3 className="font-extrabold font-display tracking-[-0.01em] text-base">{t(service.nameKey as any)}</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {lang === "nl" ? service.description : service.descriptionEn}
-                    </p>
-                    <p className="text-sm font-bold text-primary mt-1.5">
-                      {getServicePrice(service)}
-                    </p>
-                  </div>
-                  <ChevronRight size={18} className="text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
-                </motion.button>);
-            })}
-          </div>
-        </motion.div>
-
-        {/* Memberships */}
-        <motion.div variants={item} className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-            <span className="h-5 w-1 rounded-full accent-bar" />
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Producer Memberships</h2>
+      <motion.div variants={container} initial="hidden" animate="show" className="px-5 mt-4 space-y-6">
+        {/* Bento launcher */}
+        <motion.div variants={item} className="grid grid-cols-2 gap-3">
+          {/* Featured — wide */}
+          <button onClick={() => navigate(featured.path)}
+            className="col-span-2 group relative flex items-center gap-4 rounded-2xl card-feature border border-white/5 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-primary/40 active:scale-[0.99]">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-glow transition-transform group-hover:scale-105" style={{ background: featured.grad }}>
+              <featured.icon size={26} className="text-white" strokeWidth={2.2} />
             </div>
-            <button onClick={() => { setYearly(!yearly); setContractAccepted(false); }}
-              className="flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold transition-all">
-              <span className={yearly ? "text-muted-foreground" : "text-foreground"}>
-                {t("monthly")}
-              </span>
-              {yearly ? (
-                <ToggleRight size={20} className="text-success" />
-              ) : (
-                <ToggleLeft size={20} className="text-muted-foreground" />
-              )}
-              <span className={yearly ? "text-foreground" : "text-muted-foreground"}>
-                {t("yearly")}
-              </span>
-              {yearly && (
-                <span className="rounded-full bg-success/20 px-1.5 py-0.5 text-[9px] font-bold text-success ml-0.5">
-                  {t("save")}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {/* Yearly contract notice */}
-          {yearly && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
-              className="mb-3 rounded-xl bg-warning/10 border border-warning/20 p-4">
-              <div className="flex items-start gap-3">
-                <FileText size={18} className="text-warning shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-xs font-semibold text-warning mb-2">
-                    {t("annualTerms")}
-                  </p>
-                  <MembershipTermsBody yearly={yearly} />
-                  <button onClick={() => setContractAccepted(!contractAccepted)}
-                    className="flex items-center gap-2 mt-3">
-                    <div className={`flex h-5 w-5 items-center justify-center rounded ${contractAccepted ? "bg-warning text-background" : "border-2 border-muted-foreground/30"}`}>
-                      {contractAccepted && <CheckSquare size={14} />}
-                    </div>
-                    <span className="text-xs font-medium">
-                      {t("agreeTerms")}
-                    </span>
-                  </button>
-                </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-extrabold font-display tracking-[-0.01em] leading-tight">{featured.title}</h3>
+                <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary">{featured.tag}</span>
               </div>
-            </motion.div>
-          )}
+              <p className="text-xs text-muted-foreground leading-snug mt-1">{featured.desc}</p>
+              <p className="text-sm font-bold text-primary mt-1.5">{featured.price}</p>
+            </div>
+            <ChevronRight size={20} className="text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
+          </button>
 
-          <div className="space-y-4">
-            {memberships.map((plan) => {
-              const hasCustomPrice = "priceLabel" in plan && plan.priceLabel;
-              let priceDisplay: string;
-              if (hasCustomPrice) {
-                priceDisplay = (plan as any).priceLabel[localizedLang];
-              } else {
-                const amount = yearly ? plan.priceYearly : plan.priceMonthly;
-                priceDisplay = `€${amount}/${t("perMonth")}`;
-              }
-              const desc = plan.desc[localizedLang];
-              const isDisabled = yearly && !contractAccepted && !hasCustomPrice;
-              // Note: 3-month commitment notice is shown on the booking page
-              return (
-                <button key={plan.name}
-                onClick={() => {
-                  if (hasCustomPrice) {
-                    navigate("/request?type=business");
-                  } else if (!isDisabled) {
-                    handleMembershipClick(plan.name);
-                  }
-                }}
-                disabled={isDisabled}
-                className={`group relative flex w-full items-center gap-4 rounded-2xl card-feature border border-white/5 p-4 text-left transition-all hover:-translate-y-0.5 ${plan.borderColor} active:scale-[0.99] overflow-hidden ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}>
-                  <div className={`absolute -left-4 top-1/2 -translate-y-1/2 h-20 w-20 rounded-full ${plan.bgIcon} blur-2xl opacity-50`} />
-                  <div className={`relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${plan.bgIcon}`}>
-                    <plan.icon size={24} className={plan.color} />
-                  </div>
-                  <div className="flex-1 min-w-0 relative">
-                    <h3 className="font-extrabold font-display tracking-[-0.01em] text-base">{plan.name}</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5 my-[3px]">{desc}</p>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      {hasCustomPrice ? (
-                        <span className="inline-flex items-center rounded-full border border-warning/60 bg-warning/10 px-3 py-1 text-xs font-semibold text-warning">{priceDisplay}</span>
-                      ) : (
-                        <p className={`text-sm font-bold ${plan.color}`}>{priceDisplay}</p>
-                      )}
-                      {yearly && plan.priceMonthly && plan.priceYearly && (
-                        <span className="text-xs text-muted-foreground line-through">€{plan.priceMonthly}/{t("perMonth")}</span>
-                      )}
-                    </div>
-                    {yearly && !hasCustomPrice && (
-                      <p className="text-[10px] text-success mt-0.5">
-                        {lang === "nl"
-                          ? `Jaarcontract — bespaar €${((plan.priceMonthly! - plan.priceYearly!) * 12)}/jaar`
-                          : `Annual contract — save €${((plan.priceMonthly! - plan.priceYearly!) * 12)}/year`}
-                      </p>
-                    )}
-                  </div>
-                  <ChevronRight size={18} className="text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
-                </button>);
-            })}
-          </div>
+          {/* 2×2 colour tiles */}
+          {tiles.map((c) => (
+            <button key={c.title} onClick={() => navigate(c.path)}
+              className="group flex flex-col gap-3 rounded-2xl card-feature border border-white/5 p-4 text-left transition-all hover:-translate-y-0.5 hover:border-primary/40 active:scale-[0.98]">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl transition-transform group-hover:scale-105" style={{ background: c.grad }}>
+                <c.icon size={20} className="text-white" strokeWidth={2.2} />
+              </div>
+              <div className="flex-1">
+                <p className="text-[15px] font-bold font-display leading-tight">{c.title}</p>
+                <p className="text-[11.5px] text-muted-foreground leading-snug mt-1">{c.desc}</p>
+              </div>
+              <p className="text-xs font-bold text-primary">{c.price}</p>
+            </button>
+          ))}
+
+          {/* Memberships — wide */}
+          <button onClick={() => navigate(membership.path)}
+            className="col-span-2 group relative flex items-center gap-4 rounded-2xl card-feature border border-white/5 p-4 text-left transition-all hover:-translate-y-0.5 hover:border-primary/40 active:scale-[0.99]">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-transform group-hover:scale-105" style={{ background: membership.grad }}>
+              <membership.icon size={22} className="text-white" strokeWidth={2.1} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base font-bold font-display leading-tight">{membership.title}</h3>
+              <p className="text-[11.5px] text-muted-foreground leading-snug mt-0.5">{membership.desc}</p>
+            </div>
+            <div className="text-right shrink-0">
+              <p className="text-xs font-bold text-primary whitespace-nowrap">{membership.price}</p>
+              <ChevronRight size={18} className="text-muted-foreground ml-auto mt-1 group-hover:text-primary transition-colors" />
+            </div>
+          </button>
         </motion.div>
 
-        {/* On Request - now split into Mix & Master (bookable) and contact form services */}
+        {/* On request */}
         <motion.div variants={item}>
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2.5 mb-3">
             <span className="h-5 w-1 rounded-full accent-bar" />
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("onRequest")}</h2>
+            <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-muted-foreground">{t("onRequest")}</h2>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            {requestBased.map((service) => {
-              const Icon = iconMap[service.icon] || Mic;
-              return (
-                <motion.button key={service.id} variants={item}
-                onClick={() => handleServiceClick(service.id)}
-                className="group flex flex-col items-center gap-3 rounded-2xl card-feature border border-white/5 p-5 text-center transition-all hover:-translate-y-0.5 hover:border-primary/30 active:scale-[0.98]">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl icon-tile">
-                    <Icon size={22} className="text-white" strokeWidth={2.1} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-extrabold font-display tracking-[-0.01em] leading-tight">{t(service.nameKey as any)}</h3>
-                    <p className="text-[10px] text-muted-foreground mt-1">
-                      {getServicePrice(service)}
-                    </p>
-                  </div>
-                  <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${
-                    service.id === "mix-master" || service.id === "producer" ? "bg-primary/10 text-primary" : "bg-warning/10 text-warning"
-                  }`}>
-                    {service.id === "mix-master" || service.id === "producer"
-                      ? (t("book2"))
-                      : t("onRequest")}
-                  </span>
-                </motion.button>);
-            })}
+          <div className="grid grid-cols-3 gap-3">
+            {requests.map((r) => (
+              <button key={r.title} onClick={() => navigate(r.path)}
+                className="group flex flex-col items-center gap-2.5 rounded-2xl card-feature border border-white/5 p-4 text-center transition-all hover:-translate-y-0.5 active:scale-[0.98]">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl" style={{ background: GRAD.request }}>
+                  <r.icon size={19} className="text-white" strokeWidth={2.1} />
+                </div>
+                <span className="text-xs font-bold font-display leading-tight">{r.title}</span>
+                <span className="rounded-full bg-warning/10 px-2 py-0.5 text-[9px] font-medium text-warning">{t("onRequest")}</span>
+              </button>
+            ))}
           </div>
         </motion.div>
       </motion.div>
-    </div>);
+    </div>
+  );
 };
 
 export default ServicesPage;
