@@ -1,7 +1,10 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.79688009b32b472c8549ae9a329bdaaa',
+  // Reverse-domain bundle identifier for the App Store / Play Store.
+  // NOTE: if you already registered the old Lovable id in TestFlight/Play,
+  // keep that one instead — the id can't change after first submission.
+  appId: 'nl.uprisingstudio.app',
   appName: 'Uprising Studio',
   // Ensure correct name syncs to Xcode
   webDir: 'dist',

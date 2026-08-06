@@ -136,6 +136,19 @@
   #root {
     background-color: hsl(var(--background));
   }
+  /* Signature texture: a fine film grain over the whole app for depth and a
+     printed/premium feel. Non-interactive, blends softly so it never mutes text. */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    pointer-events: none;
+    opacity: 0.035;
+    mix-blend-mode: soft-light;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 140px 140px;
+  }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
   }
@@ -217,6 +230,19 @@
     pointer-events: none;
     z-index: -1;
   }
+  /* Edge-lit top: a thin bright gradient line catching the studio light —
+     the detail that makes a card read as "designed" rather than a flat panel. */
+  .card-feature::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 12%;
+    right: 12%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(272 95% 75% / 0.55), transparent);
+    pointer-events: none;
+    z-index: 1;
+  }
   /* Gradient icon tile — the little app-icon look, lit from above */
   .icon-tile {
     background: linear-gradient(142deg, hsl(268 96% 66%), hsl(290 92% 56%));
@@ -260,6 +286,14 @@
       radial-gradient(ellipse 55% 50% at 66% 30%, hsl(292 90% 55% / 0.16), transparent 62%);
     pointer-events: none;
     z-index: 0;
+    animation: ambient-drift 22s ease-in-out infinite alternate;
+  }
+  @keyframes ambient-drift {
+    0%   { transform: translateX(-52%) translateY(0) scale(1); }
+    100% { transform: translateX(-48%) translateY(2.5vh) scale(1.08); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ambient-glow::before { animation: none; }
   }
   .font-display {
     font-family: var(--font-display);
