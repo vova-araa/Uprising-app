@@ -735,7 +735,7 @@ const BookingPage = () => {
                   onClick={() => { setSelectedStudio("content-room"); setTimeout(() => setStep(2), 200); }}
                   className="w-full flex items-center gap-4 rounded-2xl card-feature border border-white/5 p-4 text-left transition-all hover:border-primary/30 hover:-translate-y-0.5 active:scale-[0.99]"
                 >
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl icon-tile">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl icon-tile" style={{ background: "linear-gradient(142deg,#f0409b,#f57ac0)" }}>
                     <Camera size={24} strokeWidth={2.1} className="text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -754,7 +754,7 @@ const BookingPage = () => {
                   onClick={() => navigate("/mix-master")}
                   className="w-full flex items-center gap-4 rounded-2xl card-feature border border-white/5 p-4 text-left transition-all hover:border-primary/30 hover:-translate-y-0.5 active:scale-[0.99]"
                 >
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl icon-tile">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl icon-tile" style={{ background: "linear-gradient(142deg,#3b82f6,#22d3ee)" }}>
                     <Sliders size={24} strokeWidth={2.1} className="text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -775,7 +775,7 @@ const BookingPage = () => {
                   onClick={() => navigate("/producer-booking")}
                   className="w-full flex items-center gap-4 rounded-2xl card-feature border border-white/5 p-4 text-left transition-all hover:border-primary/30 hover:-translate-y-0.5 active:scale-[0.99]"
                 >
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl icon-tile">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl icon-tile" style={{ background: "linear-gradient(142deg,#16c784,#4ade80)" }}>
                     <Music size={24} strokeWidth={2.1} className="text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
