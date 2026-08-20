@@ -72,8 +72,8 @@ const StudioSessionDetailPage = () => {
           </div>
           <div className="grid grid-cols-3 gap-1.5">
             {flow.map((f, i) => (
-              <div key={i} className="relative flex flex-col items-center gap-2 rounded-2xl card-feature border border-white/5 p-3 hover:-translate-y-0.5 transition-all">
-                <div className="absolute -top-2 left-1/2 -translate-x-1/2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+              <div key={i} className="relative flex flex-col items-center gap-2 rounded-2xl card-premium border border-white/10 p-3 mt-2 hover:-translate-y-0.5 transition-all">
+                <div className="absolute -top-2 left-1/2 -translate-x-1/2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-glow">
                   {i + 1}
                 </div>
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl icon-tile mt-1">

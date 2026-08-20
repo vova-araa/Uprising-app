@@ -9,7 +9,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Calendar, Clock, Music, Users, Package, Camera,
   Check, X, Loader2, Shield, CalendarClock,
-  BarChart3, CreditCard, Bell, Gift, UserCheck, Megaphone, TrendingUp,
+  BarChart3, CreditCard, Bell, Gift, UserCheck, Megaphone, TrendingUp, MessageSquare,
   ChevronRight, ChevronDown, AlertTriangle, Bug,
   Edit3, Save, Phone, MapPin, Mail, Crown, Trash2,
   Database, ChevronLeft, RefreshCw, Upload, Settings, Plus, Building2
@@ -34,7 +34,7 @@ import { inlineToast as toast } from "@/components/InlineToast";
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
 const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
 
-type Tab = "overview" | "insights" | "finance" | "diensten" | "bookings" | "producer" | "requests" | "projects" | "users" | "intakes" | "labels" | "notifications" | "referrals" | "errors" | "database" | "products" | "config" | "configsettings" | "nuki" | "access" | "blast" | "subscriptions" | "perf";
+type Tab = "overview" | "insights" | "finance" | "diensten" | "bookings" | "producer" | "requests" | "projects" | "users" | "intakes" | "labels" | "notifications" | "referrals" | "errors" | "database" | "products" | "config" | "configsettings" | "nuki" | "access" | "blast" | "subscriptions" | "perf" | "notes";
 
 const AdminPage = () => {
   const { lang } = useI18n();
@@ -55,6 +55,13 @@ const AdminPage = () => {
   const [referrals, setReferrals] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [errorLogs, setErrorLogs] = useState<any[]>([]);
+  const [memberNotes, setMemberNotes] = useState<any[]>([]);
+
+  const resolveMemberNote = async (id: string) => {
+    const { error } = await (supabase.from as any)("member_notes").update({ status: "resolved", updated_at: new Date().toISOString() }).eq("id", id);
+    if (error) { toast.error("Er ging iets mis"); return; }
+    setMemberNotes((prev) => prev.map((n) => (n.id === id ? { ...n, status: "resolved" } : n)));
+  };
   const [membershipData, setMembershipData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
@@ -277,6 +284,9 @@ const AdminPage = () => {
       } else if (tab === "errors") {
         const { data } = await supabase.from("error_logs").select("*").order("created_at", { ascending: false }).limit(100);
         setErrorLogs(data || []);
+      } else if (tab === "notes") {
+        const { data } = await (supabase.from as any)("member_notes").select("*").order("created_at", { ascending: false }).limit(100);
+        setMemberNotes(data || []);
       }
     } catch (err) {
       // data load error
@@ -616,6 +626,7 @@ const AdminPage = () => {
   const mainTabs: { id: Tab; label: string; icon: any }[] = [
     { id: "overview", label: lang === "nl" ? "Overzicht" : "Overview", icon: BarChart3 },
     { id: "insights", label: "Insights", icon: TrendingUp },
+    { id: "notes", label: lang === "nl" ? "Berichten" : "Messages", icon: MessageSquare },
     { id: "diensten", label: lang === "nl" ? "Diensten" : "Services", icon: Package },
     { id: "users", label: lang === "nl" ? "Gebruikers" : "Users", icon: Users },
     { id: "config", label: "Config", icon: Settings },
@@ -1567,6 +1578,43 @@ const AdminPage = () => {
                       )}
                     </motion.div>
                   ))
+                )}
+              </>
+            )}
+
+            {/* ===== MEMBER NOTES ===== */}
+            {activeTab === "notes" && (
+              <>
+                {memberNotes.length === 0 ? (
+                  <div className="rounded-2xl card-feature border border-white/5 p-8 text-center">
+                    <MessageSquare size={30} className="mx-auto text-muted-foreground mb-3" />
+                    <p className="text-sm font-semibold">{lang === "nl" ? "Nog geen berichten van leden" : "No member messages yet"}</p>
+                  </div>
+                ) : (
+                  memberNotes.map((note: any) => {
+                    const author = profiles.find((p: any) => p.id === note.user_id);
+                    return (
+                      <motion.div key={note.id} variants={item}
+                        className={`rounded-2xl card-feature border p-4 ${note.status === "resolved" ? "border-white/5 opacity-60" : "border-primary/25"}`}>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-sm font-bold font-display">{author?.full_name || author?.email || "Onbekend lid"}</span>
+                              {note.status === "resolved" && <span className="rounded-full bg-success/15 px-2 py-0.5 text-[9px] font-bold text-success">{lang === "nl" ? "AFGEHANDELD" : "RESOLVED"}</span>}
+                            </div>
+                            <p className="text-sm text-foreground/90 break-words leading-snug">{note.message}</p>
+                            <p className="text-[10px] text-muted-foreground mt-2">{format(new Date(note.created_at), "d MMM HH:mm", { locale })}</p>
+                          </div>
+                        </div>
+                        {note.status !== "resolved" && (
+                          <button onClick={() => resolveMemberNote(note.id)}
+                            className="mt-3 w-full flex items-center justify-center gap-1 rounded-lg bg-success/15 border border-success/25 py-2 text-xs font-semibold text-success">
+                            <Check size={14} /> {lang === "nl" ? "Markeer als afgehandeld" : "Mark as resolved"}
+                          </button>
+                        )}
+                      </motion.div>
+                    );
+                  })
                 )}
               </>
             )}

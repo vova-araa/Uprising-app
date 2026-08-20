@@ -8,7 +8,8 @@ import {
   Calendar, Clock, User, Navigation, Timer, LogOut, Globe, ChevronRight,
   Layers, Music, Mic, TrendingUp, FileAudio, Loader2, LayoutDashboard,
   Gift, Copy, Users, Check, Crown, CreditCard, XCircle, ExternalLink, Camera, BookOpen, AlertTriangle, Upload, Bell,
-  Trash2, Pencil, Info, Star, Video, Sparkles, CalendarPlus, DoorOpen, MapPin
+  Trash2, Pencil, Info, Star, Video, Sparkles, CalendarPlus, DoorOpen, MapPin,
+  Send, MessageSquare, Target, Flame
 } from "lucide-react";
 import { downloadBookingICS } from "@/lib/calendar";
 import NukiAccessButton from "@/components/NukiAccessButton";
@@ -131,6 +132,11 @@ const AccountPage = () => {
   const [faultDialogBooking, setFaultDialogBooking] = useState<any>(null);
   const [bookingsFilter, setBookingsFilter] = useState<"upcoming" | "past">("upcoming");
   const [showAllPast, setShowAllPast] = useState(false);
+  // Coach-tip context + "note to the team"
+  const [creatorProfile, setCreatorProfile] = useState<{ process_stage?: string | null; struggles?: string | null; weekly_content_goal?: number | null } | null>(null);
+  const [noteText, setNoteText] = useState("");
+  const [noteSending, setNoteSending] = useState(false);
+  const [noteSent, setNoteSent] = useState(false);
   const [whatsappOptIn, setWhatsappOptIn] = useState(false);
   const [submissionDialog, setSubmissionDialog] = useState<{ booking: any; kind: "session_video" | "clean_room_photo" } | null>(null);
   const [projectUploadTarget, setProjectUploadTarget] = useState<any | null>(null);
@@ -634,6 +640,36 @@ const AccountPage = () => {
   };
 
   useEffect(() => {
+    if (!user) return;
+    // Coach-tip context: the artist's current stage + what they struggle with.
+    (supabase.from as any)("creator_profiles")
+      .select("process_stage, struggles, weekly_content_goal")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data, error }: { data: any; error: any }) => {
+        if (!error && data) setCreatorProfile(data);
+      });
+  }, [user]);
+
+  const sendTeamNote = async () => {
+    if (!user || !noteText.trim() || noteSending) return;
+    setNoteSending(true);
+    const { error } = await (supabase.from as any)("member_notes").insert({
+      user_id: user.id,
+      message: noteText.trim(),
+    });
+    setNoteSending(false);
+    if (error) {
+      toast.error(lang === "nl" ? "Versturen mislukt — probeer opnieuw" : "Couldn't send — try again");
+      return;
+    }
+    setNoteText("");
+    setNoteSent(true);
+    toast.success(lang === "nl" ? "Bericht verstuurd naar het team ✓" : "Sent to the team ✓");
+    setTimeout(() => setNoteSent(false), 4000);
+  };
+
+  useEffect(() => {
     if ((activeTab === "projects" || activeTab === "dashboard") && user) {
       reloadProjects();
     }
@@ -853,6 +889,123 @@ const AccountPage = () => {
                   <ChevronRight size={18} className="text-muted-foreground shrink-0" />
                 </button>
               )}
+            </motion.div>
+
+            {/* Graphical hub — hours, momentum, next up */}
+            <motion.div variants={item} className="rounded-2xl card-feature border border-white/5 p-4" data-toast-section>
+              <div className="flex items-center gap-2.5 mb-4">
+                <span className="h-5 w-1 rounded-full accent-bar" />
+                <h3 className="text-base font-extrabold font-display tracking-[-0.01em]">{lang === "nl" ? "Jouw studio" : "Your studio"}</h3>
+              </div>
+              <div className="flex items-center gap-5">
+                {(() => {
+                  const goal = 8;
+                  const prog = Math.min(realStats.sessionsThisMonth / goal, 1);
+                  const C = 2 * Math.PI * 40;
+                  return (
+                    <div className="relative shrink-0" style={{ width: 108, height: 108 }}>
+                      <svg width="108" height="108" viewBox="0 0 108 108">
+                        <defs>
+                          <linearGradient id="ringgrad" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stopColor="#a855f7" /><stop offset="1" stopColor="#c94bf0" />
+                          </linearGradient>
+                        </defs>
+                        <circle cx="54" cy="54" r="40" fill="none" stroke="hsl(var(--secondary))" strokeWidth="9" />
+                        <circle cx="54" cy="54" r="40" fill="none" stroke="url(#ringgrad)" strokeWidth="9" strokeLinecap="round"
+                          strokeDasharray={C} strokeDashoffset={C * (1 - prog)} transform="rotate(-90 54 54)"
+                          style={{ transition: "stroke-dashoffset .6s ease", filter: "drop-shadow(0 0 6px rgba(168,85,247,.55))" }} />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-2xl font-extrabold font-display leading-none">{realStats.sessionsThisMonth}</span>
+                        <span className="text-[9px] text-muted-foreground mt-1 uppercase tracking-wider">{lang === "nl" ? "deze mnd" : "this mo"}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+                <div className="flex-1 min-w-0 grid grid-cols-2 gap-x-3 gap-y-3">
+                  <div>
+                    <div className="flex items-center gap-1.5 text-primary"><Clock size={13} /><span className="text-xl font-extrabold font-display tabular-nums">{realStats.totalHours}</span><span className="text-xs font-bold">u</span></div>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{lang === "nl" ? "totaal in de studio" : "total in studio"}</p>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5 text-primary"><Mic size={13} /><span className="text-xl font-extrabold font-display tabular-nums">{realStats.totalSessions}</span></div>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{lang === "nl" ? "sessies gedaan" : "sessions done"}</p>
+                  </div>
+                  <div className="col-span-2 flex items-center gap-2 rounded-xl bg-secondary/50 px-3 py-2">
+                    <CalendarPlus size={14} className="text-primary shrink-0" />
+                    {nextBooking ? (
+                      <p className="text-[11px] text-foreground truncate"><span className="text-muted-foreground">{lang === "nl" ? "Volgende: " : "Next: "}</span><b>{getStudioName(nextBooking.studio_id)}</b> · {format(new Date(nextBooking.booking_date), "EEE d MMM", { locale })} {nextBooking.start_time}</p>
+                    ) : (
+                      <p className="text-[11px] text-muted-foreground">{lang === "nl" ? "Nog geen sessie gepland" : "No session planned yet"}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Constant coach nudge — meets the artist where they are */}
+            {(() => {
+              const stage = creatorProfile?.process_stage || null;
+              const STAGE_TIPS: Record<string, { nl: string; en: string }> = {
+                idee: { nl: "Je zit in de idee-fase. Schrijf deze week 3 concepten uit en kies er één om op te nemen.", en: "You're in the idea phase. Sketch 3 concepts this week and pick one to record." },
+                opnemen: { nl: "Tijd om op te nemen — blok 2 uur studio en leg minstens één sterke take vast.", en: "Time to record — block 2 studio hours and capture at least one strong take." },
+                mixen: { nl: "Bijna klaar. Laat je mix een dag rusten en check 'm daarna op je telefoon-speakers.", en: "Almost there. Let the mix rest a day, then check it on phone speakers." },
+                mixen_masteren: { nl: "Laat je mix een dag rusten en check 'm daarna op je telefoon-speakers.", en: "Let the mix rest a day, then check it on phone speakers." },
+                release: { nl: "Zet je releasedatum vast en maak 3 teasers vóór de drop.", en: "Lock your release date and make 3 teasers before the drop." },
+                promo: { nl: "Post consistent: knip 3 clips uit je laatste sessie voor deze week.", en: "Stay consistent: cut 3 clips from your last session for this week." },
+              };
+              const tip = (stage && STAGE_TIPS[stage]) || { nl: "Zet je artiestenprofiel op in de coach — dan krijg je tips op maat voor precies waar jij nu staat.", en: "Set up your artist profile in the coach — you'll get tips tailored to exactly where you are." };
+              return (
+                <motion.div variants={item} className="rounded-2xl card-feature border border-white/5 p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="icon-tile flex h-11 w-11 shrink-0 items-center justify-center rounded-xl" style={{ background: "linear-gradient(142deg,#f59e0b,#fbbf24)" }}>
+                      <Sparkles size={20} className="text-white" strokeWidth={2.2} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-warning">{lang === "nl" ? "Jouw coach" : "Your coach"}</p>
+                        {stage && <span className="rounded-full bg-warning/10 border border-warning/25 px-2 py-0.5 text-[9px] font-semibold text-warning capitalize">{stage.replace(/_/g, " ")}</span>}
+                      </div>
+                      <p className="text-sm text-foreground leading-snug mt-1.5">{tip[localizedLang]}</p>
+                      {creatorProfile?.struggles ? (
+                        <p className="text-[11px] text-muted-foreground mt-2 flex items-start gap-1.5"><Target size={12} className="text-warning mt-0.5 shrink-0" /><span>{lang === "nl" ? "Je worstelt met: " : "You struggle with: "}<span className="text-foreground/80">{creatorProfile.struggles}</span> — {lang === "nl" ? "je coach heeft hier concrete stappen voor." : "your coach has concrete steps for this."}</span></p>
+                      ) : null}
+                      <button onClick={() => navigate("/coach")}
+                        className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-warning/12 border border-warning/25 px-3 py-2 text-xs font-bold text-warning active:scale-[0.98]">
+                        <Flame size={13} /> {lang === "nl" ? "Open je coach" : "Open your coach"}
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })()}
+
+            {/* Note to the team */}
+            <motion.div variants={item} className="rounded-2xl card-feature border border-white/5 p-4" data-toast-section>
+              <div className="flex items-center gap-2.5 mb-1">
+                <MessageSquare size={16} className="text-primary" />
+                <h3 className="text-sm font-bold font-display">{lang === "nl" ? "Bericht aan het team" : "Message the team"}</h3>
+              </div>
+              <p className="text-[11px] text-muted-foreground mb-3">{lang === "nl" ? "Een vraag, opmerking of iets kapot? Laat het hier weten." : "A question, remark or something broken? Let us know here."}</p>
+              <textarea
+                value={noteText}
+                onChange={(e) => setNoteText(e.target.value)}
+                rows={3}
+                maxLength={600}
+                placeholder={lang === "nl" ? "Typ je bericht…" : "Type your message…"}
+                className="w-full rounded-xl bg-secondary/60 border border-border px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+              />
+              <div className="flex items-center justify-between mt-2.5">
+                <span className="text-[10px] text-muted-foreground">{noteSent ? (lang === "nl" ? "✓ Verstuurd naar het team" : "✓ Sent to the team") : `${noteText.length}/600`}</span>
+                <button
+                  onClick={sendTeamNote}
+                  disabled={!noteText.trim() || noteSending}
+                  className="inline-flex items-center gap-1.5 rounded-lg btn-glow px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50 active:scale-[0.98]"
+                >
+                  {noteSending ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
+                  {lang === "nl" ? "Versturen" : "Send"}
+                </button>
+              </div>
             </motion.div>
 
             {/* Blocked projects alert */}
